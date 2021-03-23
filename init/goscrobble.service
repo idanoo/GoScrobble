@@ -1,0 +1,16 @@
+[Unit]
+Description=Go Scrobble
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+Environment="MYSQL_HOST=127.0.0.1"
+Environment="MYSQL_USER=goscrobble"
+Environment="MYSQL_PASS=supersecurepass"
+Environment="MYSQL_DB=goscrobble"
+ExecStart=/opt/goscrobble/goscrobble
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
