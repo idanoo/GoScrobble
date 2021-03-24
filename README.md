@@ -2,6 +2,8 @@
 
 Golang based music scrobbler. MySQL backend.
 
+Currently building on Node V15.X & Go V1.16.X
+
 
 ## Setup MySQL
 
@@ -25,4 +27,4 @@ We need to build NPM package, and then ship web/build with the binary.
 
     cd web npm install --production && npm run build
     go build -o goscrobble cmd/go-scrobble/*.go
-    ./goscrobble
+    MYSQL_HOST=127.0.0.1 MYSQL_USER=goscrobble MYSQL_PASS=supersecurepass MYSQL_DB=goscrobble ./goscrobble

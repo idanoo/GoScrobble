@@ -7,15 +7,15 @@ function App() {
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
-          Edit <code>src/App.js</code> and save to reload.
+          go-scrobble
         </p>
         <a
           className="App-link"
-          href="https://reactjs.org"
+          href="https://git.m2.nz/idanoo/go-scrobble"
           target="_blank"
           rel="noopener noreferrer"
         >
-          Learn React
+          git.m2.nz/idanoo/go-scrobble
         </a>
       </header>
     </div>
