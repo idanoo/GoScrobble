@@ -23,7 +23,7 @@ func HandleRequests() {
 	httpRouter.HandleFunc("/api/v1", serveEndpoint)
 	httpRouter.HandleFunc("/api/v1/scrobble/jellyfin", serveEndpoint)
 
-	spa := spaHandler{staticPath: "build", indexPath: "index.html"}
+	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
 	httpRouter.PathPrefix("/").Handler(spa)
 
 	// fileServer := http.FileServer(http.Dir("web"))
