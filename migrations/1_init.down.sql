@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `goscrobble`;
+DROP TABLE IF EXISTS `config`;

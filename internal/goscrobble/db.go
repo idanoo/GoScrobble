@@ -10,15 +10,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate"
 	"github.com/golang-migrate/migrate/database/mysql"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/golang-migrate/migrate/source/file"
 )
 
-type dbItem struct {
-	conn    *sql.DB
-	version *int
-}
-
-var db dbItem
+var db *sql.DB
 
 // InitDb - Boots up a DB connection
 func InitDb() {
@@ -27,7 +22,7 @@ func InitDb() {
 	dbPass := os.Getenv("MYSQL_PASS")
 	dbName := os.Getenv("MYSQL_DB")
 
-	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName)
+	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true")
 	if err != nil {
 		panic(err)
 	}
@@ -41,73 +36,38 @@ func InitDb() {
 		panic(err)
 	}
 
-	var vers int = 0
-	db = dbItem{
-		conn:    dbConn,
-		version: &vers,
-	}
+	db = dbConn
 
-	if !checkIfDbUpToDate() {
-		fmt.Printf("Database not up to date.. triggering migrations!\n")
-	} else {
-		fmt.Printf("Database up to date!\n")
-
-	}
-
+	runMigrations()
 }
 
 // CloseDbConn - Closes DB connection
 func CloseDbConn() {
-	db.conn.Close()
+	db.Close()
 }
 
-// checkIfDbUpToDate - Checks if we need to run migrations
-func checkIfDbUpToDate() bool {
-	fmt.Printf("Code version: %v. ", DBVersion)
-
-	dbVers := db.getDbVersion()
-	fmt.Printf("DB version: %v.\n", dbVers)
-
-	if dbVers == DBVersion {
-		return true
-	} else if dbVers > DBVersion {
-		panic("!!Warning!! Your database is newer than the code. Please update!")
-	}
-
-	return false
-}
-
-// getDbVersion - Gets version of schema or generate basic schema
-func (db dbItem) getDbVersion() int {
-	stmtOut, err := db.conn.Prepare("SELECT version FROM goscrobble WHERE id = ? ")
-	defer stmtOut.Close()
-
-	if err != nil {
-		// We can assume this is a fresh database - Lets config it!
-		return runMigrations(DBVersion)
-	}
-
-	err = stmtOut.QueryRow(1).Scan(db.version)
-	if err != nil {
-		panic(err.Error())
-	}
-
-	return *db.version
-}
-
-func runMigrations(latestVersion int) int {
-	driver, err := mysql.WithInstance(db.conn, &mysql.Config{})
+func runMigrations() {
+	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		log.Fatalf("Unable to run migrations! %v", err)
 	}
 
-	m, _ := migrate.NewWithDatabaseInstance(
-		"file:///migrations",
+	m, err := migrate.NewWithDatabaseInstance(
+		"file://migrations",
 		"mysql",
 		driver,
 	)
+	if err != nil {
+		panic(fmt.Errorf("Error fetching DB Migrations %v", err))
+	}
 
-	m.Steps(2)
+	err = m.Up()
+	if err != nil {
+		// Skip 'no change'. This is fine. Everything is fine.
+		if err.Error() == "no change" {
+			return
+		}
 
-	return latestVersion
+		panic(fmt.Errorf("Error running DB Migrations %v", err))
+	}
 }

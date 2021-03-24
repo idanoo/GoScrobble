@@ -1,13 +1,5 @@
-START TRANSACTION;
-
-CREATE TABLE IF NOT EXISTS `goscrobble` (
-    `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT,
-    `version` INT(11) NOT NULL DEFAULT 1
-    `name` VARCHAR(255) NULL DEFAULT '',
-    `url` VARCHAR(255) NULL DEFAULT '',
-    PRIMARY KEY(`id`)
-) DEFAULT CHARACTER SET = utf8 COLLATE = utf8_general_ci;
-
-INSERT INTO `goscrobble` (version) VALUES (1);
-
-COMMIT;
+CREATE TABLE IF NOT EXISTS `config` (
+    `key` VARCHAR(255) NOT NULL,
+    `value` INT(11) NOT NULL DEFAULT 1,
+    PRIMARY KEY(`key`)
+) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;

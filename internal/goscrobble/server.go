@@ -10,51 +10,46 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// spaHandler - Handles Single Page Applications (React)
 type spaHandler struct {
 	staticPath string
 	indexPath  string
 }
 
-// HandleRequests - Boot HTTP server
+// HandleRequests - Boot HTTP!
 func HandleRequests() {
-	// Creates a new router
+	// Create a new router
 	httpRouter := mux.NewRouter().StrictSlash(true)
 
-	httpRouter.HandleFunc("/api/v1", serveEndpoint)
-	httpRouter.HandleFunc("/api/v1/scrobble/jellyfin", serveEndpoint)
+	// STATIC TOKEN AUTH
+	httpRouter.HandleFunc("/api/v1/ingress/jellyfin", serveEndpoint)
 
+	// JWT AUTH?
+	httpRouter.HandleFunc("/api/v1/profile/{id}", serveEndpoint)
+
+	// NO AUTH
+	httpRouter.HandleFunc("/api/v1/login", serveEndpoint)
+	httpRouter.HandleFunc("/api/v1/logout", serveEndpoint)
+	httpRouter.HandleFunc("/api/v1/register", serveEndpoint)
+
+	// SERVE FRONTEND - NO AUTH
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
 	httpRouter.PathPrefix("/").Handler(spa)
 
-	// fileServer := http.FileServer(http.Dir("web"))
-	// fileMatcher := regexp.MustCompile(`\.[a-zA-Z]*$`)
-	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-	// 	if !fileMatcher.MatchString(r.URL.Path) {
-	// 		http.ServeFile(w, r, "web/build/index.html")
-	// 	} else {
-	// 		fileServer.ServeHTTP(w, r)
-	// 	}
-	// })
-
-	// Serve HTTP Server
+	// Serve it up!
 	log.Fatal(http.ListenAndServe(":42069", httpRouter))
 }
 
-// serveFrontend - Handle / queries
-func serveFrontend(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome!")
-}
-
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
+	// Lets trick 'em for now
 	fmt.Fprintf(w, "{}")
 }
 
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// get the absolute path to prevent directory traversal
+	// Get the absolute path to prevent directory traversal
 	path, err := filepath.Abs(r.URL.Path)
 	if err != nil {
-		// if we failed to get the absolute path respond with a 400 bad request
-		// and stop
+		// If we failed to get the absolute path respond with a 400 bad request and return
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
