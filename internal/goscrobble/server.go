@@ -1,6 +1,7 @@
 package goscrobble
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -19,32 +20,46 @@ type spaHandler struct {
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
 	// Create a new router
-	httpRouter := mux.NewRouter().StrictSlash(true)
+	r := mux.NewRouter().StrictSlash(true)
 
+	v1 := r.PathPrefix("/api/v1").Subrouter()
 	// STATIC TOKEN AUTH
-	httpRouter.HandleFunc("/api/v1/ingress/jellyfin", serveEndpoint)
+	// httpRouter.HandleFunc("/api/v1/ingress/jellyfin", serveEndpoint)
 
-	// JWT AUTH?
-	httpRouter.HandleFunc("/api/v1/profile/{id}", serveEndpoint)
+	// JWT SESSION AUTH?
+	// httpRouter.HandleFunc("/api/v1/profile/{id}", serveEndpoint)
 
 	// NO AUTH
-	httpRouter.HandleFunc("/api/v1/login", serveEndpoint)
-	httpRouter.HandleFunc("/api/v1/logout", serveEndpoint)
-	httpRouter.HandleFunc("/api/v1/register", serveEndpoint)
+	v1.HandleFunc("/register", serveEndpoint).Methods("POST")
+	v1.HandleFunc("/login", serveEndpoint).Methods("POST")
+	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
+
+	// This just prevents it serving frontend over /api
+	r.PathPrefix("/api")
 
 	// SERVE FRONTEND - NO AUTH
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
-	httpRouter.PathPrefix("/").Handler(spa)
+	r.PathPrefix("/").Handler(spa)
 
 	// Serve it up!
-	log.Fatal(http.ListenAndServe(":42069", httpRouter))
+	log.Fatal(http.ListenAndServe(":42069", r))
 }
 
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
-	// Lets trick 'em for now
+	var jsonInput map[string]interface{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&jsonInput)
+	if err != nil {
+		// If we can't decode. Lets tell them nicely.
+		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
+		return
+	}
+
+	// Lets trick 'em for now ;) ;)
 	fmt.Fprintf(w, "{}")
 }
 
+// ServerHTTP - Frontend server
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get the absolute path to prevent directory traversal
 	path, err := filepath.Abs(r.URL.Path)
