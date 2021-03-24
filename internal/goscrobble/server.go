@@ -4,19 +4,37 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gorilla/mux"
 )
 
+type spaHandler struct {
+	staticPath string
+	indexPath  string
+}
+
 // HandleRequests - Boot HTTP server
 func HandleRequests() {
-	// creates a new instance of a mux router
+	// Creates a new router
 	httpRouter := mux.NewRouter().StrictSlash(true)
-	// replace http.HandleFunc with myRouter.HandleFunc
-	httpRouter.HandleFunc("/", serveFrontend)
+
 	httpRouter.HandleFunc("/api/v1", serveEndpoint)
 	httpRouter.HandleFunc("/api/v1/scrobble/jellyfin", serveEndpoint)
-	httpRouter.HandleFunc("/api/v1/jellyfin", serveEndpoint)
+
+	spa := spaHandler{staticPath: "build", indexPath: "index.html"}
+	httpRouter.PathPrefix("/").Handler(spa)
+
+	// fileServer := http.FileServer(http.Dir("web"))
+	// fileMatcher := regexp.MustCompile(`\.[a-zA-Z]*$`)
+	// http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	// 	if !fileMatcher.MatchString(r.URL.Path) {
+	// 		http.ServeFile(w, r, "web/build/index.html")
+	// 	} else {
+	// 		fileServer.ServeHTTP(w, r)
+	// 	}
+	// })
 
 	// Serve HTTP Server
 	log.Fatal(http.ListenAndServe(":42069", httpRouter))
@@ -29,4 +47,34 @@ func serveFrontend(w http.ResponseWriter, r *http.Request) {
 
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "{}")
+}
+
+func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// get the absolute path to prevent directory traversal
+	path, err := filepath.Abs(r.URL.Path)
+	if err != nil {
+		// if we failed to get the absolute path respond with a 400 bad request
+		// and stop
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// prepend the path with the path to the static directory
+	path = filepath.Join(h.staticPath, path)
+
+	// check whether a file exists at the given path
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		// file does not exist, serve index.html
+		http.ServeFile(w, r, filepath.Join(h.staticPath, h.indexPath))
+		return
+	} else if err != nil {
+		// if we got an error (that wasn't that the file doesn't exist) stating the
+		// file, return a 500 internal server error and stop
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// otherwise, use http.FileServer to serve the static dir
+	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
