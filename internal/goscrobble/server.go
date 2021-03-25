@@ -19,8 +19,12 @@ type spaHandler struct {
 }
 
 type jsonResponse struct {
-	Err string `json:"error"`
+	Err string `json:"error,omitempty"`
+	Msg string `json:"message,omitempty"`
 }
+
+// Limits to 1 req / 10 sec
+var limiter = NewIPRateLimiter(0.1, 1)
 
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
@@ -36,7 +40,7 @@ func HandleRequests() {
 	v1.HandleFunc("/profile/{id}", jwtMiddleware(serveEndpoint))
 
 	// No Auth
-	v1.HandleFunc("/register", handleRegister).Methods("POST")
+	v1.HandleFunc("/register", limitMiddleware(handleRegister)).Methods("POST")
 	v1.HandleFunc("/login", serveEndpoint).Methods("POST")
 	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
 
@@ -62,7 +66,7 @@ func throwUnauthorized(w http.ResponseWriter, m string) {
 	http.Error(w, err.Error(), http.StatusUnauthorized)
 }
 
-// throwUnauthorized - Throws a 403 :
+// throwUnauthorized - Throws a 403
 func throwBadReq(w http.ResponseWriter, m string) {
 	jr := jsonResponse{
 		Err: m,
@@ -70,6 +74,15 @@ func throwBadReq(w http.ResponseWriter, m string) {
 	js, _ := json.Marshal(&jr)
 	err := errors.New(string(js))
 	http.Error(w, err.Error(), http.StatusBadRequest)
+}
+
+// generateJsonMessage - Generates a message:str response
+func generateJsonMessage(m string) []byte {
+	jr := jsonResponse{
+		Msg: m,
+	}
+	js, _ := json.Marshal(&jr)
+	return js
 }
 
 // tokenMiddleware - Validates token to a user
@@ -90,6 +103,19 @@ func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
+// limitMiddleware - Rate limits important stuff
+func limitMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		limiter := limiter.GetLimiter(r.RemoteAddr)
+		if !limiter.Allow() {
+			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+			return
+		}
+
+		next(w, r)
+	})
+}
+
 // API ENDPOINT HANDLING
 
 // handleRegister - Does as it says!
@@ -108,8 +134,9 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Lets trick 'em for now ;) ;)
-	fmt.Fprintf(w, "{}")
+	msg := generateJsonMessage("User created succesfully")
+	w.WriteHeader(http.StatusCreated)
+	w.Write(msg)
 }
 
 // serveEndpoint - API stuffs
