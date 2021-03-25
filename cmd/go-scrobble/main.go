@@ -3,6 +3,9 @@ package main
 import (
 	"log"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"git.m2.nz/go-scrobble/internal/goscrobble"
 	"github.com/joho/godotenv"
@@ -16,6 +19,21 @@ func main() {
 
 	// Store JWT secret
 	goscrobble.JwtToken = []byte(os.Getenv("JWT_SECRET"))
+
+	// Store JWT expiry
+	goscrobble.JwtExpiry = 86400
+	jwtExpiryStr := os.Getenv("JWT_EXPIRY")
+	if jwtExpiryStr != "" {
+		i, err := strconv.ParseFloat(jwtExpiryStr, 64)
+		if err != nil {
+			panic("Invalid JWT_EXPIRY value")
+		}
+
+		goscrobble.JwtExpiry = time.Duration(i) * time.Second
+	}
+
+	// Ignore reverse proxies
+	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 
 	// // Boot up DB connection for life of application
 	goscrobble.InitDb()

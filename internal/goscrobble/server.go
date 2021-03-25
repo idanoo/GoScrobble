@@ -29,6 +29,9 @@ var heavyLimiter = NewIPRateLimiter(0.1, 1)
 // Limits to 5 req / sec
 var standardLimiter = NewIPRateLimiter(5, 5)
 
+// List of Reverse proxies
+var ReverseProxies []string
+
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
 	// Create a new router
@@ -44,7 +47,7 @@ func HandleRequests() {
 
 	// No Auth
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
-	v1.HandleFunc("/login", limitMiddleware(serveEndpoint, standardLimiter)).Methods("POST")
+	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
 	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
 
 	// This just prevents it serving frontend stuff over /api
@@ -133,7 +136,8 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = createUser(&regReq)
+	ip := getUserIp(r)
+	err = createUser(&regReq, ip)
 	if err != nil {
 		throwBadReq(w, err.Error())
 		return
@@ -144,16 +148,36 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	w.Write(msg)
 }
 
+// handleLogin - Does as it says!
+func handleLogin(w http.ResponseWriter, r *http.Request) {
+	logReq := LoginRequest{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&logReq)
+	if err != nil {
+		throwBadReq(w, err.Error())
+		return
+	}
+
+	ip := getUserIp(r)
+	data, err := loginUser(&logReq, ip)
+	if err != nil {
+		throwBadReq(w, err.Error())
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(data)
+}
+
 // serveEndpoint - API stuffs
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
-	json, err := decodeJson(r.Body)
+	_, err := decodeJson(r.Body)
 	if err != nil {
 		// If we can't decode. Lets tell them nicely.
 		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
 		return
 	}
 
-	log.Printf("%v", json)
 	// Lets trick 'em for now ;) ;)
 	fmt.Fprintf(w, "{}")
 }

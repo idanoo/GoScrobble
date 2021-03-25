@@ -2,6 +2,7 @@ package goscrobble
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -70,4 +71,14 @@ func runMigrations() {
 
 		panic(fmt.Errorf("Error running DB Migrations %v", err))
 	}
+}
+
+func getDbCount(query string, args ...interface{}) (int, error) {
+	var result int
+	err := db.QueryRow(query, args...).Scan(&result)
+	if err != nil {
+		return 0, errors.New("Error fetching data")
+	}
+
+	return result, nil
 }

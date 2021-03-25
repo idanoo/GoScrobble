@@ -1,14 +1,17 @@
 package goscrobble
 
 import (
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/dgrijalva/jwt-go"
 )
 
 // JwtToken - Store token from .env
 var JwtToken []byte
+
+// JwtExpiry - Expiry in seconds
+var JwtExpiry time.Duration
 
 // Store custom claims here
 type Claims struct {
@@ -26,7 +29,6 @@ func verifyToken(token string, w http.ResponseWriter) bool {
 	})
 
 	if err != nil {
-		log.Printf("%v", err)
 		if err == jwt.ErrSignatureInvalid {
 			w.WriteHeader(http.StatusUnauthorized)
 			return false

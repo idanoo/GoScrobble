@@ -1,24 +1,33 @@
 package goscrobble
 
 import (
+	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+	"net"
+	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const bCryptCost = 16
 
 type User struct {
-	UUID      string    `json:"uuid"`
-	CreatedAt time.Time `json:"created_at"`
-	Username  string    `json:"username"`
-	password  []byte
-	Email     string `json:"email"`
-	Verified  bool   `json:"verified"`
-	Active    bool   `json:"active"`
-	Admin     bool   `json:"admin"`
+	UUID       string    `json:"uuid"`
+	CreatedAt  time.Time `json:"created_at"`
+	CreatedIp  net.IP    `json:"created_ip"`
+	ModifiedAt time.Time `json:"modified_at"`
+	ModifiedIP net.IP    `jsos:"modified_ip"`
+	Username   string    `json:"username"`
+	Password   []byte    `json:"password"`
+	Email      string    `json:"email"`
+	Verified   bool      `json:"verified"`
+	Active     bool      `json:"active"`
+	Admin      bool      `json:"admin"`
 }
 
 // RegisterRequest - Incoming JSON
@@ -28,16 +37,37 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 }
 
+// RegisterRequest - Incoming JSON
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+// LoginResponse - JWT issued
+type LoginResponse struct {
+	Token string `json:"token"`
+}
+
 // createUser - Called from API
-func createUser(req *RegisterRequest) error {
+func createUser(req *RegisterRequest, ip net.IP) error {
 	// Check if user already exists..
 	if len(req.Password) < 8 {
 		return errors.New("Password must be at least 8 characters")
 	}
 
-	// Check username is set
+	// Check Username is set
 	if req.Username == "" {
 		return errors.New("A username is required")
+	}
+
+	// Check max length for Username
+	if len(req.Username) > 64 {
+		return errors.New("Username cannot be longer than 64 characters")
+	}
+
+	// Check username doesn't contain @
+	if strings.Contains(req.Username, "@") {
+		return errors.New("Username contains invalid characters")
 	}
 
 	// If set an email.. validate it!
@@ -58,12 +88,85 @@ func createUser(req *RegisterRequest) error {
 		return err
 	}
 
-	return insertUser(req.Username, req.Email, hash)
+	return insertUser(req.Username, req.Email, hash, ip)
+}
+
+func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
+	var resp []byte
+	var user User
+
+	if logReq.Username == "" {
+		return resp, errors.New("username must be set")
+	}
+
+	if logReq.Password == "" {
+		return resp, errors.New("password must be set")
+	}
+
+	if strings.Contains(logReq.Username, "@") {
+		err := db.QueryRow("SELECT BIN_TO_UUID(uuid), username, email, password FROM users WHERE email = ? AND active = 1", logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				return resp, errors.New("Invalid Username or Password")
+			}
+		}
+	} else {
+		err := db.QueryRow("SELECT BIN_TO_UUID(uuid), username, email, password FROM users WHERE username = ? AND active = 1", logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		if err == sql.ErrNoRows {
+			return resp, errors.New("Invalid Username or Password")
+		}
+	}
+
+	if !isValidPassword(logReq.Password, user) {
+		return resp, errors.New("Invalid Username or Password")
+	}
+
+	// Issue JWT + Response
+	token, err := generateJwt(user)
+	if err != nil {
+		log.Printf("Error generating JWT: %v", err)
+		return resp, errors.New("Error logging in")
+	}
+
+	loginResp := LoginResponse{
+		Token: token,
+	}
+
+	resp, _ = json.Marshal(&loginResp)
+	return resp, nil
+}
+
+func generateJwt(user User) (string, error) {
+	atClaims := jwt.MapClaims{}
+	atClaims["sub"] = user.UUID
+	atClaims["username"] = user.Username
+	atClaims["email"] = user.Email
+	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS512, atClaims)
+	token, err := at.SignedString(JwtToken)
+	if err != nil {
+		return "", err
+	}
+
+	return token, nil
 }
 
 // insertUser - Does the dirtywork!
-func insertUser(username string, email string, password []byte) error {
-	_, err := db.Exec("INSERT INTO users (uuid, created_at, username, email, password) VALUES (UUID_TO_BIN(UUID(), true),NOW(),?,?,?)", username, email, password)
+func insertUser(username string, email string, password []byte, ip net.IP) error {
+	_, err := db.Exec("INSERT INTO users (uuid, created_at, created_ip, modified_at, modified_ip, username, email, password) "+
+		"VALUES (UUID_TO_BIN(UUID(), true),NOW(),?,NOW(),?,?,?,?)", ip, ip, username, email, password)
+
+	return err
+}
+
+func updateUser(uuid string, field string, value string, ip string) error {
+	_, err := db.Exec("UPDATE users SET ? = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = ?", field, value, uuid, ip)
+
+	return err
+}
+
+func updateUserDirect(uuid string, field string, value string) error {
+	_, err := db.Exec("UPDATE users SET ? = ? WHERE uuid = ?", field, value, uuid)
 
 	return err
 }
@@ -75,7 +178,7 @@ func hashPassword(password string) ([]byte, error) {
 
 // isValidPassword - Checks if password is valid
 func isValidPassword(password string, user User) bool {
-	err := bcrypt.CompareHashAndPassword(user.password, []byte(password))
+	err := bcrypt.CompareHashAndPassword(user.Password, []byte(password))
 	if err != nil {
 		return false
 	}
@@ -86,15 +189,19 @@ func isValidPassword(password string, user User) bool {
 // userAlreadyExists - Returns bool indicating if a record exists for either username or email
 // Using two look ups to make use of DB indexes.
 func userAlreadyExists(req *RegisterRequest) bool {
-	var userExists int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", req.Username).Scan(&userExists)
-	if userExists > 0 {
+	count, err := getDbCount("SELECT COUNT(*) FROM users WHERE username = ?", req.Username)
+	if err != nil {
+		fmt.Printf("Error querying for duplicate users: %v", err)
+		return true
+	}
+
+	if count > 0 {
 		return true
 	}
 
 	if req.Email != "" {
 		// Only run email check if there's an email...
-		err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", req.Email).Scan(&userExists)
+		count, err = getDbCount("SELECT COUNT(*) FROM users WHERE email = ?", req.Email)
 	}
 
 	if err != nil {
@@ -102,5 +209,5 @@ func userAlreadyExists(req *RegisterRequest) bool {
 		return true
 	}
 
-	return userExists > 0
+	return count > 0
 }
