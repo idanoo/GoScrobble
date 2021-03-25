@@ -2,6 +2,7 @@ package goscrobble
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -17,24 +18,29 @@ type spaHandler struct {
 	indexPath  string
 }
 
+type jsonResponse struct {
+	Err string `json:"error"`
+}
+
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
 	// Create a new router
 	r := mux.NewRouter().StrictSlash(true)
 
 	v1 := r.PathPrefix("/api/v1").Subrouter()
-	// STATIC TOKEN AUTH
-	// httpRouter.HandleFunc("/api/v1/ingress/jellyfin", serveEndpoint)
 
-	// JWT SESSION AUTH?
-	// httpRouter.HandleFunc("/api/v1/profile/{id}", serveEndpoint)
+	// Static Token for /ingress
+	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(serveEndpoint))
 
-	// NO AUTH
+	// JWT Auth
+	v1.HandleFunc("/profile/{id}", jwtMiddleware(serveEndpoint))
+
+	// No Auth
 	v1.HandleFunc("/register", serveEndpoint).Methods("POST")
 	v1.HandleFunc("/login", serveEndpoint).Methods("POST")
 	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
 
-	// This just prevents it serving frontend over /api
+	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
 
 	// SERVE FRONTEND - NO AUTH
@@ -45,6 +51,39 @@ func HandleRequests() {
 	log.Fatal(http.ListenAndServe(":42069", r))
 }
 
+// MIDDLEWARE
+
+// tokenMiddleware - Validates token to a user
+func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		jr := jsonResponse{
+			Err: "Invalid API Token",
+		}
+		js, _ := json.Marshal(&jr)
+		err := errors.New(string(js))
+		http.Error(res, err.Error(), http.StatusUnauthorized)
+		return
+		// next(res, req)
+	}
+}
+
+// jwtMiddleware - Validates middleware to a user
+func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
+	return func(res http.ResponseWriter, req *http.Request) {
+		jr := jsonResponse{
+			Err: "Invalid JWT Token",
+		}
+		js, _ := json.Marshal(&jr)
+		err := errors.New(string(js))
+		http.Error(res, err.Error(), http.StatusUnauthorized)
+		return
+		// next(res, req)
+	}
+}
+
+// ENDPOINT HANDLING
+
+// serveEndpoint - API stuffs
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
 	var jsonInput map[string]interface{}
 	decoder := json.NewDecoder(r.Body)
@@ -58,6 +97,8 @@ func serveEndpoint(w http.ResponseWriter, r *http.Request) {
 	// Lets trick 'em for now ;) ;)
 	fmt.Fprintf(w, "{}")
 }
+
+// FRONTEND HANDLING
 
 // ServerHTTP - Frontend server
 func (h spaHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {

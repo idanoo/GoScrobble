@@ -6,6 +6,8 @@ Currently building on Node V15.X & Go V1.16.X
 
 With a prebuilt binary - you will still need the migrations folder + web/build folder on prod.
 
+Copy .env.example to .env and set variables. You can use https://www.grc.com/passwords.htm to generate a JWT_SECRET.
+
 
 ## Setup MySQL
     create user 'goscrobble'@'%' identified by 'supersecurepass';
@@ -13,10 +15,11 @@ With a prebuilt binary - you will still need the migrations folder + web/build f
     grant all privileges on goscrobble.* to 'goscrobble'@'%';
 
 ## Local build/run
+    cp .env.example .env # Fill in the blanks
     cd web && npm install && npm start
     # In another terminal
     go mod tidy
-    CGO_ENABLED=0 MYSQL_HOST=127.0.0.1 MYSQL_USER=goscrobble MYSQL_PASS=supersecurepass MYSQL_DB=goscrobble go run cmd/go-scrobble/*.go
+    CGO_ENABLED=0 go run cmd/go-scrobble/*.go
 
 Access dev frontend @ http://127.0.0.1:3000 + API @ http://127.0.0.1:42069/api/v1
 
@@ -25,7 +28,7 @@ Access dev frontend @ http://127.0.0.1:3000 + API @ http://127.0.0.1:42069/api/v
 
 ## Prod deployment
 We need to build NPM package, and then ship web/build with the binary.
-
+    cp .env.example .env # Fill in the blanks
     cd web npm install --production && npm run build
     go build -o goscrobble cmd/go-scrobble/*.go
-    MYSQL_HOST=127.0.0.1 MYSQL_USER=goscrobble MYSQL_PASS=supersecurepass MYSQL_DB=goscrobble ./goscrobble
+    ./goscrobble
