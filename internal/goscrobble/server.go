@@ -24,7 +24,10 @@ type jsonResponse struct {
 }
 
 // Limits to 1 req / 10 sec
-var limiter = NewIPRateLimiter(0.1, 1)
+var heavyLimiter = NewIPRateLimiter(0.1, 1)
+
+// Limits to 5 req / sec
+var standardLimiter = NewIPRateLimiter(5, 5)
 
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
@@ -40,8 +43,8 @@ func HandleRequests() {
 	v1.HandleFunc("/profile/{id}", jwtMiddleware(serveEndpoint))
 
 	// No Auth
-	v1.HandleFunc("/register", limitMiddleware(handleRegister)).Methods("POST")
-	v1.HandleFunc("/login", serveEndpoint).Methods("POST")
+	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
+	v1.HandleFunc("/login", limitMiddleware(serveEndpoint, standardLimiter)).Methods("POST")
 	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
 
 	// This just prevents it serving frontend stuff over /api
@@ -104,11 +107,13 @@ func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
 }
 
 // limitMiddleware - Rate limits important stuff
-func limitMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func limitMiddleware(next http.HandlerFunc, limiter *IPRateLimiter) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limiter := limiter.GetLimiter(r.RemoteAddr)
 		if !limiter.Allow() {
-			http.Error(w, http.StatusText(http.StatusTooManyRequests), http.StatusTooManyRequests)
+			msg := generateJsonMessage("Too many requests")
+			w.WriteHeader(http.StatusTooManyRequests)
+			w.Write(msg)
 			return
 		}
 
