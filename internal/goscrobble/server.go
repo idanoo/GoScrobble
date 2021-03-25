@@ -36,7 +36,7 @@ func HandleRequests() {
 	v1.HandleFunc("/profile/{id}", jwtMiddleware(serveEndpoint))
 
 	// No Auth
-	v1.HandleFunc("/register", serveEndpoint).Methods("POST")
+	v1.HandleFunc("/register", handleRegister).Methods("POST")
 	v1.HandleFunc("/login", serveEndpoint).Methods("POST")
 	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
 
@@ -52,16 +52,30 @@ func HandleRequests() {
 }
 
 // MIDDLEWARE
+// throwUnauthorized - Throws a 403
+func throwUnauthorized(w http.ResponseWriter, m string) {
+	jr := jsonResponse{
+		Err: m,
+	}
+	js, _ := json.Marshal(&jr)
+	err := errors.New(string(js))
+	http.Error(w, err.Error(), http.StatusUnauthorized)
+}
+
+// throwUnauthorized - Throws a 403 :
+func throwBadReq(w http.ResponseWriter, m string) {
+	jr := jsonResponse{
+		Err: m,
+	}
+	js, _ := json.Marshal(&jr)
+	err := errors.New(string(js))
+	http.Error(w, err.Error(), http.StatusBadRequest)
+}
 
 // tokenMiddleware - Validates token to a user
 func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		jr := jsonResponse{
-			Err: "Invalid API Token",
-		}
-		js, _ := json.Marshal(&jr)
-		err := errors.New(string(js))
-		http.Error(res, err.Error(), http.StatusUnauthorized)
+	return func(w http.ResponseWriter, r *http.Request) {
+		throwUnauthorized(w, "Invalid API Token")
 		return
 		// next(res, req)
 	}
@@ -69,31 +83,45 @@ func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 
 // jwtMiddleware - Validates middleware to a user
 func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
-	return func(res http.ResponseWriter, req *http.Request) {
-		jr := jsonResponse{
-			Err: "Invalid JWT Token",
-		}
-		js, _ := json.Marshal(&jr)
-		err := errors.New(string(js))
-		http.Error(res, err.Error(), http.StatusUnauthorized)
+	return func(w http.ResponseWriter, r *http.Request) {
+		throwUnauthorized(w, "Invalid JWT Token")
 		return
 		// next(res, req)
 	}
 }
 
-// ENDPOINT HANDLING
+// API ENDPOINT HANDLING
+
+// handleRegister - Does as it says!
+func handleRegister(w http.ResponseWriter, r *http.Request) {
+	regReq := RegisterRequest{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&regReq)
+	if err != nil {
+		throwBadReq(w, err.Error())
+		return
+	}
+
+	err = createUser(&regReq)
+	if err != nil {
+		throwBadReq(w, err.Error())
+		return
+	}
+
+	// Lets trick 'em for now ;) ;)
+	fmt.Fprintf(w, "{}")
+}
 
 // serveEndpoint - API stuffs
 func serveEndpoint(w http.ResponseWriter, r *http.Request) {
-	var jsonInput map[string]interface{}
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&jsonInput)
+	json, err := decodeJson(r.Body)
 	if err != nil {
 		// If we can't decode. Lets tell them nicely.
 		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
 		return
 	}
 
+	log.Printf("%v", json)
 	// Lets trick 'em for now ;) ;)
 	fmt.Fprintf(w, "{}")
 }

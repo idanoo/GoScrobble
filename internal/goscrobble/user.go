@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -10,44 +11,59 @@ import (
 const bCryptCost = 16
 
 type User struct {
-	UUID     string `json:"uuid"`
+	UUID      string    `json:"uuid"`
+	CreatedAt time.Time `json:"created_at"`
+	Username  string    `json:"username"`
+	password  []byte
+	Email     string `json:"email"`
+	Verified  bool   `json:"verified"`
+	Active    bool   `json:"active"`
+	Admin     bool   `json:"admin"`
+}
+
+// RegisterRequest - Incoming JSON
+type RegisterRequest struct {
 	Username string `json:"username"`
-	password []byte
 	Email    string `json:"email"`
-	Verified bool   `json:"verified"`
-	Active   bool   `json:"active"`
-	Admin    bool   `json:"admin"`
+	Password string `json:"password"`
 }
 
 // createUser - Called from API
-func createUser(username string, email string, password string) error {
+func createUser(req *RegisterRequest) error {
 	// Check if user already exists..
-	if len(password) < 8 {
+	if len(req.Password) < 8 {
 		return errors.New("Password must be at least 8 characters")
 	}
 
 	// Check username is set
-	if username == "" {
+	if req.Username == "" {
 		return errors.New("A username is required")
 	}
 
+	// If set an email.. validate it!
+	if req.Email != "" {
+		if !isEmailValid(req.Email) {
+			return errors.New("Invalid email address")
+		}
+	}
+
 	// Check if user or email exists!
-	if userAlreadyExists(username, email) {
+	if userAlreadyExists(req) {
 		return errors.New("Username or email already exists")
 	}
 
 	// Lets hashit!
-	hash, err := hashPassword(password)
+	hash, err := hashPassword(req.Password)
 	if err != nil {
 		return err
 	}
 
-	return insertUser(username, email, hash)
+	return insertUser(req.Username, req.Email, hash)
 }
 
 // insertUser - Does the dirtywork!
 func insertUser(username string, email string, password []byte) error {
-	_, err := db.Exec("INSERT INTO users (uuid, username, email, password) VALUES (UUID_TO_BIN(UUID(), true),'?','?','?')", username, email, password)
+	_, err := db.Exec("INSERT INTO users (uuid, created_at, username, email, password) VALUES (UUID_TO_BIN(UUID(), true),NOW(),?,?,?)", username, email, password)
 
 	return err
 }
@@ -69,14 +85,16 @@ func isValidPassword(password string, user User) bool {
 
 // userAlreadyExists - Returns bool indicating if a record exists for either username or email
 // Using two look ups to make use of DB indexes.
-func userAlreadyExists(username string, email string) bool {
-	var usernameCount, emailCount int
-	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = '?'", username).Scan(&usernameCount)
-	// Only run email check if there's an email...
-	if email != "" {
-		err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email = '?'", email).Scan(&emailCount)
-	} else {
-		emailCount = 0
+func userAlreadyExists(req *RegisterRequest) bool {
+	var userExists int
+	err := db.QueryRow("SELECT COUNT(*) FROM users WHERE username = ?", req.Username).Scan(&userExists)
+	if userExists > 0 {
+		return true
+	}
+
+	if req.Email != "" {
+		// Only run email check if there's an email...
+		err = db.QueryRow("SELECT COUNT(*) FROM users WHERE email = ?", req.Email).Scan(&userExists)
 	}
 
 	if err != nil {
@@ -84,8 +102,5 @@ func userAlreadyExists(username string, email string) bool {
 		return true
 	}
 
-	count := usernameCount + emailCount
-
-	// If there is more than one.. Return true. User exists.
-	return count != 0
+	return userExists > 0
 }
