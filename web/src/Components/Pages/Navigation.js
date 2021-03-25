@@ -1,13 +1,15 @@
 import React from 'react';
-import { Navbar, NavbarBrand, NavLink } from 'reactstrap';
+import { Navbar, NavbarBrand } from 'reactstrap';
+import { Link } from 'react-router-dom';
+import './Navigation.css';
 
 const Navigation = () => {
     return (
     <div>
       <Navbar color="dark" dark fixed="top">
         <NavbarBrand exact href="/" className="mr-auto">GoScrobble</NavbarBrand>
-        <NavLink exact href="/">Home</NavLink>
-        <NavLink href="/about">About</NavLink>
+        <Link class="navLink" to="/">Home</Link>
+        <Link class="navLink" to="/about">About</Link>
       </Navbar>
     </div>
     );
