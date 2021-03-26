@@ -47,10 +47,10 @@ class Register extends React.Component {
       return
     }
 
-    if (this.state.password.len < 8) {
-      this.props.addToast('Passwords do not match', { appearance: 'error' });
-      return
-    }
+    // if (this.state.password.len < 8) {
+    //   this.props.addToast('Password must be at least 8 characters', { appearance: 'error' });
+    //   return
+    // }
 
     this.setState({loading: true});
     const requestOptions = {
@@ -67,6 +67,7 @@ class Register extends React.Component {
     fetch(apiUrl, requestOptions)
       .then((response) => response.json())
       .then((function(data) {
+        console.log(data);
         if (data.error) {
           this.props.addToast(data.error, { appearance: 'error' });
         } else {

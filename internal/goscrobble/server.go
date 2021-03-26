@@ -145,7 +145,7 @@ func limitMiddleware(next http.HandlerFunc, limiter *IPRateLimiter) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limiter := limiter.GetLimiter(r.RemoteAddr)
 		if !limiter.Allow() {
-			msg := generateJsonError("Too many requests")
+			msg := generateJsonMessage("Too many requests")
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write(msg)
 			return

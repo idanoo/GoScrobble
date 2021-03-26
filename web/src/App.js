@@ -29,18 +29,16 @@ const App = () => {
   let exact = true
   return (
     <HashRouter>
-      <ToastProvider autoDismiss="true" autoDismissTimeout="5000">
-        <div className="wrapper">
-          <Navigation />
-          <Switch>
-            <Route exact={exact} path="/" component={Home} />
-            <Route path="/about" component={About} />
-            <Route path="/login" component={Login} />
-            <Route path="/register" component={Register} />
-          </Switch>
-        </div>
-        </ToastProvider>
-      </HashRouter>
+      <ToastProvider autoDismiss="true" autoDismissTimeout="5000" placement="bottom-right">
+        <Navigation />
+        <Switch>
+          <Route exact={exact} path="/" component={Home} />
+          <Route path="/about" component={About} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+        </Switch>
+      </ToastProvider>
+    </HashRouter>
   );
 }
 

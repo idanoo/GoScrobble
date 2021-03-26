@@ -13,6 +13,11 @@
   }
 }
 
+.toastNotifs {
+  margin-top: 100px;
+  z-index: 99999!important;
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;

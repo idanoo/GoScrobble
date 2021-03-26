@@ -5,23 +5,6 @@ import { Button } from 'reactstrap';
 
 import { useToasts } from 'react-toast-notifications';
 
-// const FormWithToasts = () => {
-//   const { addToast } = useToasts();
-
-//   const onSubmit = async value => {
-//     // const { error } = await dataPersistenceLayer(value);
-
-//     if (error) {
-//       addToast(error.message, { appearance: 'error' });
-//     } else {
-//       addToast('Saved Successfully', { appearance: 'success' });
-//     }
-//   };
-
-//   return <form onSubmit={this.handleSubmit}>...</form>;
-// };
-// const { addToast } = useToasts();
-
 function withToast(Component) {
   return function WrappedComponent(props) {
     const toastFuncs = useToasts()
@@ -52,6 +35,7 @@ class Login extends React.Component {
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      timeout: 5000,
       body: JSON.stringify({
         username: this.state.username,
         password: this.state.password,
@@ -67,7 +51,11 @@ class Login extends React.Component {
           this.props.addToast(data.token, { appearance: 'success' });
         }
         this.setState({loading: false});
-    }).bind(this))
+      }).bind(this))
+      .catch(() => {
+          this.props.addToast('Error submitting form. Please try again', { appearance: 'error' });
+          this.setState({loading: false});
+      });
   }
 
   render() {
