@@ -1,0 +1,10 @@
+.loginBody {
+    padding: 20px 5px 5px 5px;
+    font-size: 16pt;
+}
+
+.loginButton {
+    height: 50px;
+    width: 295px;
+    margin-top:-5px;
+}

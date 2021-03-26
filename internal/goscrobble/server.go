@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/gorilla/mux"
+	"github.com/rs/cors"
 )
 
 // spaHandler - Handles Single Page Applications (React)
@@ -31,6 +32,10 @@ var standardLimiter = NewIPRateLimiter(5, 5)
 
 // List of Reverse proxies
 var ReverseProxies []string
+
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
 
 // HandleRequests - Boot HTTP!
 func HandleRequests() {
@@ -57,8 +62,15 @@ func HandleRequests() {
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
 	r.PathPrefix("/").Handler(spa)
 
+	c := cors.New(cors.Options{
+		// Grrrr CORS
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: true,
+	})
+	handler := c.Handler(r)
+
 	// Serve it up!
-	log.Fatal(http.ListenAndServe(":42069", r))
+	log.Fatal(http.ListenAndServe(":42069", handler))
 }
 
 // MIDDLEWARE
@@ -80,6 +92,16 @@ func throwBadReq(w http.ResponseWriter, m string) {
 	js, _ := json.Marshal(&jr)
 	err := errors.New(string(js))
 	http.Error(w, err.Error(), http.StatusBadRequest)
+}
+
+// throwUnauthorized - Throws a 403
+func throwOkMessage(w http.ResponseWriter, m string) {
+	jr := jsonResponse{
+		Err: m,
+	}
+	js, _ := json.Marshal(&jr)
+	err := errors.New(string(js))
+	http.Error(w, err.Error(), http.StatusOK)
 }
 
 // generateJsonMessage - Generates a message:str response
@@ -139,7 +161,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	ip := getUserIp(r)
 	err = createUser(&regReq, ip)
 	if err != nil {
-		throwBadReq(w, err.Error())
+		throwOkMessage(w, err.Error())
 		return
 	}
 

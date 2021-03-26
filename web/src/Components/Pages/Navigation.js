@@ -11,7 +11,10 @@ const menuItems = [
 class Navigation extends Component {
     constructor(props) {
       super(props);
-      this.state = { isLoggedIn: false };
+      // Yeah I know you might not hit home.. but I can't get the
+      // path based finder thing working on initial load :sweatsmile:
+      console.log(this.props.initLocation)
+      this.state = { isLoggedIn: false, active: "Home" };
     }
 
     toggleLogin() {
@@ -23,33 +26,32 @@ class Navigation extends Component {
     }
 
     render() {
-      const activeStyle = { color: '#FFF' };
+      const activeStyle = { color: '#FFFFFF' };
 
       const renderAuthButton = () => {
         if (this.state.isLoggedIn) {
-          return <Link class="navLink" onClick={this.toggleLogin.bind(this)}>Logout</Link>;
+          return <Link to="/" className="navLink" onClick={this.toggleLogin.bind(this)}>Logout</Link>;
         } else {
-          return <Link class="navLink" onClick={this.toggleLogin.bind(this)}>Login</Link>;
+          return <Link to="/login" className="navLink">Login</Link>;
         }
       }
 
       return (
         <div>
           <Navbar color="dark" dark fixed="top">
-            <NavbarBrand exact href="/" className="mr-auto">GoScrobble</NavbarBrand>
+            <NavbarBrand href="/" className="mr-auto">GoScrobble</NavbarBrand>
             {menuItems.map(menuItem =>
-            <Link
-              class="navLink"
-              style={this.state.active === menuItem ? activeStyle : {}}
-             onClick={this._handleClick.bind(this, menuItem)}
-            >
-              {menuItem}
-            </Link>
-         )}
-
-            <Link class="navLink" to="/">Home</Link>
-            <Link class="navLink" to="/about">About</Link>
-            {renderAuthButton()}
+              <Link
+                key={menuItem}
+                className="navLink"
+                style={this.state.active === menuItem ? activeStyle : {}}
+                onClick={this._handleClick.bind(this, menuItem)}
+                to={menuItem === "Home" ? "/" : menuItem}
+              >
+                {menuItem}
+              </Link>
+            )}
+          {renderAuthButton()}
           </Navbar>
         </div>
       );
