@@ -77,6 +77,7 @@ class About extends React.Component {
               Email / Username<br/>
               <input
                 type="text"
+                className="loginFields"
                 value={this.state.username}
                 onChange={this.handleUsernameChange}
               />
@@ -86,6 +87,7 @@ class About extends React.Component {
               Password<br/>
               <input
                 type="password"
+                className="loginFields"
                 value={this.state.password}
                 onChange={this.handlePasswordChange}
               />
