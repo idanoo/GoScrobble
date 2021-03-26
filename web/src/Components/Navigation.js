@@ -32,7 +32,7 @@ class Navigation extends Component {
         if (this.state.isLoggedIn) {
           return <Link to="/" className="navLink" onClick={this.toggleLogin.bind(this)}>Logout</Link>;
         } else {
-          return <div><Link to="/login" className="navLink">Login</Link><Link to="/register" className="navLink">Register</Link></div>;
+          return <Link to="/login" className="navLink">Login</Link>;
         }
       }
 

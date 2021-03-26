@@ -113,6 +113,15 @@ func generateJsonMessage(m string) []byte {
 	return js
 }
 
+// generateJsonError - Generates a err:str response
+func generateJsonError(m string) []byte {
+	jr := jsonResponse{
+		Err: m,
+	}
+	js, _ := json.Marshal(&jr)
+	return js
+}
+
 // tokenMiddleware - Validates token to a user
 func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +145,7 @@ func limitMiddleware(next http.HandlerFunc, limiter *IPRateLimiter) http.Handler
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limiter := limiter.GetLimiter(r.RemoteAddr)
 		if !limiter.Allow() {
-			msg := generateJsonMessage("Too many requests")
+			msg := generateJsonError("Too many requests")
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write(msg)
 			return
@@ -183,7 +192,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	ip := getUserIp(r)
 	data, err := loginUser(&logReq, ip)
 	if err != nil {
-		throwBadReq(w, err.Error())
+		throwOkMessage(w, err.Error())
 		return
 	}
 
