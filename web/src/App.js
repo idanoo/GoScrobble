@@ -1,17 +1,27 @@
 import './App.css';
 import Home from './Components/Pages/Home';
 import About from './Components/Pages/About';
-import Login from './Components/Pages/Login';
 import Navigation from './Components/Pages/Navigation';
 import { Route, Switch, HashRouter } from 'react-router-dom';
+import { connect } from "react-redux";
+
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
-function App() {
+function mapStateToProps(state) {
+  return {
+    isLoggedIn: state
+  };
+}
 
-  if (!true) {
-    return <Login />
-  }
+function mapDispatchToProps(dispatch) {
+  return {
+    logIn: () => dispatch({type: true}),
+    logOut: () => dispatch({type: false})
+  };
 
+}
+
+const App = (props) => {
   return (
     <HashRouter>
       <div className="wrapper">
@@ -22,16 +32,7 @@ function App() {
         </Switch>
       </div>
       </HashRouter>
-      // <div className="App">
-      //   <Router>
-      //     <Navigation/>
-      //     <Switch>
-      //       <Route exact path='/' component={Home}/>
-      //       <Route path='/about' component={About}/>
-      //     </Switch>
-      //   </Router>
-      // </div>
   );
 }
 
-export default App;
+export default connect(mapStateToProps, mapDispatchToProps)(App);
