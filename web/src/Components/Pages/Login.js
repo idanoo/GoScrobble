@@ -2,7 +2,7 @@ import React from 'react';
 import '../../App.css';
 import './Login.css';
 import { Button } from 'reactstrap';
-
+import { Formik, Form, Field } from 'formik';
 import { useToasts } from 'react-toast-notifications';
 
 function withToast(Component) {
@@ -29,16 +29,15 @@ class Login extends React.Component {
     this.setState({password: event.target.value});
   }
 
-  handleSubmit(event) {
-    event.preventDefault();
+  handleSubmit(values) {
     this.setState({loading: true});
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       timeout: 5000,
       body: JSON.stringify({
-        username: this.state.username,
-        password: this.state.password,
+        username: values.username,
+        password: values.password,
       })
   };
     const apiUrl = process.env.REACT_APP_API_URL + '/api/v1/login';
@@ -47,7 +46,7 @@ class Login extends React.Component {
       .then((function(data) {
         if (data.error) {
           this.props.addToast(data.error, { appearance: 'error' });
-        } else {
+        } else if (data.token) {
           this.props.addToast(data.token, { appearance: 'success' });
         }
         this.setState({loading: false});
@@ -59,30 +58,35 @@ class Login extends React.Component {
   }
 
   render() {
+    let trueBool = true;
     return (
       <div className="pageWrapper">
         <h1>
           Login
         </h1>
         <div className="loginBody">
-          <form onSubmit={this.handleSubmit}>
+          <Formik
+            initialValues={{ username: '', password: '' }}
+            onSubmit={async values => this.handleSubmit(values)}
+          >
+            <Form>
             <label>
               Email / Username<br/>
-              <input
+              <Field
+                name="username"
                 type="text"
+                required={trueBool}
                 className="loginFields"
-                value={this.state.username}
-                onChange={this.handleUsernameChange}
               />
             </label>
             <br/>
             <label>
               Password<br/>
-              <input
+              <Field
+                name="password"
                 type="password"
+                required={trueBool}
                 className="loginFields"
-                value={this.state.password}
-                onChange={this.handlePasswordChange}
               />
             </label>
             <br/><br/>
@@ -92,7 +96,8 @@ class Login extends React.Component {
               className="loginButton"
               disabled={this.state.loading}
             >Login</Button>
-          </form>
+          </Form>
+          </Formik>
         </div>
       </div>
     );

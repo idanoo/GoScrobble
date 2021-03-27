@@ -2,7 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import { BrowserRouter } from 'react-router-dom'
+import { HashRouter } from 'react-router-dom'
+import { ToastProvider } from 'react-toast-notifications';
 
 import { Provider } from 'react-redux'
 import { createStore } from 'redux'
@@ -14,10 +15,12 @@ const goScorbbleStore = (state = false, logIn) => {
 const store = createStore(goScorbbleStore);
 
 ReactDOM.render(
-  <Provider store={store}>
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </Provider>,
+  <HashRouter>
+    <ToastProvider autoDismiss="true" autoDismissTimeout="5000" placement="bottom-right">
+      <Provider store={store}>
+          <App />
+      </Provider>
+    </ToastProvider>
+  </HashRouter>,
   document.getElementById('root')
 );

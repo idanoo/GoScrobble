@@ -2,7 +2,6 @@ import React from 'react';
 import '../../App.css';
 import './Login.css';
 import { Button } from 'reactstrap';
-
 import { useToasts } from 'react-toast-notifications';
 
 function withToast(Component) {
@@ -84,64 +83,73 @@ class Register extends React.Component {
   }
 
   render() {
+    let trueBool = true;
     return (
       <div className="pageWrapper">
-        <h1>
-        Register
-        </h1>
-        <div className="loginBody">
-          <form onSubmit={this.handleSubmit}>
-            <label>
-              Username*<br/>
-              <input
-                type="text"
-                required="true"
-                className="loginFields"
-                value={this.state.username}
-                onChange={this.handleUsernameChange}
-              />
-            </label>
-            <br/>
-            <label>
-              Email<br/>
-              <input
-                type="email"
-                className="loginFields"
-                value={this.state.email}
-                onChange={this.handleEmailChange}
-              />
-            </label>
-            <br/>
-            <label>
-              Password<br/>
-              <input
-                type="password"
-                required="true"
-                className="loginFields"
-                value={this.state.password}
-                onChange={this.handlePasswordChange}
-              />
-            </label>
-            <br/>
-            <label>
-              Password<br/>
-              <input
-                type="password"
-                required="true"
-                className="loginFields"
-                value={this.state.passwordconfirm}
-                onChange={this.handlePasswordConfirmChange}
-              />
-            </label>
-            <br/><br/>
-            <Button
-              color="primary"
-              type="submit"
-              className="loginButton"
-              disabled={this.state.loading}
-            >Login</Button>
-          </form>
-        </div>
+        {
+          // TODO: Move to DB:config REGISTRATION_DISABLED=1|0
+          process.env.REACT_APP_REGISTRATION_DISABLED === "true" ?
+          <p>Registration is temporarily disabled. Please try again soon!</p>
+          :
+          <div>
+            <h1>
+            Register
+            </h1>
+            <div className="loginBody">
+              <form onSubmit={this.handleSubmit}>
+                <label>
+                  Username*<br/>
+                  <input
+                    type="text"
+                    required={trueBool}
+                    className="loginFields"
+                    value={this.state.username}
+                    onChange={this.handleUsernameChange}
+                  />
+                </label>
+                <br/>
+                <label>
+                  Email<br/>
+                  <input
+                    type="email"
+                    className="loginFields"
+                    value={this.state.email}
+                    onChange={this.handleEmailChange}
+                  />
+                </label>
+                <br/>
+                <label>
+                  Password<br/>
+                  <input
+                    type="password"
+                    required={trueBool}
+                    className="loginFields"
+                    value={this.state.password}
+                    onChange={this.handlePasswordChange}
+                  />
+                </label>
+                <br/>
+                <label>
+                  Password<br/>
+                  <input
+                    type="password"
+                    required={trueBool}
+                    className="loginFields"
+                    value={this.state.passwordconfirm}
+                    onChange={this.handlePasswordConfirmChange}
+                  />
+                </label>
+                <br/><br/>
+                <Button
+                  color="primary"
+                  type="submit"
+                  className="loginButton"
+                  disabled={this.state.loading}
+                >Login</Button>
+              </form>
+            </div>
+          </div>
+        }
       </div>
     );
   }

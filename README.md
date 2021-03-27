@@ -1,13 +1,13 @@
 # go-scrobble
 
-Golang based music scrobbler. MySQL 8.0+
+Golang based music scrobbler.
 
-Currently building on Node V15.X & Go V1.16.X
+Stack: Go 1.16+, Node 15+, React 17+, MySQL 8.0+, Redis
 
-With a prebuilt binary - you will still need the migrations folder + web/build folder on prod.
+There are prebuilt binaries/packages available.
+
 
 Copy .env.example to .env and set variables. You can use https://www.grc.com/passwords.htm to generate a JWT_SECRET.
-
 
 ## Setup MySQL
     create user 'goscrobble'@'%' identified by 'supersecurepass';
@@ -32,3 +32,7 @@ We need to build NPM package, and then ship web/build with the binary.
     cd web npm install --production && REACT_APP_API_URL=https://goscrobble.com npm run build
     go build -o goscrobble cmd/go-scrobble/*.go
     ./goscrobble
+
+
+## Support Development!
+Feel free to support hosting and my coffee addiction https://liberapay.com/idanoo

@@ -2,14 +2,12 @@ import './App.css';
 import Home from './Components/Pages/Home';
 import About from './Components/Pages/About';
 import Login from './Components/Pages/Login';
+import Settings from './Components/Pages/Settings';
 import Register from './Components/Pages/Register';
 import Navigation from './Components/Navigation';
 
-import { Route, Switch, HashRouter } from 'react-router-dom';
+import { Route, Switch } from 'react-router-dom';
 import { connect } from "react-redux";
-
-import { ToastProvider } from 'react-toast-notifications';
-
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
 function mapStateToProps(state) {
@@ -28,17 +26,16 @@ function mapDispatchToProps(dispatch) {
 const App = () => {
   let exact = true
   return (
-    <HashRouter>
-      <ToastProvider autoDismiss="true" autoDismissTimeout="5000" placement="bottom-right">
-        <Navigation />
-        <Switch>
-          <Route exact={exact} path="/" component={Home} />
-          <Route path="/about" component={About} />
-          <Route path="/login" component={Login} />
-          <Route path="/register" component={Register} />
-        </Switch>
-      </ToastProvider>
-    </HashRouter>
+    <div>
+      <Navigation />
+      <Switch>
+        <Route exact={exact} path="/" component={Home} />
+        <Route path="/about" component={About} />
+        <Route path="/settings" component={Settings} />
+        <Route path="/login" component={Login} />
+        <Route path="/register" component={Register} />
+      </Switch>
+    </div>
   );
 }
 

@@ -30,7 +30,6 @@ build-react:
     expire_in: 1 day
     paths:
       - web/build
-      - web/public
       - .env.example
 
 bundle:
@@ -41,8 +40,8 @@ bundle:
   before_script:
     - apk add --no-cache zip tar
   script:
-    - zip -r goscrobble.zip web goscrobble migrations init .env.example
-    - tar -czf goscrobble.tar.gz web goscrobble migrations init .env.example
+    - zip -r goscrobble.zip web/build goscrobble migrations init .env.example
+    - tar -czf goscrobble.tar.gz web/build goscrobble migrations init .env.example
   artifacts:
     expire_in: 6 months
     paths:
