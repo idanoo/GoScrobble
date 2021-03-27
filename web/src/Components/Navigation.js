@@ -28,11 +28,17 @@ class Navigation extends Component {
     render() {
       const activeStyle = { color: '#FFFFFF' };
 
-      const renderAuthButton = () => {
+      const renderAuthButtons = () => {
         if (this.state.isLoggedIn) {
-          return <Link to="/" className="navLink" onClick={this.toggleLogin.bind(this)}>Logout</Link>;
+          return <div className="navLinkLogin">
+                  <Link to="/profile" className="navLink">Profile</Link>
+                  <Link to="/" className="navLink" onClick={this.toggleLogin.bind(this)}>Logout</Link>
+                </div>;
         } else {
-          return <Link to="/login" className="navLink">Login</Link>;
+          return <div className="navLinkLogin">
+                  <Link to="/login" className="navLink">Login</Link>
+                  <Link to="/register" className="navLink">Register</Link>
+                </div>;
         }
       }
 
@@ -51,7 +57,7 @@ class Navigation extends Component {
                 {menuItem}
               </Link>
             )}
-          {renderAuthButton()}
+          {renderAuthButtons()}
           </Navbar>
         </div>
       );

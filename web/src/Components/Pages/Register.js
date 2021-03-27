@@ -56,6 +56,7 @@ class Register extends React.Component {
     const requestOptions = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      timeout: 5000,
       body: JSON.stringify({
         username: this.state.username,
         email: this.state.email,
@@ -63,7 +64,8 @@ class Register extends React.Component {
       })
     };
 
-    const apiUrl = 'http://127.0.0.1:42069/api/v1/register';
+    const apiUrl = process.env.REACT_APP_API_URL + '/api/v1/register';
+    console.log(apiUrl);
     fetch(apiUrl, requestOptions)
       .then((response) => response.json())
       .then((function(data) {
@@ -74,7 +76,11 @@ class Register extends React.Component {
           this.props.addToast(data.message, { appearance: 'success' });
         }
         this.setState({loading: false});
-    }).bind(this));
+      }).bind(this))
+      .catch(() => {
+        this.props.addToast('Error submitting form. Please try again', { appearance: 'error' });
+        this.setState({loading: false});
+      });
   }
 
   render() {

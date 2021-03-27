@@ -7,3 +7,9 @@
     color: #666666;
     text-decoration: none;
 }
+
+.navLinkLogin {
+    margin-left: 15px;
+    padding-left: 15px;
+    border-left: 1px solid #282c34;
+}

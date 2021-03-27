@@ -41,7 +41,7 @@ class Login extends React.Component {
         password: this.state.password,
       })
   };
-    const apiUrl = 'http://127.0.0.1:42069/api/v1/login';
+    const apiUrl = process.env.REACT_APP_API_URL + '/api/v1/login';
     fetch(apiUrl, requestOptions)
       .then((response) => response.json())
       .then((function(data) {

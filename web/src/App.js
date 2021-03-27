@@ -3,7 +3,7 @@ import Home from './Components/Pages/Home';
 import About from './Components/Pages/About';
 import Login from './Components/Pages/Login';
 import Register from './Components/Pages/Register';
-import Navigation from './Components/Pages/Navigation';
+import Navigation from './Components/Navigation';
 
 import { Route, Switch, HashRouter } from 'react-router-dom';
 import { connect } from "react-redux";

@@ -96,11 +96,11 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 	var user User
 
 	if logReq.Username == "" {
-		return resp, errors.New("username must be set")
+		return resp, errors.New("A username is required")
 	}
 
 	if logReq.Password == "" {
-		return resp, errors.New("password must be set")
+		return resp, errors.New("A password is required")
 	}
 
 	if strings.Contains(logReq.Username, "@") {
