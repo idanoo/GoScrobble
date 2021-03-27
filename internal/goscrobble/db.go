@@ -48,6 +48,7 @@ func CloseDbConn() {
 }
 
 func runMigrations() {
+	fmt.Println("Checking database migrations")
 	driver, err := mysql.WithInstance(db, &mysql.Config{})
 	if err != nil {
 		log.Fatalf("Unable to run migrations! %v", err)
@@ -66,11 +67,14 @@ func runMigrations() {
 	if err != nil {
 		// Skip 'no change'. This is fine. Everything is fine.
 		if err.Error() == "no change" {
+			fmt.Println("Database already up to date")
 			return
 		}
 
 		panic(fmt.Errorf("Error running DB Migrations %v", err))
 	}
+
+	fmt.Println("Database migrations complete")
 }
 
 func getDbCount(query string, args ...interface{}) (int, error) {

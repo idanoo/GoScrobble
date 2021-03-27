@@ -38,7 +38,7 @@ func enableCors(w *http.ResponseWriter) {
 }
 
 // HandleRequests - Boot HTTP!
-func HandleRequests() {
+func HandleRequests(port string) {
 	// Create a new router
 	r := mux.NewRouter().StrictSlash(true)
 
@@ -70,7 +70,8 @@ func HandleRequests() {
 	handler := c.Handler(r)
 
 	// Serve it up!
-	log.Fatal(http.ListenAndServe(":42069", handler))
+	fmt.Printf("Goscrobble listening on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
 // MIDDLEWARE

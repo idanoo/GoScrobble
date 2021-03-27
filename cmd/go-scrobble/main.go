@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Starting goscrobble")
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -35,10 +37,16 @@ func main() {
 	// Ignore reverse proxies
 	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 
-	// // Boot up DB connection for life of application
+	// Store port
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "42069"
+	}
+
+	// Boot up DB connection for life of application
 	goscrobble.InitDb()
 	defer goscrobble.CloseDbConn()
 
 	// Boot up API webserver \o/
-	goscrobble.HandleRequests()
+	goscrobble.HandleRequests(port)
 }
