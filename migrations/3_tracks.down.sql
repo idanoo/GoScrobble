@@ -1,0 +1,8 @@
+START TRANSACTION;
+DROP TABLE IF EXISTS `artists`;
+DROP TABLE IF EXISTS `albums`;
+DROP TABLE IF EXISTS `tracks`;
+DROP TABLE IF EXISTS `track_artist`;
+DROP TABLE IF EXISTS `scrobble_track`;
+
+COMMIT;
