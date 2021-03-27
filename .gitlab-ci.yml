@@ -2,6 +2,9 @@ stages:
  - build
  - bundle
 
+variables:
+  VERSION: 0.0.1
+
 build-go:
   image: golang:1.16.2
   stage: build
@@ -31,9 +34,17 @@ build-react:
       - .env.example
 
 bundle:
-  image: idk
+  image: bash:latest
   stage: bundle
   variables:
     GIT_STRATEGY: none
+  before_script:
+    - apk add --no-cache zip tar
   script:
-    - ls -lah
+    - zip -r goscrobble.zip web goscrobble migrations init .env.example
+    - tar -czf goscrobble.tar.gz web goscrobble migrations init .env.example
+  artifacts:
+    expire_in: 6 months
+    paths:
+      - goscrobble.${VERSION}.zip
+      - goscrobble.${VERSION}.tar.gz
