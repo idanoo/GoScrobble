@@ -1,4 +1,6 @@
 ## FRONTEND VARS
+These are stored in `web/.env.production` and `web/.env.development`
+
     REACT_APP_REGISTRATION_DISABLED=true // Disables registration
     REACT_APP_API_URL=https://goscrobble.com // Sets API URL
 
