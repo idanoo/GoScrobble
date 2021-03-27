@@ -1,0 +1,39 @@
+stages:
+ - build
+ - bundle
+
+build-go:
+  image: golang:1.16.2
+  stage: build
+  script:
+    - go build -o goscrobble cmd/go-scrobble/*.go
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - goscrobble
+      - migrations
+      - init
+
+build-react:
+  image: node:15.12.0
+  stage: build
+  variables:
+    REACT_APP_API_URL: "https://goscrobble.com"
+  script:
+    - cd web
+    - npm install
+    - npm run build
+  artifacts:
+    expire_in: 1 day
+    paths:
+      - web/build
+      - web/public
+      - .env.example
+
+bundle:
+  image: idk
+  stage: bundle
+  variables:
+    GIT_STRATEGY: none
+  script:
+    - ls -lah
