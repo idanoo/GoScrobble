@@ -16,21 +16,19 @@ build-go:
       - goscrobble
       - migrations
       - init
+      - .env.example
 
 build-react:
   image: node:15.12.0
   stage: build
-  variables:
-    REACT_APP_API_URL: "https://goscrobble.com"
   script:
     - cd web
     - npm install
-    - npm run build
+    - npm run build --env production
   artifacts:
     expire_in: 1 day
     paths:
       - web/build
-      - .env.example
 
 bundle:
   image: bash:latest
@@ -40,10 +38,10 @@ bundle:
   before_script:
     - apk add --no-cache zip tar
   script:
-    - zip -r goscrobble.zip web/build goscrobble migrations init .env.example
-    - tar -czf goscrobble.tar.gz web/build goscrobble migrations init .env.example
+    - zip -r goscrobble.${VERSION}.zip web/build goscrobble migrations init .env.example
+    - tar -czf goscrobble.${VERSION}.tar.gz web/build goscrobble migrations init .env.example
   artifacts:
-    expire_in: 6 months
+    expire_in: 1 week
     paths:
       - goscrobble.${VERSION}.zip
       - goscrobble.${VERSION}.tar.gz
