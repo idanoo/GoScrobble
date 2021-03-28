@@ -28,7 +28,10 @@ func insertAlbum(name string, mbid string, artists []string, tx *sql.Tx) (Album,
 			}
 
 			album = fetchAlbum("mbid", mbid, tx)
-			album.linkAlbumToArtists(artists, tx)
+			err = album.linkAlbumToArtists(artists, tx)
+			if err != nil {
+				return album, err
+			}
 		}
 	} else {
 		album = fetchAlbum("name", name, tx)
@@ -40,7 +43,10 @@ func insertAlbum(name string, mbid string, artists []string, tx *sql.Tx) (Album,
 			}
 
 			album = fetchAlbum("name", name, tx)
-			album.linkAlbumToArtists(artists, tx)
+			err = album.linkAlbumToArtists(artists, tx)
+			if err != nil {
+				return album, err
+			}
 		}
 	}
 
@@ -76,8 +82,8 @@ func insertNewAlbum(name string, mbid string, tx *sql.Tx) error {
 func (album *Album) linkAlbumToArtists(artists []string, tx *sql.Tx) error {
 	var err error
 	for _, artist := range artists {
-		_, err = tx.Exec("INSERT INTO `track_artist` (`track`, `artist`) "+
-			"VALUES (UUID_TO_BIN(?, true), UUID_TO_BIN(?, true)", album.Uuid, artist)
+		_, err = tx.Exec("INSERT INTO `album_artist` (`album`, `artist`) "+
+			"VALUES (UUID_TO_BIN(?, true), UUID_TO_BIN(?, true))", album.Uuid, artist)
 		if err != nil {
 			return err
 		}

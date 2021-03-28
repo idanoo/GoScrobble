@@ -97,10 +97,10 @@ func throwBadReq(w http.ResponseWriter, m string) {
 	http.Error(w, err.Error(), http.StatusBadRequest)
 }
 
-// throwUnauthorized - Throws a 403
+// throwOkMessage - Throws a happy 200
 func throwOkMessage(w http.ResponseWriter, m string) {
 	jr := jsonResponse{
-		Err: m,
+		Msg: m,
 	}
 	js, _ := json.Marshal(&jr)
 	err := errors.New(string(js))
@@ -241,11 +241,11 @@ func handleIngress(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		throwOkMessage(w, "{}")
+		throwOkMessage(w, "success")
 		return
 	}
-	// Lets trick 'em for now ;) ;)
-	fmt.Fprintf(w, "{}")
+
+	throwBadReq(w, "Unknown ingress type")
 }
 
 // FRONTEND HANDLING
