@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
-	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -40,7 +39,7 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-// getUserIp - Returns IP that isn't set in REVERSE_PROXY
+// getUserIp - Returns IP that isn't set in REVERSE_PROXIES
 func getUserIp(r *http.Request) net.IP {
 	var ip net.IP
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
@@ -57,7 +56,6 @@ func getUserIp(r *http.Request) net.IP {
 	}
 
 	ip = net.ParseIP(host)
-	log.Printf("%+v", ip)
 	return ip
 }
 

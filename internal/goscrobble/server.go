@@ -223,7 +223,7 @@ func handleIngress(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ingressType := strings.Replace(r.URL.Path, "/api/v1/ingress/", "", 1)
-	log.Println(ingressType)
+
 	switch ingressType {
 	case "jellyfin":
 		tx, _ := db.Begin()

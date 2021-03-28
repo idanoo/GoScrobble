@@ -28,6 +28,7 @@ func insertAlbum(name string, mbid string, artists []string, tx *sql.Tx) (Album,
 			}
 
 			album = fetchAlbum("mbid", mbid, tx)
+			album.linkAlbumToArtists(artists, tx)
 		}
 	} else {
 		album = fetchAlbum("name", name, tx)
@@ -39,6 +40,7 @@ func insertAlbum(name string, mbid string, artists []string, tx *sql.Tx) (Album,
 			}
 
 			album = fetchAlbum("name", name, tx)
+			album.linkAlbumToArtists(artists, tx)
 		}
 	}
 

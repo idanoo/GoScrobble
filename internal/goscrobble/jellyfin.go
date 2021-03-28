@@ -10,8 +10,6 @@ import (
 
 // ParseJellyfinInput - Transform API data into a common struct
 func ParseJellyfinInput(userUUID string, data map[string]interface{}, ip net.IP, tx *sql.Tx) error {
-	log.Printf("%+v : %+v", userUUID, data)
-
 	// Insert artist if not exist
 	artist, err := insertArtist(fmt.Sprintf("%s", data["Artist"]), fmt.Sprintf("%s", data["Provider_musicbrainzartist"]), tx)
 	if err != nil {
