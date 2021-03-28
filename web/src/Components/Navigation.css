@@ -13,3 +13,9 @@
     padding-left: 15px;
     border-left: 1px solid #282c34;
 }
+
+.nav-logo {
+    height: 50px;
+    margin: -15px 5px -15px -5px;
+
+}

@@ -1,6 +1,7 @@
 import { React, Component } from 'react';
 import { Navbar, NavbarBrand } from 'reactstrap';
 import { Link } from 'react-router-dom';
+import logo from '../logo.png';
 import './Navigation.css';
 
 const menuItems = [
@@ -43,10 +44,13 @@ class Navigation extends Component {
         }
       }
 
+
+
+
       return (
         <div>
           <Navbar color="dark" dark fixed="top">
-            <NavbarBrand href="/" className="mr-auto">GoScrobble</NavbarBrand>
+            <NavbarBrand href="/" className="mr-auto"><img src={logo} className="nav-logo" alt="logo" /> GoScrobble</NavbarBrand>
             {menuItems.map(menuItem =>
               <Link
                 key={menuItem}
