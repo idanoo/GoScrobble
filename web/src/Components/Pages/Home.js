@@ -10,11 +10,11 @@ function Home() {
       </p>
       <a
         className="App-link"
-        href="https://git.m2.nz/idanoo/go-scrobble"
+        href="https://gitlab.com/idanoo/go-scrobble"
         target="_blank"
         rel="noopener noreferrer"
       >
-        git.m2.nz/idanoo/go-scrobble
+        gitlab.com/idanoo/go-scrobble
       </a>
     </div>
   );

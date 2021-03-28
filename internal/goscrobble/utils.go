@@ -45,10 +45,11 @@ func getUserIp(r *http.Request) net.IP {
 	var ip net.IP
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 	if contains(ReverseProxies, host) {
-		forwardedFor := r.Header.Get("X-FOWARDED-FOR")
+		forwardedFor := r.Header.Get("X-Forwarded-For")
 		if forwardedFor != "" {
 			host = forwardedFor
 		}
+		// 	realIp := r.Header.Get("X-Real-IP")
 	}
 
 	ip = net.ParseIP(host)

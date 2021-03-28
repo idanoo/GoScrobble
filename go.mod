@@ -1,4 +1,4 @@
-module git.m2.nz/go-scrobble
+module gitlab.com/idanoo/go-scrobble
 
 go 1.16
 

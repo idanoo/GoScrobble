@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"git.m2.nz/go-scrobble/internal/goscrobble"
 	"github.com/joho/godotenv"
+	"gitlab.com/idanoo/go-scrobble/internal/goscrobble"
 )
 
 func main() {

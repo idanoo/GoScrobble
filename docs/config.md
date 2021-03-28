@@ -16,6 +16,8 @@ These are stored in `web/.env.production` and `web/.env.development`
     REDIS_PREFIX="gs:" // Redis key prefix
     REDIS_AUTH="" // Redis password
 
+    TIMEZONE= // Used for MySQL connection
+
     JWT_SECRET= // 32+ Char JWT secret
     JWT_EXPIRY=86400 // JWT expiry
 
