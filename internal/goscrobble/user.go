@@ -153,13 +153,14 @@ func generateJwt(user User) (string, error) {
 
 // insertUser - Does the dirtywork!
 func insertUser(username string, email string, password []byte, ip net.IP) error {
-	_, err := db.Exec("INSERT INTO users (uuid, created_at, created_ip, modified_at, modified_ip, username, email, password) "+
-		"VALUES (UUID_TO_BIN(UUID(), true),NOW(),?,NOW(),?,?,?,?)", ip, ip, username, email, password)
+	token := generateToken(32)
+	_, err := db.Exec("INSERT INTO users (uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, token) "+
+		"VALUES (UUID_TO_BIN(UUID(), true),NOW(),?,NOW(),?,?,?,?,?)", ip, ip, username, email, password, token)
 
 	return err
 }
 
-func updateUser(uuid string, field string, value string, ip string) error {
+func updateUser(uuid string, field string, value string, ip net.IP) error {
 	_, err := db.Exec("UPDATE users SET ? = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = ?", field, value, uuid, ip)
 
 	return err

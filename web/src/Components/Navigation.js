@@ -5,6 +5,7 @@ import './Navigation.css';
 
 const menuItems = [
   'Home',
+  'Help',
   'About',
 ];
 
@@ -37,7 +38,7 @@ class Navigation extends Component {
         } else {
           return <div className="navLinkLogin">
                   <Link to="/login" className="navLink">Login</Link>
-                  <Link to="/register" className="navLink">Register</Link>
+                  <Link to="/register" className="navLink" history={this.props.history}>Register</Link>
                 </div>;
         }
       }

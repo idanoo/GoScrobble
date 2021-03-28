@@ -9,23 +9,23 @@ CREATE TABLE IF NOT EXISTS `links` (
 
 CREATE TABLE IF NOT EXISTS `artists` (
     `uuid` BINARY(16) PRIMARY KEY,
-    `name` BINARY(16) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
     `desc` TEXT,
-    `img` VARCHAR(255) DEFAULT ''
+    `img` VARCHAR(255) DEFAULT NULL
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `albums` (
     `uuid` BINARY(16) PRIMARY KEY,
-    `name` BINARY(16) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
     `desc` TEXT,
-    `img` VARCHAR(255) DEFAULT ''
+    `img` VARCHAR(255) DEFAULT NULL
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `tracks` (
     `uuid` BINARY(16) PRIMARY KEY,
-    `name` BINARY(16) NOT NULL,
+    `name` VARCHAR(255) NOT NULL,
     `desc` TEXT,
-    `img` VARCHAR(255) DEFAULT ''
+    `img` VARCHAR(255) DEFAULT NULL
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
 CREATE TABLE IF NOT EXISTS `scrobbles` (
@@ -40,19 +40,27 @@ CREATE TABLE IF NOT EXISTS `scrobbles` (
     FOREIGN KEY (user) REFERENCES users(uuid)
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 
-CREATE TABLE IF NOT EXISTS `track_artist` (
-    `track` BINARY(16) NOT NULL,
-    `artist` BINARY(16) NOT NULL,
-    PRIMARY KEY (`track`, `artist`),
-    FOREIGN KEY (track) REFERENCES tracks(uuid),
-    FOREIGN KEY (artist) REFERENCES artists(uuid)
-) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
-
 CREATE TABLE IF NOT EXISTS `album_artist` (
     `album` BINARY(16) NOT NULL,
     `artist` BINARY(16) NOT NULL,
     PRIMARY KEY (`album`, `artist`),
     FOREIGN KEY (album) REFERENCES albums(uuid),
+    FOREIGN KEY (artist) REFERENCES artists(uuid)
+) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `track_album` (
+    `track` BINARY(16) NOT NULL,
+    `album` BINARY(16) NOT NULL,
+    PRIMARY KEY (`track`, `album`),
+    FOREIGN KEY (track) REFERENCES tracks(uuid),
+    FOREIGN KEY (album) REFERENCES albums(uuid)
+) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS `track_artist` (
+    `track` BINARY(16) NOT NULL,
+    `artist` BINARY(16) NOT NULL,
+    PRIMARY KEY (`track`, `artist`),
+    FOREIGN KEY (track) REFERENCES tracks(uuid),
     FOREIGN KEY (artist) REFERENCES artists(uuid)
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;
 

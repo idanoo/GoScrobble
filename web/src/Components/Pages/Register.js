@@ -3,6 +3,8 @@ import '../../App.css';
 import './Login.css';
 import { Button } from 'reactstrap';
 import { useToasts } from 'react-toast-notifications';
+import ScaleLoader from "react-spinners/ScaleLoader";
+import { withRouter } from 'react-router-dom'
 
 function withToast(Component) {
   return function WrappedComponent(props) {
@@ -66,13 +68,21 @@ class Register extends React.Component {
     const apiUrl = process.env.REACT_APP_API_URL + '/api/v1/register';
     console.log(apiUrl);
     fetch(apiUrl, requestOptions)
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 429) {
+          this.props.addToast("Rate limited. Please try again soon", { appearance: 'error' });
+          return "{}"
+        } else {
+          return response.json()
+        }
+      })
       .then((function(data) {
         console.log(data);
         if (data.error) {
           this.props.addToast(data.error, { appearance: 'error' });
-        } else {
+        } else if (data.message) {
           this.props.addToast(data.message, { appearance: 'success' });
+          this.props.history.push('/login')
         }
         this.setState({loading: false});
       }).bind(this))
@@ -119,7 +129,7 @@ class Register extends React.Component {
                 </label>
                 <br/>
                 <label>
-                  Password<br/>
+                  Password*<br/>
                   <input
                     type="password"
                     required={trueBool}
@@ -130,7 +140,7 @@ class Register extends React.Component {
                 </label>
                 <br/>
                 <label>
-                  Password<br/>
+                  Password*<br/>
                   <input
                     type="password"
                     required={trueBool}
@@ -145,7 +155,7 @@ class Register extends React.Component {
                   type="submit"
                   className="loginButton"
                   disabled={this.state.loading}
-                >Login</Button>
+                  >{this.state.loading ? <ScaleLoader color="#FFF" size={35} /> : "Register"}</Button>
               </form>
             </div>
           </div>
@@ -155,4 +165,4 @@ class Register extends React.Component {
   }
 }
 
-export default withToast(Register);
+export default withRouter(withToast(Register));

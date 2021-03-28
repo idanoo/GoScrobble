@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -25,10 +26,10 @@ type jsonResponse struct {
 }
 
 // Limits to 1 req / 10 sec
-var heavyLimiter = NewIPRateLimiter(0.1, 1)
+var heavyLimiter = NewIPRateLimiter(0.25, 2)
 
 // Limits to 5 req / sec
-var standardLimiter = NewIPRateLimiter(5, 5)
+var standardLimiter = NewIPRateLimiter(1, 5)
 
 // List of Reverse proxies
 var ReverseProxies []string
@@ -45,15 +46,16 @@ func HandleRequests(port string) {
 	v1 := r.PathPrefix("/api/v1").Subrouter()
 
 	// Static Token for /ingress
-	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(serveEndpoint))
+	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(handleIngress))
 
 	// JWT Auth
-	v1.HandleFunc("/profile/{id}", jwtMiddleware(serveEndpoint))
+	// v1.HandleFunc("/profile/{id}", jwtMiddleware(handleIngress))
 
 	// No Auth
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
-	v1.HandleFunc("/logout", serveEndpoint).Methods("POST")
+	// For now just trash JWT in frontend until we have full state management "Good enough"
+	// v1.HandleFunc("/logout", handleIngress).Methods("POST")
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
@@ -126,9 +128,21 @@ func generateJsonError(m string) []byte {
 // tokenMiddleware - Validates token to a user
 func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		throwUnauthorized(w, "Invalid API Token")
-		return
-		// next(res, req)
+		fullToken := r.Header.Get("Authorization")
+		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
+		if authToken == "" {
+			throwUnauthorized(w, "A token is required")
+		}
+
+		userUuid, err := getUserForToken(authToken)
+		if err != nil {
+			throwUnauthorized(w, err.Error())
+			return
+		}
+
+		// Lets tack this on the request for now..
+		r.Header.Set("UserUUID", userUuid)
+		next(w, r)
 	}
 }
 
@@ -136,8 +150,7 @@ func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		throwUnauthorized(w, "Invalid JWT Token")
-		return
-		// next(res, req)
+		next(w, r)
 	}
 }
 
@@ -175,7 +188,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := generateJsonMessage("User created succesfully")
+	msg := generateJsonMessage("User created succesfully. You may now login")
 	w.WriteHeader(http.StatusCreated)
 	w.Write(msg)
 }
@@ -202,14 +215,35 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveEndpoint - API stuffs
-func serveEndpoint(w http.ResponseWriter, r *http.Request) {
-	_, err := decodeJson(r.Body)
+func handleIngress(w http.ResponseWriter, r *http.Request) {
+	bodyJson, err := decodeJson(r.Body)
 	if err != nil {
 		// If we can't decode. Lets tell them nicely.
 		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
 		return
 	}
+	ingressType := strings.Replace(r.URL.Path, "/api/v1/ingress/", "", 1)
+	log.Println(ingressType)
+	switch ingressType {
+	case "jellyfin":
+		tx, _ := db.Begin()
+		ip := getUserIp(r)
+		err := ParseJellyfinInput(r.Header.Get("UserUUID"), bodyJson, ip, tx)
+		if err != nil {
+			log.Printf("Error inserting track: %+v", err)
+			tx.Rollback()
+			throwBadReq(w, err.Error())
+			return
+		}
+		err = tx.Commit()
+		if err != nil {
+			throwBadReq(w, err.Error())
+			return
+		}
 
+		throwOkMessage(w, "{}")
+		return
+	}
 	// Lets trick 'em for now ;) ;)
 	fmt.Fprintf(w, "{}")
 }

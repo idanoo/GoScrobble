@@ -9,6 +9,8 @@ There are prebuilt binaries/packages available.
 Copy .env.example to .env and set variables. You can use https://www.grc.com/passwords.htm to generate a JWT_SECRET.
 
 ## More documentation
+[Changelog](docs/changelog.md)
+
 [Environment Variables](docs/config.md)
 
 ## Setup MySQL

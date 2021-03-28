@@ -16,7 +16,7 @@ const store = createStore(goScorbbleStore);
 
 ReactDOM.render(
   <HashRouter>
-    <ToastProvider autoDismiss="true" autoDismissTimeout="5000" placement="bottom-right">
+    <ToastProvider autoDismiss="true" autoDismissTimeout="6000" placement="bottom-right">
       <Provider store={store}>
           <App />
       </Provider>

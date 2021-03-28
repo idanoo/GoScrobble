@@ -1,12 +1,13 @@
 import './App.css';
 import Home from './Components/Pages/Home';
 import About from './Components/Pages/About';
+import Help from './Components/Pages/Help';
 import Login from './Components/Pages/Login';
 import Settings from './Components/Pages/Settings';
 import Register from './Components/Pages/Register';
 import Navigation from './Components/Navigation';
 
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from "react-redux";
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 
@@ -32,6 +33,7 @@ const App = () => {
         <Route exact={exact} path="/" component={Home} />
         <Route path="/about" component={About} />
         <Route path="/settings" component={Settings} />
+        <Route path="/help" component={Help} />
         <Route path="/login" component={Login} />
         <Route path="/register" component={Register} />
       </Switch>
@@ -39,4 +41,4 @@ const App = () => {
   );
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(App));

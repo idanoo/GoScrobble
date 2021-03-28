@@ -4,6 +4,7 @@ import './Login.css';
 import { Button } from 'reactstrap';
 import { Formik, Form, Field } from 'formik';
 import { useToasts } from 'react-toast-notifications';
+import ScaleLoader from "react-spinners/ScaleLoader";
 
 function withToast(Component) {
   return function WrappedComponent(props) {
@@ -42,7 +43,14 @@ class Login extends React.Component {
   };
     const apiUrl = process.env.REACT_APP_API_URL + '/api/v1/login';
     fetch(apiUrl, requestOptions)
-      .then((response) => response.json())
+      .then((response) => {
+        if (response.status === 429) {
+          this.props.addToast("Rate limited. Please try again soon", { appearance: 'error' });
+          return "{}"
+        } else {
+          return response.json()
+        }
+      })
       .then((function(data) {
         if (data.error) {
           this.props.addToast(data.error, { appearance: 'error' });
@@ -95,7 +103,7 @@ class Login extends React.Component {
               type="submit"
               className="loginButton"
               disabled={this.state.loading}
-            >Login</Button>
+            >{this.state.loading ? <ScaleLoader color="#FFF" size={35} /> : "Login"}</Button>
           </Form>
           </Formik>
         </div>

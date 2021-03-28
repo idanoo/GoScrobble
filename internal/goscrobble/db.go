@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -22,8 +23,13 @@ func InitDb() {
 	dbUser := os.Getenv("MYSQL_USER")
 	dbPass := os.Getenv("MYSQL_PASS")
 	dbName := os.Getenv("MYSQL_DB")
+	timeZone := os.Getenv("TIMEZONE")
+	dbTz := ""
+	if timeZone != "" {
+		dbTz = "&loc=" + strings.Replace(timeZone, "/", fmt.Sprintf("%%2F"), 1)
+	}
 
-	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true")
+	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true"+dbTz)
 	if err != nil {
 		panic(err)
 	}

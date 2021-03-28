@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io"
+	"log"
 	"math/big"
 	"net"
 	"net/http"
@@ -44,11 +45,14 @@ func getUserIp(r *http.Request) net.IP {
 	var ip net.IP
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)
 	if contains(ReverseProxies, host) {
-		host = r.Header.Get("X-FOWARDED-FOR")
+		forwardedFor := r.Header.Get("X-FOWARDED-FOR")
+		if forwardedFor != "" {
+			host = forwardedFor
+		}
 	}
 
 	ip = net.ParseIP(host)
-
+	log.Printf("%+v", ip)
 	return ip
 }
 
