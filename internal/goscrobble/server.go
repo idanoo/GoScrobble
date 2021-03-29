@@ -46,16 +46,14 @@ func HandleRequests(port string) {
 	v1 := r.PathPrefix("/api/v1").Subrouter()
 
 	// Static Token for /ingress
-	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(handleIngress))
+	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(handleIngress)).Methods("POST")
 
 	// JWT Auth
-	// v1.HandleFunc("/profile/{id}", jwtMiddleware(handleIngress))
+	v1.HandleFunc("/user/{id}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
 
 	// No Auth
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
-	// For now just trash JWT in frontend until we have full state management "Good enough"
-	// v1.HandleFunc("/logout", handleIngress).Methods("POST")
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
@@ -65,9 +63,10 @@ func HandleRequests(port string) {
 	r.PathPrefix("/").Handler(spa)
 
 	c := cors.New(cors.Options{
-		// Grrrr CORS
+		// Grrrr CORS. To clean up at a later date
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
+		AllowedHeaders:   []string{"*"},
 	})
 	handler := c.Handler(r)
 
@@ -97,14 +96,24 @@ func throwBadReq(w http.ResponseWriter, m string) {
 	http.Error(w, err.Error(), http.StatusBadRequest)
 }
 
+// throwOkError - Throws a 403
+func throwOkError(w http.ResponseWriter, m string) {
+	jr := jsonResponse{
+		Err: m,
+	}
+	js, _ := json.Marshal(&jr)
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
+}
+
 // throwOkMessage - Throws a happy 200
 func throwOkMessage(w http.ResponseWriter, m string) {
 	jr := jsonResponse{
 		Msg: m,
 	}
 	js, _ := json.Marshal(&jr)
-	err := errors.New(string(js))
-	http.Error(w, err.Error(), http.StatusOK)
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }
 
 // generateJsonMessage - Generates a message:str response
@@ -126,7 +135,7 @@ func generateJsonError(m string) []byte {
 }
 
 // tokenMiddleware - Validates token to a user
-func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func tokenMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fullToken := r.Header.Get("Authorization")
 		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
@@ -140,17 +149,29 @@ func tokenMiddleware(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		// Lets tack this on the request for now..
-		r.Header.Set("UserUUID", userUuid)
-		next(w, r)
+		next(w, r, userUuid)
 	}
 }
 
 // jwtMiddleware - Validates middleware to a user
-func jwtMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		throwUnauthorized(w, "Invalid JWT Token")
-		next(w, r)
+		fullToken := r.Header.Get("Authorization")
+		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
+		claims, err := verifyJWTToken(authToken)
+		if err != nil {
+			throwUnauthorized(w, "Invalid JWT Token")
+			return
+		}
+
+		var v string
+		for k, v := range mux.Vars(r) {
+			if k == "id" {
+				log.Printf("key=%v, value=%v", k, v)
+			}
+		}
+
+		next(w, r, claims.Subject, v)
 	}
 }
 
@@ -188,9 +209,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	msg := generateJsonMessage("User created succesfully. You may now login")
-	w.WriteHeader(http.StatusCreated)
-	w.Write(msg)
+	throwOkMessage(w, "User created succesfully. You may now login")
 }
 
 // handleLogin - Does as it says!
@@ -206,7 +225,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	ip := getUserIp(r)
 	data, err := loginUser(&logReq, ip)
 	if err != nil {
-		throwOkMessage(w, err.Error())
+		throwOkError(w, err.Error())
 		return
 	}
 
@@ -215,26 +234,29 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 // serveEndpoint - API stuffs
-func handleIngress(w http.ResponseWriter, r *http.Request) {
+func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	bodyJson, err := decodeJson(r.Body)
 	if err != nil {
 		// If we can't decode. Lets tell them nicely.
 		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
 		return
 	}
+
 	ingressType := strings.Replace(r.URL.Path, "/api/v1/ingress/", "", 1)
 
 	switch ingressType {
 	case "jellyfin":
 		tx, _ := db.Begin()
+
 		ip := getUserIp(r)
-		err := ParseJellyfinInput(r.Header.Get("UserUUID"), bodyJson, ip, tx)
+		err := ParseJellyfinInput(userUuid, bodyJson, ip, tx)
 		if err != nil {
 			log.Printf("Error inserting track: %+v", err)
 			tx.Rollback()
 			throwBadReq(w, err.Error())
 			return
 		}
+
 		err = tx.Commit()
 		if err != nil {
 			throwBadReq(w, err.Error())
@@ -246,6 +268,20 @@ func handleIngress(w http.ResponseWriter, r *http.Request) {
 	}
 
 	throwBadReq(w, "Unknown ingress type")
+}
+
+// fetchScrobbles - Return an array of scrobbles
+func fetchScrobbleResponse(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+	resp, err := fetchScrobblesForUser(reqUser, 1)
+	if err != nil {
+		throwBadReq(w, "Failed to fetch scrobbles")
+		return
+	}
+
+	// Fetch last 500 scrobbles
+	json, _ := json.Marshal(&resp)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
 }
 
 // FRONTEND HANDLING

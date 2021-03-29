@@ -29,7 +29,7 @@ func InitDb() {
 		dbTz = "&loc=" + strings.Replace(timeZone, "/", fmt.Sprintf("%%2F"), 1)
 	}
 
-	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true"+dbTz)
+	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true&parseTime=true"+dbTz)
 	if err != nil {
 		panic(err)
 	}

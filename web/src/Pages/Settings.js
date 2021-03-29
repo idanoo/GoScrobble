@@ -1,5 +1,5 @@
 import React from 'react';
-import '../../App.css';
+import '../App.css';
 import './Settings.css';
 
 import { useToasts } from 'react-toast-notifications';

@@ -1,4 +1,4 @@
-import '../../App.css';
+import '../App.css';
 import './About.css';
 
 function About() {
@@ -8,7 +8,7 @@ function About() {
         About GoScrobble.com
       </h1>
       <p className="aboutBody">
-        Go-Scrobble is an open source music scorbbling service written in Go and React.<br/>
+        Go-Scrobble is an open source music scorbbling service written in Go and React.
       </p>
     </div>
   );

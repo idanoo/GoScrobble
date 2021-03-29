@@ -1,17 +1,9 @@
 import React from 'react';
-import '../../App.css';
+import '../App.css';
 import './Login.css';
 import { Button } from 'reactstrap';
-import { useToasts } from 'react-toast-notifications';
 import ScaleLoader from "react-spinners/ScaleLoader";
 import { withRouter } from 'react-router-dom'
-
-function withToast(Component) {
-  return function WrappedComponent(props) {
-    const toastFuncs = useToasts()
-    return <Component {...props} {...toastFuncs} />;
-  }
-}
 
 class Register extends React.Component {
   constructor(props) {
@@ -165,4 +157,4 @@ class Register extends React.Component {
   }
 }
 
-export default withRouter(withToast(Register));
+export default withRouter(Register);

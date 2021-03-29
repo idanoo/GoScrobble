@@ -2,25 +2,29 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import { HashRouter } from 'react-router-dom'
-import { ToastProvider } from 'react-toast-notifications';
+import { HashRouter } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.min.css'
+import { Provider } from 'react-redux';
 
-import { Provider } from 'react-redux'
-import { createStore } from 'redux'
-
-const goScorbbleStore = (state = false, logIn) => {
-  return state = logIn
-};
-
-const store = createStore(goScorbbleStore);
+import store from "./store";
 
 ReactDOM.render(
-  <HashRouter>
-    <ToastProvider autoDismiss="true" autoDismissTimeout="6000" placement="bottom-right">
-      <Provider store={store}>
-          <App />
-      </Provider>
-    </ToastProvider>
-  </HashRouter>,
+  <Provider store={store}>
+    <HashRouter>
+      <ToastContainer
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable
+        pauseOnHover
+        />
+        <App />
+    </HashRouter>
+  </Provider>,
   document.getElementById('root')
 );

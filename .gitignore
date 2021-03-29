@@ -6,6 +6,9 @@
 *.so
 *.dylib
 .env
+web/.env.production
+web/.env.development
+
 # Test binary, built with `go test -c`
 *.test
 

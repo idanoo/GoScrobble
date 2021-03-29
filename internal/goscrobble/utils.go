@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/big"
 	"net"
@@ -85,4 +86,8 @@ func Inet6_Aton(ip net.IP) string {
 	ipInt.SetBytes(ip.To16())
 	ipHex := hex.EncodeToString(ipInt.Bytes())
 	return ipHex
+}
+
+func calcPageOffsetString(page int, offset int) string {
+	return fmt.Sprintf("%d", page*offset)
 }

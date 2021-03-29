@@ -43,9 +43,13 @@ func main() {
 		port = "42069"
 	}
 
-	// Boot up DB connection for life of application
+	// Boot up DB connection
 	goscrobble.InitDb()
 	defer goscrobble.CloseDbConn()
+
+	// Boot up Redis connection
+	goscrobble.InitRedis()
+	defer goscrobble.CloseRedisConn()
 
 	// Boot up API webserver \o/
 	goscrobble.HandleRequests(port)

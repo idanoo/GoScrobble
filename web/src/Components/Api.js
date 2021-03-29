@@ -1,1 +1,0 @@
-// https://stackoverflow.com/questions/38397653/redux-what-is-the-correct-place-to-save-cookie-after-login-request

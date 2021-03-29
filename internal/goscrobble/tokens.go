@@ -17,9 +17,16 @@ func generateToken(n int) string {
 
 func getUserForToken(token string) (string, error) {
 	var uuid string
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true) FROM `users` WHERE `token` = ? AND `active` = 1", token).Scan(&uuid)
-	if err != nil {
-		return "", errors.New("Invalid Token")
+	cachedKey := getRedisVal("user_token:" + token)
+	if cachedKey == "" {
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true) FROM `users` WHERE `token` = ? AND `active` = 1", token).Scan(&uuid)
+		if err != nil {
+			return "", errors.New("Invalid Token")
+		}
+		setRedisVal("user_token:"+token, uuid)
+	} else {
+		uuid = cachedKey
 	}
+
 	return uuid, nil
 }

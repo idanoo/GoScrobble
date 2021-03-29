@@ -1,7 +1,6 @@
 package goscrobble
 
 import (
-	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -13,34 +12,51 @@ var JwtToken []byte
 // JwtExpiry - Expiry in seconds
 var JwtExpiry time.Duration
 
-// Store custom claims here
-type Claims struct {
-	UUID string `json:"uuid"`
+type CustomClaims struct {
+	Username string `json:"username"`
+	Email    string `json:"email"`
 	jwt.StandardClaims
 }
 
-// verifyToken - Verifies the JWT is valid
-func verifyToken(token string, w http.ResponseWriter) bool {
-	// Initialize a new instance of `Claims`
-	claims := &Claims{}
+func generateJWTToken(user User) (string, error) {
+	atClaims := jwt.MapClaims{}
+	atClaims["sub"] = user.UUID
+	atClaims["username"] = user.Username
+	atClaims["email"] = user.Email
+	atClaims["iat"] = time.Now().Unix()
+	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
+	at := jwt.NewWithClaims(jwt.SigningMethodHS512, atClaims)
+	token, err := at.SignedString(JwtToken)
+	if err != nil {
+		return "", err
+	}
 
-	tkn, err := jwt.ParseWithClaims(token, claims, func(JwtToken *jwt.Token) (interface{}, error) {
+	return token, nil
+}
+
+// verifyToken - Verifies the JWT is valid
+func verifyJWTToken(token string) (CustomClaims, error) {
+	// Initialize a new instance of `Claims`
+	claims := CustomClaims{}
+	_, err := jwt.ParseWithClaims(token, &claims, func(token *jwt.Token) (interface{}, error) {
 		return JwtToken, nil
 	})
 
+	// Verify Signature
 	if err != nil {
-		if err == jwt.ErrSignatureInvalid {
-			w.WriteHeader(http.StatusUnauthorized)
-			return false
-		}
-
-		w.WriteHeader(http.StatusBadRequest)
-		return false
-	}
-	if !tkn.Valid {
-		w.WriteHeader(http.StatusUnauthorized)
-		return false
+		return claims, err
 	}
 
-	return true
+	// Verify expiry
+	err = claims.Valid()
+	if err != nil {
+		return claims, err
+	}
+
+	return claims, err
+}
+
+func getClaims(token *jwt.Token) CustomClaims {
+	claims, _ := token.Claims.(CustomClaims)
+	return claims
 }

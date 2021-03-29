@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -104,14 +103,16 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 	}
 
 	if strings.Contains(logReq.Username, "@") {
-		err := db.QueryRow("SELECT BIN_TO_UUID(uuid), username, email, password FROM users WHERE email = ? AND active = 1", logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password` FROM `users` WHERE `email` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resp, errors.New("Invalid Username or Password")
 			}
 		}
 	} else {
-		err := db.QueryRow("SELECT BIN_TO_UUID(uuid), username, email, password FROM users WHERE username = ? AND active = 1", logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password` FROM `users` WHERE `username` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
 		if err == sql.ErrNoRows {
 			return resp, errors.New("Invalid Username or Password")
 		}
@@ -122,7 +123,7 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 	}
 
 	// Issue JWT + Response
-	token, err := generateJwt(user)
+	token, err := generateJWTToken(user)
 	if err != nil {
 		log.Printf("Error generating JWT: %v", err)
 		return resp, errors.New("Error logging in")
@@ -134,21 +135,6 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 
 	resp, _ = json.Marshal(&loginResp)
 	return resp, nil
-}
-
-func generateJwt(user User) (string, error) {
-	atClaims := jwt.MapClaims{}
-	atClaims["sub"] = user.UUID
-	atClaims["username"] = user.Username
-	atClaims["email"] = user.Email
-	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
-	at := jwt.NewWithClaims(jwt.SigningMethodHS512, atClaims)
-	token, err := at.SignedString(JwtToken)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
 }
 
 // insertUser - Does the dirtywork!
