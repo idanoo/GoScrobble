@@ -10,7 +10,7 @@ import Settings from './Pages/Settings';
 import Register from './Pages/Register';
 import Navigation from './Components/Navigation';
 
-import { logout } from './Actions/auth';
+// import { logout } from './Actions/auth';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Component } from 'react';
@@ -26,34 +26,33 @@ function mapStateToProps(state) {
 class App extends Component {
   constructor(props) {
     super(props);
-    this.logOut = this.logOut.bind(this);
+    // this.logOut = this.logOut.bind(this);
 
     this.state = {
       // showAdminBoard: false,
-      currentUser: undefined,
+      // currentUser: undefined,
       // Don't even ask.. apparently you can't pass
       // exact="true".. it has to be a bool :|
       true: true,
     };
   }
+  
 
-  componentDidMount() {
-    const user = this.props.user;
+  // componentDidMount() {
+  //   const user = this.props.user;
 
-    if (user) {
-      this.setState({
-        currentUser: user,
-        // showAdminBoard: user.roles.includes("ROLE_ADMIN"),
-      });
-    }
-  }
+  //   if (user) {
+  //     this.setState({
+  //       currentUser: user,
+  //     });
+  //   }
+  // }
 
-  logOut() {
-    this.props.dispatch(logout());
-  }
+  // logOut() {
+  //   this.props.dispatch(logout());
+  // }
 
   render() {
-    // const { currentUser, showAdminBoard } = this.state;
     return (
       <div>
         <Navigation />
@@ -63,9 +62,10 @@ class App extends Component {
 
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={Profile} />
+          <Route path="/settings" component={Settings} />
+
           <Route path="/admin" component={Admin} />
 
-          <Route path="/settings" component={Settings} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
         </Switch>

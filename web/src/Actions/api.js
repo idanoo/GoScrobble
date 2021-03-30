@@ -8,3 +8,11 @@ export const getStats = () => {
   );
 };
 
+export const getRecentScrobbles = (id) => {
+  return ApiService.getRecentScrobbles(id).then(
+    (data) => {
+      return data.data;
+    }
+  );
+};
+

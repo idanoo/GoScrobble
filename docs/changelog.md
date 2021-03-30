@@ -1,3 +1,12 @@
+# 0.0.5
+- Only allow ItemType:Audio from Jellyfin
+- Fix NavBar for Mobile (Ugly hack but.. TO REWORK)
+- Fixed registration page issues
+- Add functionality to pull recent scrobbles to Dashboard
+- Add MX record lookup validation for emails
+- Add username validation for a-Z 0-9 _ and .
+- Dashboard shows basic table of last 500 scrobbles.
+
 # 0.0.4
 -  Display stats on homepage
 

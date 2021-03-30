@@ -1,14 +1,14 @@
-.loginBody {
+.registerBody {
     padding: 20px 5px 5px 5px;
     font-size: 16pt;
     width: 300px;
 }
 
-.loginFields {
+.registerFields {
     width: 100%;
 }
 
-.loginButton {
+.registerButton {
     height: 50px;
     width: 100%;
     margin-top:-5px;

@@ -2,7 +2,7 @@ import axios from "axios";
 import jwt from 'jwt-decode' // import dependency
 
 class AuthService {
-  login(username, password) {
+  async login(username, password) {
     return axios
       .post(process.env.REACT_APP_API_URL + "login", { username, password })
       .then((response) => {
@@ -24,11 +24,16 @@ class AuthService {
     localStorage.removeItem("user");
   }
 
-  register(username, email, password) {
-    return axios.post(process.env.REACT_APP_API_URL + "register", {
+  async register(username, email, password) {
+    return axios
+    .post(process.env.REACT_APP_API_URL + "register", {
       username,
       email,
       password,
+    })
+    .then((response) => {
+      console.log(response)
+      return response.data;
     });
   }
 }

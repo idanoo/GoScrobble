@@ -165,14 +165,18 @@ func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)
 			return
 		}
 
-		var v string
+		var reqUuid string
 		for k, v := range mux.Vars(r) {
 			if k == "id" {
-				log.Printf("key=%v, value=%v", k, v)
+				reqUuid = v
 			}
 		}
 
-		next(w, r, claims.Subject, v)
+		if reqUuid == "" {
+			throwBadReq(w, "Invalid Request")
+		}
+
+		next(w, r, claims.Subject, reqUuid)
 	}
 }
 
@@ -206,7 +210,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 	ip := getUserIp(r)
 	err = createUser(&regReq, ip)
 	if err != nil {
-		throwOkMessage(w, err.Error())
+		throwOkError(w, err.Error())
 		return
 	}
 
@@ -265,7 +269,7 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 		ip := getUserIp(r)
 		err := ParseJellyfinInput(userUuid, bodyJson, ip, tx)
 		if err != nil {
-			log.Printf("Error inserting track: %+v", err)
+			// log.Printf("Error inserting track: %+v", err)
 			tx.Rollback()
 			throwBadReq(w, err.Error())
 			return

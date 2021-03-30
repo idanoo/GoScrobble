@@ -9,9 +9,11 @@ import (
 	"net"
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+var usernameRegex = regexp.MustCompile("^[a-zA-Z0-9_\\.]+$")
 
 // decodeJson - Returns a map[string]interface{}
 func decodeJson(body io.ReadCloser) (map[string]interface{}, error) {
@@ -24,10 +26,31 @@ func decodeJson(body io.ReadCloser) (map[string]interface{}, error) {
 
 // isEmailValid - checks if the email provided passes the required structure and length.
 func isEmailValid(e string) bool {
-	if len(e) < 3 && len(e) > 254 {
+	if len(e) < 5 && len(e) > 254 {
 		return false
 	}
-	return emailRegex.MatchString(e)
+
+	if !emailRegex.MatchString(e) {
+		return false
+	}
+
+	// Do MX lookup
+	parts := strings.Split(e, "@")
+	mx, err := net.LookupMX(parts[1])
+	if err != nil || len(mx) == 0 {
+		return false
+	}
+
+	return true
+}
+
+// isUsernameValid - Checks if username is alphanumeric+underscores+dots
+func isUsernameValid(e string) bool {
+	if len(e) > 64 {
+		return false
+	}
+
+	return usernameRegex.MatchString(e)
 }
 
 // contains - Check if string is in list

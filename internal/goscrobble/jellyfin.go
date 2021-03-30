@@ -10,6 +10,23 @@ import (
 
 // ParseJellyfinInput - Transform API data into a common struct
 func ParseJellyfinInput(userUUID string, data map[string]interface{}, ip net.IP, tx *sql.Tx) error {
+	if data["ItemType"] != "Audio" {
+		return errors.New("Media type not audio")
+	}
+
+	// Safety Checks
+	if data["Artist"] == nil {
+		return errors.New("Missing artist data")
+	}
+
+	if data["Album"] == nil {
+		return errors.New("Missing album data")
+	}
+
+	if data["Name"] == nil {
+		return errors.New("Missing track data")
+	}
+
 	// Insert artist if not exist
 	artist, err := insertArtist(fmt.Sprintf("%s", data["Artist"]), fmt.Sprintf("%s", data["Provider_musicbrainzartist"]), tx)
 	if err != nil {

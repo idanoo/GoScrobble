@@ -59,15 +59,12 @@ func createUser(req *RegisterRequest, ip net.IP) error {
 		return errors.New("A username is required")
 	}
 
-	// Check max length for Username
-	if len(req.Username) > 64 {
-		return errors.New("Username cannot be longer than 64 characters")
-	}
-
-	// Check username doesn't contain @
-	if strings.Contains(req.Username, "@") {
+	// Check username is valid
+	if !isUsernameValid(req.Username) {
+		log.Println("user is invalid")
 		return errors.New("Username contains invalid characters")
 	}
+	log.Println("user is valid")
 
 	// If set an email.. validate it!
 	if req.Email != "" {

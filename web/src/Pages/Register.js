@@ -1,10 +1,10 @@
 import React from 'react';
 import '../App.css';
-import './Login.css';
-import { Button, Form } from 'reactstrap';
+import './Register.css';
+import { Button } from 'reactstrap';
 import ScaleLoader from "react-spinners/ScaleLoader";
 import { register } from '../Actions/auth';
-import { Formik, Field } from 'formik';
+import { Formik, Field, Form } from 'formik';
 import { connect } from 'react-redux';
 
 class Register extends React.Component {
@@ -22,6 +22,7 @@ class Register extends React.Component {
   }
 
   handleRegister(values) {
+    console.log(values)
     this.setState({loading: true});
 
     const { dispatch, history } = this.props;
@@ -53,10 +54,11 @@ class Register extends React.Component {
             <h1>
             Register
             </h1>
-            <div className="loginBody">
+            <div className="registerBody">
               <Formik
                 initialValues={{ username: '', email: '', password: '', passwordconfirm: '' }}
-                onSubmit={async values => this.handleRegister(values)}>
+                onSubmit={async values => this.handleRegister(values)}
+              >
                 <Form>
                   <label>
                     Username*<br/>
@@ -64,7 +66,7 @@ class Register extends React.Component {
                       name="username"
                       type="text"
                       required={trueBool}
-                      className="loginFields"
+                      className="registerFields"
                     />
                   </label>
                   <br/>
@@ -73,7 +75,7 @@ class Register extends React.Component {
                     <Field
                       name="email"
                       type="email"
-                      className="loginFields"
+                      className="registerFields"
                     />
                   </label>
                   <br/>
@@ -83,7 +85,7 @@ class Register extends React.Component {
                       name="password"
                       type="password"
                       required={trueBool}
-                      className="loginFields"
+                      className="registerFields"
                     />
                   </label>
                   <br/>
@@ -93,14 +95,14 @@ class Register extends React.Component {
                       name="passwordconfirm"
                       type="password"
                       required={trueBool}
-                      className="loginFields"
+                      className="registerFields"
                     />
                   </label>
                   <br/><br/>
                   <Button
                     color="primary"
                     type="submit"
-                    className="loginButton"
+                    className="registerButton"
                     disabled={this.state.loading}
                     >{this.state.loading ? <ScaleLoader color="#FFF" size={35} /> : "Register"}</Button>
                 </Form>

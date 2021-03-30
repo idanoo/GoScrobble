@@ -39,22 +39,22 @@ class HomeBanner extends React.Component {
       <div className="homeBanner">
         <div className="homeBannerItem">
           {this.state.isLoading
-            ? <ClipLoader color="#6AD7E5" size="36" />
+            ? <ClipLoader color="#6AD7E5" size={36} />
             : <span className="homeBannerItemCount">{this.state.scrobbleCount}</span>}<br/>Scrobbles
         </div>
         <div className="homeBannerItem">
           {this.state.isLoading
-            ? <ClipLoader color="#6AD7E5" size="36" />
+            ? <ClipLoader color="#6AD7E5" size={36} />
             : <span className="homeBannerItemCount">{this.state.userCount}</span>}<br/>Users
         </div>
         <div className="homeBannerItem">
           {this.state.isLoading
-            ? <ClipLoader color="#6AD7E5" size="36" />
+            ? <ClipLoader color="#6AD7E5" size={36} />
             : <span className="homeBannerItemCount">{this.state.trackCount}</span>}<br/>Tracks
         </div>
         <div className="homeBannerItem">
           {this.state.isLoading
-            ? <ClipLoader color="#6AD7E5" size="36" />
+            ? <ClipLoader color="#6AD7E5" size={36} />
             : <span className="homeBannerItemCount">{this.state.artistCount}</span>}<br/>Artists
         </div>
       </div>
