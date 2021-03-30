@@ -30,10 +30,11 @@ class Navigation extends Component {
   constructor(props) {
     super(props);
     this.toggleNavbar = this.toggleNavbar.bind(this);
+    this.handleLogout = this.handleLogout.bind(this);
 
     // Yeah I know you might not hit home.. but I can't get the
     // path based finder thing working on initial load :sweatsmile:
-    this.state = { active: "Home", collapsed: true};
+    this.state = { active: "Home", collapsed: true };
   }
 
   componentDidMount() {
@@ -55,11 +56,14 @@ class Navigation extends Component {
 
   componentWillUnmount() {
     eventBus.remove(LOGIN_SUCCESS);
-    eventBus.remove(LOGOUT);
   }
 
   _handleClick(menuItem) {
     this.setState({ active: menuItem, collapsed: !this.state.collapsed });
+  }
+
+  handleLogout() {
+    this.dispatch(logout());
   }
 
   toggleNavbar() {
@@ -94,7 +98,7 @@ class Navigation extends Component {
               onClick={this._handleClick.bind(this, "profile")}
               className="navLinkMobile"
               >Profile</Link>
-            <Link to="/" className="navLink" onClick={logout()}>Logout</Link>
+            <Link to="/" className="navLink" onClick={this.handleLogout}>Logout</Link>
           </Nav>
         : <Nav className="navLinkLoginMobile" navbar>
                 {menuItems.map(menuItem =>
@@ -172,7 +176,7 @@ class Navigation extends Component {
                 onClick={this._handleClick.bind(this, "profile")}
                 className="navLink"
               >Profile</Link>
-              <Link to="/" className="navLink" onClick={logout()}>Logout</Link>
+              <Link to="/" className="navLink" onClick={this.handleLogout}>Logout</Link>
             </div>
         :
         <div className="navLinkLogin">
@@ -209,8 +213,9 @@ class Navigation extends Component {
 
 function mapStateToProps(state) {
   const { isLoggedIn } = state.auth;
+
   return {
-    isLoggedIn,
+    isLoggedIn
   };
 }
 

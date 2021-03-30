@@ -55,7 +55,10 @@ class Dashboard extends React.Component {
 
 function mapStateToProps(state) {
   const { isLoggedIn } = state.auth;
-  const { uuid } = state.auth.user;
+  let uuid = null;
+  if (isLoggedIn) {
+    uuid = state.auth.user.uuid
+  }
 
   return {
     isLoggedIn,

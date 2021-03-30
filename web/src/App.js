@@ -12,52 +12,23 @@ import Navigation from './Components/Navigation';
 
 // import { logout } from './Actions/auth';
 import { Route, Switch, withRouter } from 'react-router-dom';
-import { connect } from 'react-redux';
 import { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
-function mapStateToProps(state) {
-  const { user } = state.auth;
-  return {
-    user,
-  };
-}
 
 class App extends Component {
   constructor(props) {
     super(props);
-    // this.logOut = this.logOut.bind(this);
-
     this.state = {
-      // showAdminBoard: false,
-      // currentUser: undefined,
-      // Don't even ask.. apparently you can't pass
-      // exact="true".. it has to be a bool :|
       true: true,
     };
   }
-  
-
-  // componentDidMount() {
-  //   const user = this.props.user;
-
-  //   if (user) {
-  //     this.setState({
-  //       currentUser: user,
-  //     });
-  //   }
-  // }
-
-  // logOut() {
-  //   this.props.dispatch(logout());
-  // }
 
   render() {
     return (
       <div>
         <Navigation />
         <Switch>
-          <Route exact={this.state.true} path="/" component={Home} />
+          <Route exact={this.state.true} path={["/", "/home"]} component={Home} />
           <Route path="/about" component={About} />
 
           <Route path="/dashboard" component={Dashboard} />
@@ -68,9 +39,11 @@ class App extends Component {
 
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+
         </Switch>
       </div>
     );
   }
 }
-export default withRouter(connect(mapStateToProps)(App));
+
+export default withRouter(App);

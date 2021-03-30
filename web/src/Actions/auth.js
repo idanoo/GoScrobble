@@ -3,11 +3,13 @@ import {
     REGISTER_FAIL,
     LOGIN_SUCCESS,
     LOGIN_FAIL,
-  } from "./types";
+    LOGOUT,
+} from "./types";
 
   import { toast } from 'react-toastify';
   import jwt from 'jwt-decode'
   import AuthService from "../Services/auth.service";
+  import eventBus from "./eventBus";
 
   export const register = (username, email, password) => (dispatch) => {
     return AuthService.register(username, email, password).then(
@@ -85,12 +87,19 @@ import {
     );
   };
 
-  export const logout = () => (dispatch) => {
-    AuthService.logout();
+  export const logout = (dispatch) => {
+      // Clear local data
+      AuthService.logout()
 
-    // dispatch({
-    //   type: LOGOUT,
-    // });
+      // window.location.pathname("/")
+      window.location.reload()
 
-    window.location.reload();
+      // TODO; Clear Redux - ENABLE THIS WHEN I FIGURE OUT HOW 2 DISPATCH
+      // dispatch({
+      //   type: LOGOUT,
+      //   payload: {},
+      // });
+
+      // // Issue to all listeners to reload
+      eventBus.dispatch(LOGOUT);
   };

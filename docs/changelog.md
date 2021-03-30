@@ -1,3 +1,7 @@
+# 0.0.6
+- Fix hitting dashboard when logged out
+- Clean up app.js
+
 # 0.0.5
 - Only allow ItemType:Audio from Jellyfin
 - Fix NavBar for Mobile (Ugly hack but.. TO REWORK)

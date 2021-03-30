@@ -20,7 +20,7 @@ class AuthService {
       });
   }
 
-  logout() {
+  async logout() {
     localStorage.removeItem("user");
   }
 
