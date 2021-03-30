@@ -1,0 +1,14 @@
+.homeBanner {
+    margin-top: 30px;
+    width: 100%;
+}
+
+.homeBannerItem {
+    float: left;
+    text-align: center;
+    width: 25%;
+}
+
+.homeBannerItemCount {
+    font-size: 22pt;
+}

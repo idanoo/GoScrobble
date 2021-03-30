@@ -10,7 +10,7 @@ import (
 type StatsRequest struct {
 	Users       int       `json:"users"`
 	Scrobbles   int       `json:"scrobbles"`
-	Tracks      int       `json:"songs"`
+	Tracks      int       `json:"tracks"`
 	Artists     int       `json:"artists"`
 	LastUpdated time.Time `json:"last_updated"`
 }
