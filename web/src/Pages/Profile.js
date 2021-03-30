@@ -5,12 +5,10 @@ import { connect } from 'react-redux';
 
 class Profile extends React.Component {
   componentDidMount() {
-    const { history } = this.props;
-    const isLoggedIn = this.props.isLoggedIn;
-
+    const { history, isLoggedIn } = this.props;
+    
     if (!isLoggedIn) {
       history.push("/login")
-      window.location.reload()
     }
   }
 

@@ -10,7 +10,6 @@ class Dashboard extends React.Component {
 
     if (!isLoggedIn) {
       history.push("/login")
-      window.location.reload()
     }
   }
 
@@ -18,7 +17,7 @@ class Dashboard extends React.Component {
     return (
       <div className="pageWrapper">
         <h1>
-          Hai Dashboard!
+          Dashboard!
         </h1>
       </div>
     );

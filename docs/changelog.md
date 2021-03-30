@@ -1,3 +1,11 @@
+# 0.0.4
+-  Display stats on homepage
+
+# 0.0.3
+- Clean up login/redirect flow
+- Add redirect when not authed on other endpoints
+- Add GET /stats endpoint for overal stats
+
 # 0.0.2
 - Login flow working..
 - Jellyfin scrobble working

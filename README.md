@@ -22,7 +22,7 @@ Copy .env.example to .env and set variables. You can use https://www.grc.com/pas
     cp .env.example .env # Fill in the blanks
     go mod tidy
     CGO_ENABLED=0 go run cmd/go-scrobble/*.go
-    # In another terminal set web/.env.development
+    # In another terminal cp web/.env.example web/.env.development and set vars
     cd web && npm install && npm start --env development
 
 
@@ -32,6 +32,7 @@ Access dev frontend @ http://127.0.0.1:3000 + API @ http://127.0.0.1:42069/api/v
 We need to build NPM package, and then ship web/build with the binary.
 
     cp .env.example .env # Fill in the blanks
+    cp web/.env.example web/.env.production
     cd web npm install --production && npm run build --env production
     go build -o goscrobble cmd/go-scrobble/*.go
     ./goscrobble

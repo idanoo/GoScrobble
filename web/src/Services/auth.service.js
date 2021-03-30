@@ -7,10 +7,13 @@ class AuthService {
       .post(process.env.REACT_APP_API_URL + "login", { username, password })
       .then((response) => {
         if (response.data.token) {
-          let user = jwt(response.data.token)
-          localStorage.setItem("jwt", response.data.token);
-          localStorage.setItem("uuid", user.sub);
-          localStorage.setItem("exp", user.exp);
+          let expandedUser = jwt(response.data.token)
+          let user = {
+            jwt: response.data.token,
+            uuid: expandedUser.sub,
+            exp: expandedUser.exp,
+          }
+          localStorage.setItem('user', JSON.stringify(user))
         }
 
         return response.data;
@@ -18,9 +21,7 @@ class AuthService {
   }
 
   logout() {
-    localStorage.removeItem("jwt");
-    localStorage.removeItem("uuid");
-    localStorage.removeItem("exp");
+    localStorage.removeItem("user");
   }
 
   register(username, email, password) {

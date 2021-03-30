@@ -5,6 +5,12 @@ import logo from '../logo.png';
 import './Navigation.css';
 import { connect } from 'react-redux';
 import { logout } from '../Actions/auth';
+import eventBus from "../Actions/eventBus";
+
+import {
+  LOGIN_SUCCESS,
+  LOGOUT,
+} from "../Actions/types";
 
 const menuItems = [
   'Home',
@@ -24,18 +30,32 @@ class Navigation extends Component {
   }
 
   componentDidMount() {
-    const isLoggedIn = this.props.isLoggedIn;
-
+    const { isLoggedIn } = this.props;
     if (isLoggedIn) {
       this.setState({
         isLoggedIn: true,
       });
     }
+
+    eventBus.on(LOGIN_SUCCESS, () =>
+      this.setState({ isLoggedIn: true })
+    );
+
+    eventBus.on(LOGOUT, () =>
+      this.setState({ isLoggedIn: false })
+    );
   }
+
+  componentWillUnmount() {
+    eventBus.remove(LOGIN_SUCCESS);
+    eventBus.remove(LOGOUT);
+  }
+
 
   _handleClick(menuItem) {
     this.setState({ active: menuItem });
   }
+
 
   render() {
     const activeStyle = { color: '#FFFFFF' };
@@ -43,13 +63,29 @@ class Navigation extends Component {
     const renderAuthButtons = () => {
       if (this.state.isLoggedIn) {
         return <div className="navLinkLogin">
-                <Link to="/profile" className="navLink">Profile</Link>
+                <Link
+                  to="/profile"
+                  style={this.state.active === "profile" ? activeStyle : {}}
+                  onClick={this._handleClick.bind(this, "profile")}
+                  className="navLink"
+                >Profile</Link>
                 <Link to="/" className="navLink" onClick={logout()}>Logout</Link>
               </div>;
       } else {
         return <div className="navLinkLogin">
-                <Link to="/login" className="navLink">Login</Link>
-                <Link to="/register" className="navLink" history={this.props.history}>Register</Link>
+                <Link
+                  to="/login"
+                  style={this.state.active === "login" ? activeStyle : {}}
+                  onClick={this._handleClick.bind(this, "login")}
+                  className="navLink"
+                >Login</Link>
+                <Link
+                  to="/register"
+                  className="navLink"
+                  style={this.state.active === "register" ? activeStyle : {}}
+                  onClick={this._handleClick.bind(this, "register")}
+                  history={this.props.history}
+                >Register</Link>
               </div>;
       }
     }
@@ -89,7 +125,7 @@ class Navigation extends Component {
     return (
       <div>
         <Navbar color="dark" dark fixed="top">
-          <NavbarBrand href="/" className="mr-auto"><img src={logo} className="nav-logo" alt="logo" /> GoScrobble</NavbarBrand>
+          <NavbarBrand className="mr-auto"><img src={logo} className="nav-logo" alt="logo" /> GoScrobble</NavbarBrand>
           {renderMenuButtons()}
           {renderAuthButtons()}
         </Navbar>

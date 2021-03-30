@@ -6,11 +6,21 @@ import { Formik, Form, Field } from 'formik';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { connect } from 'react-redux';
 import { login } from '../Actions/auth';
+import eventBus from "../Actions/eventBus";
+import { LOGIN_SUCCESS } from '../Actions/types';
 
 class Login extends React.Component {
   constructor(props) {
     super(props);
     this.state = {username: '', password: '', loading: false};
+  }
+
+  componentDidMount() {
+    const { history, isLoggedIn } = this.props;
+
+    if (isLoggedIn) {
+      history.push("/dashboard")
+    }
   }
 
   handleLogin(values) {
@@ -22,9 +32,11 @@ class Login extends React.Component {
       .then(() => {
         this.setState({
           loading: false,
+          isLoggedIn: true
         });
+
+        eventBus.dispatch(LOGIN_SUCCESS, { isLoggedIn: true });
         history.push("/dashboard");
-        window.location.reload();
       })
       .catch(() => {
         this.setState({
@@ -82,10 +94,8 @@ class Login extends React.Component {
 
 function mapStateToProps(state) {
   const { isLoggedIn } = state.auth;
-  const { message } = state.message;
   return {
-    isLoggedIn,
-    message
+    isLoggedIn
   };
 }
 

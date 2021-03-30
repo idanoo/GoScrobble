@@ -3,20 +3,30 @@ import {
     REGISTER_FAIL,
     LOGIN_SUCCESS,
     LOGIN_FAIL,
-    SET_MESSAGE,
   } from "./types";
-  import { toast } from 'react-toastify'
 
+  import { toast } from 'react-toastify';
+  import jwt from 'jwt-decode'
   import AuthService from "../Services/auth.service";
 
   export const register = (username, email, password) => (dispatch) => {
     return AuthService.register(username, email, password).then(
-      (response) => {
+      (data) => {
+        if (data.message) {
+          toast.success('Successfully registered. Please sign in');
+          dispatch({
+            type: REGISTER_SUCCESS,
+          });
+
+          return Promise.resolve();
+        }
+
+        toast.error(data.error ? data.error: 'An Unknown Error has occurred')
         dispatch({
-          type: REGISTER_SUCCESS,
+          type: REGISTER_FAIL,
         });
 
-        return Promise.resolve();
+        return Promise.reject();
       },
       (error) => {
         const message =
@@ -26,13 +36,10 @@ import {
           error.message ||
           error.toString();
 
-        dispatch({
-          type: REGISTER_FAIL,
-        });
+        toast.error(message);
 
         dispatch({
-          type: SET_MESSAGE,
-          payload: message,
+          type: REGISTER_FAIL,
         });
 
         return Promise.reject();
@@ -45,9 +52,11 @@ import {
       (data) => {
         if (data.token) {
           toast.success('Login Success');
+          let user = jwt(data.token)
+
           dispatch({
             type: LOGIN_SUCCESS,
-            payload: { user: data },
+            payload: { jwt: data.token, sub: user.sub, exp: user.exp },
           });
           return Promise.resolve();
         }
@@ -71,17 +80,17 @@ import {
           type: LOGIN_FAIL,
         });
 
-        // dispatch({
-        //   type: SET_MESSAGE,
-        //   payload: message,
-        // });
-
         return Promise.reject();
       }
     );
   };
 
-  export const logout = () => () => {
+  export const logout = () => (dispatch) => {
     AuthService.logout();
+
+    // dispatch({
+    //   type: LOGOUT,
+    // });
+
     window.location.reload();
   };

@@ -6,7 +6,6 @@ import { HashRouter } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css'
 import { Provider } from 'react-redux';
-
 import store from "./store";
 
 ReactDOM.render(

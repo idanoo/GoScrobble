@@ -54,6 +54,7 @@ func HandleRequests(port string) {
 	// No Auth
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
+	v1.HandleFunc("/stats", handleStats).Methods("GET")
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
@@ -231,6 +232,19 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+// handleStats - Returns stats for homepage
+func handleStats(w http.ResponseWriter, r *http.Request) {
+	stats, err := getStats()
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	js, _ := json.Marshal(&stats)
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }
 
 // serveEndpoint - API stuffs

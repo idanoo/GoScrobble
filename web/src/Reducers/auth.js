@@ -6,11 +6,11 @@ import {
     LOGOUT,
   } from "../Actions/types";
 
-  const jwt = localStorage.getItem("jwt");
+  const user = JSON.parse(localStorage.getItem('user'));
 
-  const initialState = jwt
-    ? { isLoggedIn: true, jwt }
-    : { isLoggedIn: false, jwt };
+  const initialState = user
+    ? { isLoggedIn: true, user: user }
+    : { isLoggedIn: false, user: null };
 
   export default function authReducer(state = initialState, action) {
     const { type, payload } = action;
@@ -30,13 +30,16 @@ import {
         return {
           ...state,
           isLoggedIn: true,
-          user: payload.user,
+          user: {
+            jwt: payload.jwt,
+            uuid: payload.sub,
+            exp: payload.exp,
+          }
         };
       case LOGIN_FAIL:
         return {
           ...state,
           isLoggedIn: false,
-          user: null,
         };
       case LOGOUT:
         return {

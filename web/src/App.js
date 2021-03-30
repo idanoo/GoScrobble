@@ -11,8 +11,6 @@ import Register from './Pages/Register';
 import Navigation from './Components/Navigation';
 
 import { logout } from './Actions/auth';
-import { clearMessage } from './Actions/message';
-import { history } from './Helpers/history';
 import { Route, Switch, withRouter } from 'react-router-dom';
 import { connect } from 'react-redux';
 import { Component } from 'react';
@@ -37,10 +35,6 @@ class App extends Component {
       // exact="true".. it has to be a bool :|
       true: true,
     };
-
-    history.listen((location) => {
-      props.dispatch(clearMessage()); // clear message when changing location
-    });
   }
 
   componentDidMount() {
