@@ -1,15 +1,6 @@
 import React from "react";
 
-class ScrobbleTable extends React.Component {
-  constructor(props) {
-    super(props);
-
-    this.state = {
-      data: this.props.data,
-    };
-  }
-
-  render() {
+const ScrobbleTable = (props) => {
     return (
         <div>
         <table border={1} cellPadding={5}>
@@ -23,8 +14,8 @@ class ScrobbleTable extends React.Component {
            </thead>
            <tbody>
               {
-                  this.state.data && this.state.data.items &&
-                  this.state.data.items.map(function (element) {
+                  props.data && props.data.items &&
+                  props.data.items.map(function (element) {
                      return <tr>
                        <td>{element.time}</td>
                        <td>{element.track}</td>
@@ -37,7 +28,6 @@ class ScrobbleTable extends React.Component {
         </table>
       </div>
     );
-  }
 }
 
 export default ScrobbleTable;

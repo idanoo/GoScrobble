@@ -1,69 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import '../App.css';
 import './Dashboard.css';
-import { connect } from 'react-redux';
-import { getRecentScrobbles } from '../Actions/api';
+import { useHistory } from "react-router";
+import { getRecentScrobbles } from '../Api/index';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import ScrobbleTable from "../Components/ScrobbleTable";
+import AuthContext from '../Contexts/AuthContext';
 
-class Dashboard extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      isLoading: true,
-      scrobbleData: [],
-      uuid: null,
-    };
+const Dashboard = () => {
+  const history = useHistory();
+  let { user } = useContext(AuthContext);
+  let [isLoading, setIsLoading] = useState(true);
+  let [dashboardData, setDashboardData] = useState({});
+
+  if (!user) {
+    history.push("/login");
   }
 
-  componentDidMount() {
-    const { history, uuid } = this.props;
-    const isLoggedIn = this.props.isLoggedIn;
-
-    if (!isLoggedIn) {
-      history.push("/login")
+  useEffect(() => {
+    if (!user) {
+      return
     }
+    getRecentScrobbles(user.uuid)
+      .then(data => {
+        setDashboardData(data);
+        setIsLoading(false);
+      })
+  }, [user])
 
-    getRecentScrobbles(uuid)
-    .then((data) => {
-      this.setState({
-        isLoading: false,
-        data: data
-      });
-    })
-    .catch(() => {
-      this.setState({
-        isLoading: false
-      });
-    });
-  }
-
-  render() {
-    return (
-      <div className="pageWrapper">
-        <h1>
-          Dashboard!
-        </h1>
-        {this.state.isLoading
-          ? <ScaleLoader color="#FFF" size={60} />
-          : <ScrobbleTable data={this.state.data} />
-        }
-      </div>
-    );
-  }
+  return (
+    <div className="pageWrapper">
+      <h1>
+        Dashboard!
+      </h1>
+      {isLoading
+        ? <ScaleLoader color="#FFF" size={60} />
+        : <ScrobbleTable data={dashboardData} />
+      }
+    </div>
+  );
 }
 
-function mapStateToProps(state) {
-  const { isLoggedIn } = state.auth;
-  let uuid = null;
-  if (isLoggedIn) {
-    uuid = state.auth.user.uuid
-  }
-
-  return {
-    isLoggedIn,
-    uuid,
-  };
-}
-
-export default connect(mapStateToProps)(Dashboard);
+export default Dashboard;

@@ -1,3 +1,8 @@
+# 0.0.7
+- Switch redux -> Context
+- Remove excess packages
+
+
 # 0.0.6
 - Fix hitting dashboard when logged out
 - Clean up app.js

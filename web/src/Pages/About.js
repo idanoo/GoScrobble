@@ -1,7 +1,7 @@
 import '../App.css';
 import './About.css';
 
-function About() {
+const About = () => {
   return (
     <div className="pageWrapper">
       <h1>
@@ -12,7 +12,7 @@ function About() {
         Used to track your listening history and build a profile to discover new music.
       </p>
       <a
-        className="aboutBodyw"
+        className="aboutBody"
         href="https://gitlab.com/idanoo/go-scrobble"
         target="_blank"
         rel="noopener noreferrer"

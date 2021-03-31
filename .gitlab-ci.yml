@@ -3,11 +3,12 @@ stages:
  - bundle
 
 variables:
-  VERSION: 0.0.6
+  VERSION: 0.0.7
 
 build-go:
   image: golang:1.16.2
   stage: build
+  only: master
   script:
     - go build -o goscrobble cmd/go-scrobble/*.go
   artifacts:
@@ -21,6 +22,7 @@ build-go:
 build-react:
   image: node:15.12.0
   stage: build
+  only: master
   script:
     - cd web
     - npm install
@@ -33,6 +35,7 @@ build-react:
 bundle:
   image: bash:latest
   stage: bundle
+  only: master
   variables:
     GIT_STRATEGY: none
   before_script:

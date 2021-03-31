@@ -61,10 +61,8 @@ func createUser(req *RegisterRequest, ip net.IP) error {
 
 	// Check username is valid
 	if !isUsernameValid(req.Username) {
-		log.Println("user is invalid")
 		return errors.New("Username contains invalid characters")
 	}
-	log.Println("user is valid")
 
 	// If set an email.. validate it!
 	if req.Email != "" {
