@@ -24,30 +24,26 @@ export const PostLogin = (formValues) => {
           jwt: response.data.token,
           uuid: expandedUser.sub,
           exp: expandedUser.exp,
+          username: expandedUser.username,
         }
 
-        // Set in local storage
-        localStorage.setItem('user', JSON.stringify(user));
-
-        // Set in context
-        // setUser(user)
-
         toast.success('Successfully logged in.');
-        // setLoading(false)
         return user;
       } else {
         toast.error(response.data.error ? response.data.error: 'An Unknown Error has occurred');
-        // setLoading(false)
         return null
       }
     })
+    .catch(() => {
+      return Promise.resolve();
+    });
 };
 
 export const PostRegister = (formValues) => {
-  axios.post(process.env.REACT_APP_API_URL + "register", formValues)
+  return axios.post(process.env.REACT_APP_API_URL + "register", formValues)
     .then((response) => {
-      if (response.data.token) {
-        toast.success('Successfully registered. Please sign in');
+      if (response.data.message) {
+        toast.success(response.data.message);
 
         return Promise.resolve();
       } else {
@@ -56,16 +52,8 @@ export const PostRegister = (formValues) => {
         return Promise.reject();
       }
     })
-    .error((error) => {
-      const message =
-      (error.response &&
-        error.response.data &&
-        error.response.data.message) ||
-      error.message ||
-      error.toString();
-
-      toast.error(message ?  message : 'An Unknown Error has occurred')
-      return Promise.reject();
+    .catch(() => {
+      return Promise.resolve();
     });
 };
 

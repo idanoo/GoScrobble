@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import AuthContext from './AuthContext';
-
 import { PostLogin, PostRegister } from '../Api/index';
 
 const AuthContextProvider = ({ children }) => {
@@ -22,21 +21,16 @@ const AuthContextProvider = ({ children }) => {
     PostLogin(formValues).then(user => {
       if (user) {
         setUser(user);
-        const { history } = this.props;
-        history.push("/dashboard");
+        localStorage.setItem('user', JSON.stringify(user));
       }
       setLoading(false);
     })
   }
 
   const Register = (formValues) => {
-    const { history } = this.props;
-
     setLoading(true);
     return PostRegister(formValues).then(response => {
-      if (response) {
-        history.push("/login");
-      }
+      // Do stuff here?
       setLoading(false);
     });
   };

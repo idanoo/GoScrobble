@@ -1,5 +1,7 @@
 # 0.0.7
--Switch redux -> context.
+- Switch redux -> Context
+- Remove excess packages
+
 
 # 0.0.6
 - Fix hitting dashboard when logged out

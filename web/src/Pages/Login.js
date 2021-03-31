@@ -5,10 +5,16 @@ import { Button } from 'reactstrap';
 import { Formik, Form, Field } from 'formik';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import AuthContext from '../Contexts/AuthContext';
+import { useHistory } from "react-router";
 
 const Login = () => {
+  const history = useHistory();
   let boolTrue = true;
-  let { Login, loading } = useContext(AuthContext);
+  let { Login, loading, user } = useContext(AuthContext);
+
+  if (user) {
+    history.push("/dashboard");
+  }
 
   return (
     <div className="pageWrapper">
