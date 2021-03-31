@@ -15,6 +15,7 @@ var JwtExpiry time.Duration
 type CustomClaims struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	Admin    bool   `json:"admin"`
 	jwt.StandardClaims
 }
 
@@ -23,6 +24,7 @@ func generateJWTToken(user User) (string, error) {
 	atClaims["sub"] = user.UUID
 	atClaims["username"] = user.Username
 	atClaims["email"] = user.Email
+	atClaims["admin"] = user.Admin
 	atClaims["iat"] = time.Now().Unix()
 	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS512, atClaims)

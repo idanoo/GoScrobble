@@ -25,6 +25,7 @@ export const PostLogin = (formValues) => {
           uuid: expandedUser.sub,
           exp: expandedUser.exp,
           username: expandedUser.username,
+          admin: expandedUser.admin
         }
 
         toast.success('Successfully logged in.');
@@ -72,3 +73,31 @@ export const getRecentScrobbles = (id) => {
       return data.data;
     });
 };
+
+export const getConfigs = () => {
+  return axios.get(process.env.REACT_APP_API_URL + "config", { headers: getHeaders() })
+    .then((data) => {
+      return data.data;
+    });
+};
+
+export const postConfigs = (values, toggle) => {
+  if (toggle) {
+    values.REGISTRATION_ENABLED = "1"
+  } else {
+    values.REGISTRATION_ENABLED = "0"
+  }
+
+  return axios.post(process.env.REACT_APP_API_URL + "config", values, { headers: getHeaders() })
+    .then((data) => {
+      if (data.data && data.data.message) {
+        toast.success(data.data.message);
+      } else if (data.data && data.data.error) {
+        toast.error(data.data.error);
+      }
+    })
+    .catch(() => {
+      toast.error('Error updating values');
+    });
+};
+

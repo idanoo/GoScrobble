@@ -1,0 +1,15 @@
+.adminBody {
+    padding: 20px 5px 5px 5px;
+    font-size: 16pt;
+    width: 300px;
+}
+
+.adminFields {
+    width: 100%;
+}
+
+.admin {
+    height: 50px;
+    width: 100%;
+    margin-top:-5px;
+}

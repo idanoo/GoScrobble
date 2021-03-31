@@ -51,6 +51,10 @@ func HandleRequests(port string) {
 	// JWT Auth
 	v1.HandleFunc("/user/{id}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
 
+	// Config auth
+	v1.HandleFunc("/config", adminMiddleware(fetchConfig)).Methods("GET")
+	v1.HandleFunc("/config", adminMiddleware(postConfig)).Methods("POST")
+
 	// No Auth
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
@@ -117,6 +121,16 @@ func throwOkMessage(w http.ResponseWriter, m string) {
 	w.Write(js)
 }
 
+// throwOkMessage - Throws a happy 200
+func throwInvalidJson(w http.ResponseWriter) {
+	jr := jsonResponse{
+		Err: "Invalid JSON",
+	}
+	js, _ := json.Marshal(&jr)
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(js)
+}
+
 // generateJsonMessage - Generates a message:str response
 func generateJsonMessage(m string) []byte {
 	jr := jsonResponse{
@@ -142,9 +156,10 @@ func tokenMiddleware(next func(http.ResponseWriter, *http.Request, string)) http
 		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
 		if authToken == "" {
 			throwUnauthorized(w, "A token is required")
+			return
 		}
 
-		userUuid, err := getUserForToken(authToken)
+		userUuid, err := getUserUuidForToken(authToken)
 		if err != nil {
 			throwUnauthorized(w, err.Error())
 			return
@@ -177,6 +192,32 @@ func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)
 		}
 
 		next(w, r, claims.Subject, reqUuid)
+	}
+}
+
+// adminMiddleware - Validates user is admin
+func adminMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fullToken := r.Header.Get("Authorization")
+		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
+		claims, err := verifyJWTToken(authToken)
+		if err != nil {
+			throwUnauthorized(w, "Invalid JWT Token")
+			return
+		}
+
+		user, err := getUser(claims.Subject)
+		if err != nil {
+			throwUnauthorized(w, err.Error())
+			return
+		}
+
+		if !user.Admin {
+			throwUnauthorized(w, "User is not admin")
+			return
+		}
+
+		next(w, r, claims.Subject)
 	}
 }
 
@@ -255,8 +296,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	bodyJson, err := decodeJson(r.Body)
 	if err != nil {
-		// If we can't decode. Lets tell them nicely.
-		http.Error(w, "{\"error\":\"Invalid JSON\"}", http.StatusBadRequest)
+		throwInvalidJson(w)
 		return
 	}
 
@@ -300,6 +340,38 @@ func fetchScrobbleResponse(w http.ResponseWriter, r *http.Request, jwtUser strin
 	json, _ := json.Marshal(&resp)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
+}
+
+// fetchScrobbles - Return an array of scrobbles
+func fetchConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
+	config, err := getAllConfigs()
+	if err != nil {
+		throwOkError(w, "Failed to fetch scrobbles")
+		return
+	}
+
+	json, _ := json.Marshal(&config)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// fetchScrobbles - Return an array of scrobbles
+func postConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
+	bodyJson, err := decodeJson(r.Body)
+	if err != nil {
+		throwInvalidJson(w)
+		return
+	}
+
+	for k, v := range bodyJson {
+		err = updateConfigValue(k, fmt.Sprintf("%s", v))
+		if err != nil {
+			throwOkError(w, err.Error())
+			return
+		}
+	}
+
+	throwOkMessage(w, "Config updated successfully")
 }
 
 // FRONTEND HANDLING

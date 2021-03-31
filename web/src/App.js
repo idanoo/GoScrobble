@@ -1,16 +1,17 @@
-import './App.css';
+import { Route, Switch, withRouter } from 'react-router-dom';
+
 import Home from './Pages/Home';
 import About from './Pages/About';
-
 import Dashboard from './Pages/Dashboard';
 import Profile from './Pages/Profile';
+import Admin from './Pages/Admin';
 import Login from './Pages/Login';
-import Settings from './Pages/Settings';
 import Register from './Pages/Register';
+
 import Navigation from './Components/Navigation';
 
-import { Route, Switch, withRouter } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import './App.css';
 
 const App = () => {
     let boolTrue = true
@@ -24,7 +25,8 @@ const App = () => {
 
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/profile" component={Profile} />
-          <Route path="/settings" component={Settings} />
+
+          <Route path="/admin" component={Admin} />
 
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />

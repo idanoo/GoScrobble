@@ -98,16 +98,16 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 	}
 
 	if strings.Contains(logReq.Username, "@") {
-		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password` FROM `users` WHERE `email` = ? AND `active` = 1",
-			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin` FROM `users` WHERE `email` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resp, errors.New("Invalid Username or Password")
 			}
 		}
 	} else {
-		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password` FROM `users` WHERE `username` = ? AND `active` = 1",
-			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin` FROM `users` WHERE `username` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin)
 		if err == sql.ErrNoRows {
 			return resp, errors.New("Invalid Username or Password")
 		}
@@ -192,4 +192,16 @@ func userAlreadyExists(req *RegisterRequest) bool {
 	}
 
 	return count > 0
+}
+
+func getUser(uuid string) (User, error) {
+	var user User
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin` FROM `users` WHERE `uuid` = UUID_TO_BIN(?, true) AND `active` = 1",
+		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin)
+
+	if err == sql.ErrNoRows {
+		return user, errors.New("Invalid JWT Token")
+	}
+
+	return user, nil
 }

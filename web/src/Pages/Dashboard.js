@@ -10,7 +10,7 @@ import AuthContext from '../Contexts/AuthContext';
 const Dashboard = () => {
   const history = useHistory();
   let { user } = useContext(AuthContext);
-  let [isLoading, setIsLoading] = useState(true);
+  let [loading, setLoading] = useState(true);
   let [dashboardData, setDashboardData] = useState({});
 
   if (!user) {
@@ -24,7 +24,7 @@ const Dashboard = () => {
     getRecentScrobbles(user.uuid)
       .then(data => {
         setDashboardData(data);
-        setIsLoading(false);
+        setLoading(false);
       })
   }, [user])
 
@@ -33,8 +33,8 @@ const Dashboard = () => {
       <h1>
         Dashboard!
       </h1>
-      {isLoading
-        ? <ScaleLoader color="#FFF" size={60} />
+      {loading
+        ? <ScaleLoader color="#6AD7E5" size={60} />
         : <ScrobbleTable data={dashboardData} />
       }
     </div>

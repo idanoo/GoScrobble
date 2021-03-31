@@ -15,7 +15,7 @@ func generateToken(n int) string {
 	return string(b)
 }
 
-func getUserForToken(token string) (string, error) {
+func getUserUuidForToken(token string) (string, error) {
 	var uuid string
 	cachedKey := getRedisVal("user_token:" + token)
 	if cachedKey == "" {

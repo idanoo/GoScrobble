@@ -1,7 +1,10 @@
+# 0.0.8
+- Added Admin/Site config page in frontend for admin users
+- Added API POST/GET /config endpoint
+
 # 0.0.7
 - Switch redux -> Context
 - Remove excess packages
-
 
 # 0.0.6
 - Fix hitting dashboard when logged out

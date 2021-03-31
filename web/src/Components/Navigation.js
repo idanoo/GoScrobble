@@ -33,10 +33,14 @@ const Navigation = () => {
   let { user, Logout } = useContext(AuthContext);
   let [collapsed, setCollapsed] = useState(true);
 
+  const toggleCollapsed = () => {
+    setCollapsed(!collapsed)
+  }
+
   const renderMobileNav = () => {
     return <Navbar color="dark" dark fixed="top">
       <NavbarBrand className="mr-auto"><img src={logo} className="nav-logo" alt="logo" /> GoScrobble</NavbarBrand>
-      <NavbarToggler onClick={setCollapsed(!collapsed)} className="mr-2" />
+      <NavbarToggler onClick={toggleCollapsed} className="mr-2" />
       <Collapse isOpen={!collapsed} navbar>
         {user ?
         <Nav className="navLinkLoginMobile" navbar>
@@ -55,6 +59,12 @@ const Navigation = () => {
             style={active === "profile" ? activeStyle : {}}
             className="navLinkMobile"
             >Profile</Link>
+          {user.admin &&
+            <Link
+              to="/admin"
+              style={active === "admin" ? activeStyle : {}}
+              className="navLink"
+            >Admin</Link>}
           <Link to="/" className="navLink" onClick={Logout}>Logout</Link>
         </Nav>
       : <Nav className="navLinkLoginMobile" navbar>
@@ -126,7 +136,13 @@ const Navigation = () => {
               style={active === "profile" ? activeStyle : {}}
               className="navLink"
             >{user.username}</Link>
-            <Link to="/" className="navLink" onClick={Logout}>Logout</Link>
+            {user.admin &&
+            <Link
+              to="/admin"
+              style={active === "admin" ? activeStyle : {}}
+              className="navLink"
+            >Admin</Link>}
+            <Link to="/admin" className="navLink" onClick={Logout}>Logout</Link>
           </div>
       :
       <div className="navLinkLogin">
