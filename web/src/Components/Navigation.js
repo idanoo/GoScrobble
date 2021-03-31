@@ -3,14 +3,8 @@ import { Navbar, NavbarBrand, Collapse, Nav, NavbarToggler, NavItem } from 'reac
 import { Link } from 'react-router-dom';
 import logo from '../logo.png';
 import './Navigation.css';
-import { connect } from 'react-redux';
-import { logout } from '../Actions/auth';
-import eventBus from "../Actions/eventBus";
 
-import {
-  LOGIN_SUCCESS,
-  LOGOUT,
-} from "../Actions/types";
+import logout from '../Contexts/AuthContextProvider';
 
 const menuItems = [
   'Home',
@@ -45,17 +39,6 @@ class Navigation extends Component {
       });
     }
 
-    eventBus.on(LOGIN_SUCCESS, () =>
-      this.setState({ isLoggedIn: true })
-    );
-
-    eventBus.on(LOGOUT, () =>
-      this.setState({ isLoggedIn: false })
-    );
-  }
-
-  componentWillUnmount() {
-    eventBus.remove(LOGIN_SUCCESS);
   }
 
   _handleClick(menuItem) {
@@ -211,12 +194,4 @@ class Navigation extends Component {
   }
 }
 
-function mapStateToProps(state) {
-  const { isLoggedIn } = state.auth;
-
-  return {
-    isLoggedIn
-  };
-}
-
-export default connect(mapStateToProps)(Navigation);
+export default Navigation;

@@ -3,9 +3,8 @@ import '../App.css';
 import './Register.css';
 import { Button } from 'reactstrap';
 import ScaleLoader from "react-spinners/ScaleLoader";
-import { register } from '../Actions/auth';
+import register from '../Contexts/AuthContextProvider';
 import { Formik, Field, Form } from 'formik';
-import { connect } from 'react-redux';
 
 class Register extends React.Component {
   constructor(props) {
@@ -115,11 +114,4 @@ class Register extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
-  const { isLoggedIn } = state.auth;
-  return {
-    isLoggedIn
-  };
-}
-
-export default connect(mapStateToProps)(Register);
+export default Register;

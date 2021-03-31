@@ -1,7 +1,6 @@
 import React from 'react';
 import '../App.css';
 import './Dashboard.css';
-import { connect } from 'react-redux';
 
 class Profile extends React.Component {
   componentDidMount() {
@@ -23,11 +22,4 @@ class Profile extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
-  const { isLoggedIn } = state.auth;
-  return {
-    isLoggedIn,
-  };
-}
-
-export default connect(mapStateToProps)(Profile);
+export default Profile;

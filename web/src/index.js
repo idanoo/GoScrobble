@@ -3,13 +3,14 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import { HashRouter } from 'react-router-dom';
+
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css'
-import { Provider } from 'react-redux';
-import store from "./store";
+import 'react-toastify/dist/ReactToastify.min.css';
+
+import AuthContextProvider from './Contexts/AuthContextProvider';
 
 ReactDOM.render(
-  <Provider store={store}>
+  <AuthContextProvider>
     <HashRouter>
       <ToastContainer
         position="bottom-right"
@@ -24,6 +25,6 @@ ReactDOM.render(
         />
         <App />
     </HashRouter>
-  </Provider>,
+  </AuthContextProvider>,
   document.getElementById('root')
 );

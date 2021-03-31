@@ -1,8 +1,8 @@
 import React from 'react';
 import '../App.css';
 import './Dashboard.css';
-import { connect } from 'react-redux';
-import { getRecentScrobbles } from '../Actions/api';
+
+import { getRecentScrobbles } from '../Api/index';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import ScrobbleTable from "../Components/ScrobbleTable";
 
@@ -53,17 +53,4 @@ class Dashboard extends React.Component {
   }
 }
 
-function mapStateToProps(state) {
-  const { isLoggedIn } = state.auth;
-  let uuid = null;
-  if (isLoggedIn) {
-    uuid = state.auth.user.uuid
-  }
-
-  return {
-    isLoggedIn,
-    uuid,
-  };
-}
-
-export default connect(mapStateToProps)(Dashboard);
+export default Dashboard;

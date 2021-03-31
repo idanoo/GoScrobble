@@ -2,15 +2,6 @@ import React from 'react';
 import '../App.css';
 import './Settings.css';
 
-import { useToasts } from 'react-toast-notifications';
-
-function withToast(Component) {
-  return function WrappedComponent(props) {
-    const toastFuncs = useToasts()
-    return <Component {...props} {...toastFuncs} />;
-  }
-}
-
 class Settings extends React.Component {
   constructor(props) {
     super(props);
@@ -33,4 +24,4 @@ class Settings extends React.Component {
   }
 }
 
-export default withToast(Settings);
+export default Settings;
