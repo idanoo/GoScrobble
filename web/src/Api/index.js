@@ -32,9 +32,14 @@ export const PostLogin = (formValues) => {
         toast.error(response.data.error ? response.data.error: 'An Unknown Error has occurred');
         return null
       }
-    })
-    .catch(() => {
-      toast.error('Failed to connect');
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
       return Promise.resolve();
     });
 };
@@ -51,20 +56,70 @@ export const PostRegister = (formValues) => {
 
         return Promise.reject();
       }
-    })
-    .catch(() => {
+    }).catch((error) => {
+    if (error.response === 401)  {
+      return {};
+    } else if (error.response === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
       toast.error('Failed to connect');
-      return Promise.resolve();
-    });
+    }
+    return Promise.resolve();
+  });
+};
+
+export const PostResetPassword = (formValues) => {
+  return axios.post(process.env.REACT_APP_API_URL + "resetpassword", formValues)
+    .then((response) => {
+      if (response.data.message) {
+        toast.success(response.data.message);
+
+        return Promise.resolve();
+      } else {
+        toast.error(response.data.error ? response.data.error: 'An Unknown Error has occurred');
+
+        return Promise.reject();
+      }
+    }).catch((error) => {
+    if (error.response === 401)  {
+      return {};
+    } else if (error.response === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
+      toast.error('Failed to connect');
+    }
+    return Promise.resolve();
+  });
+};
+
+export const sendPasswordReset = (values) => {
+  return axios.post(process.env.REACT_APP_API_URL + "sendreset", values).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    if (error.response === 401)  {
+      return {};
+    } else if (error.response === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
+      toast.error('Failed to connect');
+    }
+    return {};
+  });
 };
 
 export const getStats = () => {
   return axios.get(process.env.REACT_APP_API_URL + "stats").then(
     (data) => {
       return data.data;
+  }).catch((error) => {
+    if (error.response === 401)  {
+      return {};
+    } else if (error.response === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
+      toast.error('Failed to connect');
     }
-  ).catch(() => {
-    toast.error('Failed to connect');
     return {};
   });
 };
@@ -73,8 +128,14 @@ export const getRecentScrobbles = (id) => {
   return axios.get(process.env.REACT_APP_API_URL + "user/" + id + "/scrobbles", { headers: getHeaders() })
     .then((data) => {
       return data.data;
-    }).catch(() => {
-      toast.error('Failed to connect');
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
       return {};
     });
 };
@@ -83,8 +144,14 @@ export const getConfigs = () => {
   return axios.get(process.env.REACT_APP_API_URL + "config", { headers: getHeaders() })
     .then((data) => {
       return data.data;
-    }).catch(() => {
-      toast.error('Failed to connect');
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
       return {};
     });
 };
@@ -103,18 +170,30 @@ export const postConfigs = (values, toggle) => {
       } else if (data.data && data.data.error) {
         toast.error(data.data.error);
       }
-    })
-    .catch(() => {
-      toast.error('Error updating values');
-    });
+    }).catch((error) => {
+    if (error.response === 401)  {
+      return {};
+    } else if (error.response === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
+      toast.error('Failed to connect');
+    }
+    return {};
+  });
 };
 
 export const getProfile = (userName) => {
   return axios.get(process.env.REACT_APP_API_URL + "profile/" + userName, { headers: getHeaders() })
     .then((data) => {
       return data.data;
-    }).catch(() => {
-      toast.error('Failed to connect');
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
       return {};
     });
 };
@@ -123,8 +202,35 @@ export const getUser = () => {
   return axios.get(process.env.REACT_APP_API_URL + "user", { headers: getHeaders() })
     .then((data) => {
       return data.data;
-    }).catch(() => {
-      toast.error('Failed to connect');
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
       return {};
     });
 };
+
+export const validateResetPassword = (tokenStr) => {
+  return axios.post(process.env.REACT_APP_API_URL + "resetpassword", { token: tokenStr })
+    .then((data) => {
+      if (data.error) {
+        toast.error(data.error);
+        return {valid: false}
+      }
+      return data.data;
+    }).catch((error) => {
+      if (error.response === 401)  {
+        return {};
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
+      return {};
+    });
+};
+

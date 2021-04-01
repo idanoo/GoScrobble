@@ -8,7 +8,7 @@ import ScrobbleTable from "../Components/ScrobbleTable";
 import AuthContext from '../Contexts/AuthContext';
 
 const Dashboard = () => {
-  const history = useHistory();
+  // const history = useHistory();
   let { user } = useContext(AuthContext);
   let [loading, setLoading] = useState(true);
   let [dashboardData, setDashboardData] = useState({});

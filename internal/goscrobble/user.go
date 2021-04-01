@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 	"strings"
 	"time"
 
@@ -153,13 +154,13 @@ func insertUser(username string, email string, password []byte, ip net.IP) error
 }
 
 func updateUser(uuid string, field string, value string, ip net.IP) error {
-	_, err := db.Exec("UPDATE users SET ? = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = ?", field, value, uuid, ip)
+	_, err := db.Exec("UPDATE users SET `"+field+"` = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = ?", value, uuid, ip)
 
 	return err
 }
 
 func updateUserDirect(uuid string, field string, value string) error {
-	_, err := db.Exec("UPDATE users SET ? = ? WHERE uuid = ?", field, value, uuid)
+	_, err := db.Exec("UPDATE users SET `"+field+"` = ? WHERE uuid = ?", value, uuid)
 
 	return err
 }
@@ -227,4 +228,91 @@ func getUserByUsername(username string) (User, error) {
 	}
 
 	return user, nil
+}
+
+func getUserByEmail(email string) (User, error) {
+	var user User
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin` FROM `users` WHERE `email` = ? AND `active` = 1",
+		email).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin)
+
+	if err == sql.ErrNoRows {
+		return user, errors.New("Invalid Email")
+	}
+
+	return user, nil
+}
+
+func getUserByResetToken(token string) (User, error) {
+	var user User
+	err := db.QueryRow("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin` FROM `users` "+
+		"JOIN `resettoken` ON `resettoken`.`user` = `users`.`uuid` WHERE `resettoken`.`token` = ? AND `active` = 1",
+		token).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin)
+
+	fmt.Println(err)
+
+	if err == sql.ErrNoRows {
+		return user, errors.New("Invalid Token")
+	}
+
+	return user, nil
+}
+func (user *User) sendResetEmail(ip net.IP) error {
+	token := generateToken(16)
+
+	// 24 hours
+	exp := time.Now().AddDate(0, 0, 1)
+	err := user.saveResetToken(token, exp)
+
+	if err != nil {
+		return err
+	}
+
+	content := fmt.Sprintf(
+		"Someone at %s has request a password reset for %s. Click the following link to reset your password: %s/reset/%s",
+		ip, user.Username, os.Getenv("GOSCROBBLE_DOMAIN"), token)
+
+	return sendEmail(user.Username, user.Email, "GoScrobble - Password Reset", content)
+}
+
+func (user *User) saveResetToken(token string, expiry time.Time) error {
+	_, _ = db.Exec("DELETE FROM `resettoken` WHERE `user` = UUID_TO_BIN(?, true)", user.UUID)
+	_, err := db.Exec("INSERT INTO `resettoken` (`user`, `token`, `expiry`) "+
+		"VALUES (UUID_TO_BIN(?, true),?, ?)", user.UUID, token, expiry)
+
+	return err
+}
+
+func clearOldResetTokens() {
+	_, _ = db.Exec("DELETE FROM `resettoken` WHERE `expiry` < NOW()")
+}
+
+func clearResetToken(token string) error {
+	_, err := db.Exec("DELETE FROM `resettoken` WHERE `token` = ?", token)
+
+	return err
+}
+
+// checkResetToken - If a token exists check it
+func checkResetToken(token string) (bool, error) {
+	count, err := getDbCount("SELECT COUNT(*) FROM `resettoken` WHERE `token` = ? ", token)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+func (user *User) updatePassword(newPassword string, ip net.IP) error {
+	hash, err := hashPassword(newPassword)
+	if err != nil {
+		return errors.New("Bad password")
+	}
+
+	_, err = db.Exec("UPDATE `users` SET `password` = ? WHERE `uuid` = UUID_TO_BIN(?, true)", hash, user.UUID)
+	if err != nil {
+		return errors.New("Failed to update password")
+	}
+
+	return nil
 }

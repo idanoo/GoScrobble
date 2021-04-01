@@ -1,3 +1,9 @@
+# 0.0.10
+- Fixed looking up invalid profiles
+- Added valid error handling to bad request && rate limiting
+- Add Sendgrid library (Will add SMTP later)
+- Complete password reset process
+
 # 0.0.9
 - Fix mobile menu auto collapse on select
 - Add /u/ route for public user profiles (Added private flag to db - to implement later)

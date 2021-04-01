@@ -16,6 +16,10 @@ const Login = () => {
     history.push("/dashboard");
   }
 
+  const redirectReset = () => {
+    history.push("/reset")
+  }
+
   return (
     <div className="pageWrapper">
       <h1>
@@ -42,7 +46,6 @@ const Login = () => {
             <Field
               name="password"
               type="password"
-              required={boolTrue}
               className="loginFields"
             />
           </label>
@@ -53,6 +56,14 @@ const Login = () => {
             className="loginButton"
             disabled={loading}
           >{loading ? <ScaleLoader color="#FFF" size={35} /> : "Login"}</Button>
+          <br/><br/>
+            <Button
+            color="secondary"
+            type="button"
+            className="loginButton"
+            onClick={redirectReset}
+            disabled={loading}
+          >{loading ? <ScaleLoader color="#FFF" size={35} /> : "Reset Password"}</Button>
         </Form>
         </Formik>
       </div>

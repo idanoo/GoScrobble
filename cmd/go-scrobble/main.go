@@ -51,6 +51,9 @@ func main() {
 	goscrobble.InitRedis()
 	defer goscrobble.CloseRedisConn()
 
+	// Clear old reset tokens regularly
+	// go goscrobble.ClearTokenTimer()
+
 	// Boot up API webserver \o/
 	goscrobble.HandleRequests(port)
 }

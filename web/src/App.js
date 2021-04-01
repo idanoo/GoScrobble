@@ -7,6 +7,7 @@ import User from './Pages/User';
 import Admin from './Pages/Admin';
 import Login from './Pages/Login';
 import Register from './Pages/Register';
+import Reset from './Pages/Reset';
 
 import Navigation from './Components/Navigation';
 
@@ -37,6 +38,9 @@ const App = () => {
 
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
+
+          <Route path="/reset/:token" component={Reset} />
+          <Route path="/reset" component={Reset} />
 
         </Switch>
       </div>

@@ -35,7 +35,7 @@ const Profile = (route) => {
     )
   }
 
-  if (!username || Object.keys(profile).length === 0) {
+  if (!username || !profile.username) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -50,7 +50,7 @@ const Profile = (route) => {
       </h1>
       <div className="profileBody">
         Last 10 scrobbles...<br/>
-      <ScrobbleTable data={profile.scrobbles}/>
+        <ScrobbleTable data={profile.scrobbles}/>
       </div>
     </div>
   );

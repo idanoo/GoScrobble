@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import AuthContext from './AuthContext';
-import { PostLogin, PostRegister } from '../Api/index';
+import { PostLogin, PostRegister, PostResetPassword } from '../Api/index';
 
 const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState();
@@ -30,10 +30,13 @@ const AuthContextProvider = ({ children }) => {
   const Register = (formValues) => {
     setLoading(true);
     return PostRegister(formValues).then(response => {
-      // Do stuff here?
       setLoading(false);
     });
   };
+
+  const ResetPassword = (formValues) => {
+    return PostResetPassword(formValues)
+  }
 
   const Logout = () => {
     localStorage.removeItem("user");
@@ -47,6 +50,7 @@ const AuthContextProvider = ({ children }) => {
         Logout,
         Login,
         Register,
+        ResetPassword,
         loading,
         user,
       }}

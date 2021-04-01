@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import '../App.css';
 import './Login.css';
 import { Button } from 'reactstrap';
@@ -9,6 +10,7 @@ import { Switch } from 'formik-material-ui';
 import { getConfigs, postConfigs } from '../Api/index'
 
 const Admin = () => {
+  const history = useHistory();
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState({})
@@ -38,11 +40,7 @@ const Admin = () => {
   }
 
   if (!user || !user.admin) {
-    return (
-      <div className="pageWrapper">
-        <h1>Unauthorized</h1>
-      </div>
-    )
+    history.push("/login")
   }
 
   return (

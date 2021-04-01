@@ -24,3 +24,9 @@ These are stored in `web/.env.production` and `web/.env.development`
 
     REVERSE_PROXIES=127.0.0.1 // Comma separated list of servers to ignore for IP logs
     PORT=42069 // Server port
+
+    SENDGRID_API_KEY= // API KEY
+    MAIL_FROM_ADDRESS= // FROM email
+    MAIL_FROM_NAME= // FROM name
+
+    GOSCROBBLE_DOMAIN="" // Full domain for email links (https://goscrobble.com))

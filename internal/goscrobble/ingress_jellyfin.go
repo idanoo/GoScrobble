@@ -10,6 +10,9 @@ import (
 
 // ParseJellyfinInput - Transform API data into a common struct
 func ParseJellyfinInput(userUUID string, data map[string]interface{}, ip net.IP, tx *sql.Tx) error {
+	// Debugging
+	fmt.Printf("%+v", data)
+
 	if data["ItemType"] != "Audio" {
 		return errors.New("Media type not audio")
 	}
