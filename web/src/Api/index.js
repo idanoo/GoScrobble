@@ -14,8 +14,6 @@ function getHeaders() {
 }
 
 export const PostLogin = (formValues) => {
-  // const { setLoading, setUser } = useContext(AuthContext);
-  // setLoading(true)
   return axios.post(process.env.REACT_APP_API_URL + "login", formValues)
     .then((response) => {
       if (response.data.token) {
@@ -36,6 +34,7 @@ export const PostLogin = (formValues) => {
       }
     })
     .catch(() => {
+      toast.error('Failed to connect');
       return Promise.resolve();
     });
 };
@@ -54,6 +53,7 @@ export const PostRegister = (formValues) => {
       }
     })
     .catch(() => {
+      toast.error('Failed to connect');
       return Promise.resolve();
     });
 };
@@ -61,16 +61,21 @@ export const PostRegister = (formValues) => {
 export const getStats = () => {
   return axios.get(process.env.REACT_APP_API_URL + "stats").then(
     (data) => {
-      data.isLoading = false;
       return data.data;
     }
-  );
+  ).catch(() => {
+    toast.error('Failed to connect');
+    return {};
+  });
 };
 
 export const getRecentScrobbles = (id) => {
   return axios.get(process.env.REACT_APP_API_URL + "user/" + id + "/scrobbles", { headers: getHeaders() })
     .then((data) => {
       return data.data;
+    }).catch(() => {
+      toast.error('Failed to connect');
+      return {};
     });
 };
 
@@ -78,6 +83,9 @@ export const getConfigs = () => {
   return axios.get(process.env.REACT_APP_API_URL + "config", { headers: getHeaders() })
     .then((data) => {
       return data.data;
+    }).catch(() => {
+      toast.error('Failed to connect');
+      return {};
     });
 };
 
@@ -101,3 +109,22 @@ export const postConfigs = (values, toggle) => {
     });
 };
 
+export const getProfile = (userName) => {
+  return axios.get(process.env.REACT_APP_API_URL + "profile/" + userName, { headers: getHeaders() })
+    .then((data) => {
+      return data.data;
+    }).catch(() => {
+      toast.error('Failed to connect');
+      return {};
+    });
+};
+
+export const getUser = () => {
+  return axios.get(process.env.REACT_APP_API_URL + "user", { headers: getHeaders() })
+    .then((data) => {
+      return data.data;
+    }).catch(() => {
+      toast.error('Failed to connect');
+      return {};
+    });
+};

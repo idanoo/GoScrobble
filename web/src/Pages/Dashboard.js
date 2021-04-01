@@ -13,10 +13,6 @@ const Dashboard = () => {
   let [loading, setLoading] = useState(true);
   let [dashboardData, setDashboardData] = useState({});
 
-  if (!user) {
-    history.push("/login");
-  }
-
   useEffect(() => {
     if (!user) {
       return
@@ -28,14 +24,22 @@ const Dashboard = () => {
       })
   }, [user])
 
+  if (loading) {
+    return (
+      <div className="pageWrapper">
+        <ScaleLoader color="#6AD7E5" />
+      </div>
+    )
+  }
+
   return (
     <div className="pageWrapper">
       <h1>
-        Dashboard!
+        {user.username}'s Dashboard!
       </h1>
       {loading
         ? <ScaleLoader color="#6AD7E5" size={60} />
-        : <ScrobbleTable data={dashboardData} />
+        : <ScrobbleTable data={dashboardData.items} />
       }
     </div>
   );

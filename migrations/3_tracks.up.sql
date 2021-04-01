@@ -34,8 +34,10 @@ CREATE TABLE IF NOT EXISTS `scrobbles` (
     `created_ip` VARBINARY(16) NULL DEFAULT NULL,
     `user` BINARY(16) NOT NULL,
     `track` BINARY(16) NOT NULL,
+    `source` VARCHAR(100) NOT NULL DEFAULT '',
     KEY `userLookup` (`user`),
     KEY `dateLookup` (`created_at`),
+    KEY `sourceLookup` (`source`),
     FOREIGN KEY (track) REFERENCES tracks(uuid),
     FOREIGN KEY (user) REFERENCES users(uuid)
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;

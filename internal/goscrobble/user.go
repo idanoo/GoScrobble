@@ -29,6 +29,17 @@ type User struct {
 	Admin      bool      `json:"admin"`
 }
 
+type UserResponse struct {
+	UUID       string    `json:"uuid"`
+	CreatedAt  time.Time `json:"created_at"`
+	CreatedIp  net.IP    `json:"created_ip"`
+	ModifiedAt time.Time `json:"modified_at"`
+	ModifiedIP net.IP    `jsos:"modified_ip"`
+	Username   string    `json:"username"`
+	Email      string    `json:"email"`
+	Verified   bool      `json:"verified"`
+}
+
 // RegisterRequest - Incoming JSON
 type RegisterRequest struct {
 	Username string `json:"username"`
@@ -201,6 +212,18 @@ func getUser(uuid string) (User, error) {
 
 	if err == sql.ErrNoRows {
 		return user, errors.New("Invalid JWT Token")
+	}
+
+	return user, nil
+}
+
+func getUserByUsername(username string) (User, error) {
+	var user User
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin` FROM `users` WHERE `username` = ? AND `active` = 1",
+		username).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin)
+
+	if err == sql.ErrNoRows {
+		return user, errors.New("Invalid Username")
 	}
 
 	return user, nil

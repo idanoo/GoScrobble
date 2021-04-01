@@ -50,7 +50,7 @@ func ParseJellyfinInput(userUUID string, data map[string]interface{}, ip net.IP,
 	}
 
 	// Insert album if not exist
-	err = insertScrobble(userUUID, track.Uuid, ip, tx)
+	err = insertScrobble(userUUID, track.Uuid, "jellyfin", ip, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")

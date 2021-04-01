@@ -36,8 +36,8 @@ type ScrobbleRequestItem struct {
 }
 
 // insertScrobble - This will return if it exists or create it based on MBID > Name
-func insertScrobble(user string, track string, ip net.IP, tx *sql.Tx) error {
-	err := insertNewScrobble(user, track, ip, tx)
+func insertScrobble(user string, track string, source string, ip net.IP, tx *sql.Tx) error {
+	err := insertNewScrobble(user, track, source, ip, tx)
 	if err != nil {
 		log.Printf("Error inserting scrobble %s  %+v", user, err)
 		return errors.New("Failed to insert scrobble!")
@@ -46,7 +46,7 @@ func insertScrobble(user string, track string, ip net.IP, tx *sql.Tx) error {
 	return nil
 }
 
-func fetchScrobblesForUser(userUuid string, page int) (ScrobbleRequest, error) {
+func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRequest, error) {
 	scrobbleReq := ScrobbleRequest{}
 	var count int
 
@@ -76,8 +76,8 @@ func fetchScrobblesForUser(userUuid string, page int) (ScrobbleRequest, error) {
 			"JOIN albums ON track_album.album = albums.uuid "+
 			"JOIN users ON scrobbles.user = users.uuid "+
 			"WHERE user = UUID_TO_BIN(?, true) "+
-			"ORDER BY scrobbles.created_at DESC LIMIT 500",
-		userUuid)
+			"ORDER BY scrobbles.created_at DESC LIMIT ?",
+		userUuid, limit)
 	if err != nil {
 		log.Printf("Failed to fetch scrobbles: %+v", err)
 		return scrobbleReq, errors.New("Failed to fetch scrobbles")
@@ -108,9 +108,9 @@ func fetchScrobblesForUser(userUuid string, page int) (ScrobbleRequest, error) {
 	return scrobbleReq, nil
 }
 
-func insertNewScrobble(user string, track string, ip net.IP, tx *sql.Tx) error {
-	_, err := tx.Exec("INSERT INTO `scrobbles` (`uuid`, `created_at`, `created_ip`, `user`, `track`) "+
-		"VALUES (UUID_TO_BIN(UUID(), true), NOW(), ?, UUID_TO_BIN(?, true),UUID_TO_BIN(?, true))", ip, user, track)
+func insertNewScrobble(user string, track string, source string, ip net.IP, tx *sql.Tx) error {
+	_, err := tx.Exec("INSERT INTO `scrobbles` (`uuid`, `created_at`, `created_ip`, `user`, `track`, `source`) "+
+		"VALUES (UUID_TO_BIN(UUID(), true), NOW(), ?, UUID_TO_BIN(?, true),UUID_TO_BIN(?, true), ?)", ip, user, track, source)
 
 	return err
 }

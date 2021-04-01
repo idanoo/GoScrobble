@@ -17,19 +17,17 @@ const Admin = () => {
   useEffect(() => {
     getConfigs()
       .then(data => {
-        setConfigs(data.configs);
-        setToggle(data.configs.REGISTRATION_ENABLED === "1")
+        if (data.configs) {
+          setConfigs(data.configs);
+          setToggle(data.configs.REGISTRATION_ENABLED === "1")
+        }
         setLoading(false);
       })
   }, [])
 
-  if (!user || !user.admin) {
-    return (
-      <div className="pageWrapper">
-        <h1>Unauthorized</h1>
-      </div>
-    )
-  }
+  const handleToggle = () => {
+    setToggle(!toggle);
+  };
 
   if (loading) {
     return (
@@ -39,9 +37,13 @@ const Admin = () => {
     )
   }
 
-  const handleToggle = () => {
-    setToggle(!toggle);
-  };
+  if (!user || !user.admin) {
+    return (
+      <div className="pageWrapper">
+        <h1>Unauthorized</h1>
+      </div>
+    )
+  }
 
   return (
     <div className="pageWrapper">

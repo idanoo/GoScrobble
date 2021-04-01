@@ -3,11 +3,14 @@ package goscrobble
 import (
 	"errors"
 	"math/rand"
+	"time"
 )
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
+// generateToken - Generates a unique token for user input
 func generateToken(n int) string {
+	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	for i := range b {
 		b[i] = letterBytes[rand.Int63()%int64(len(letterBytes))]

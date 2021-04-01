@@ -11,8 +11,10 @@ const HomeBanner = () => {
   useEffect(() => {
     getStats()
       .then(data => {
-        setBannerData(data);
-        setIsLoading(false);
+        if (data.users) {
+          setBannerData(data);
+          setIsLoading(false);
+        }
       })
   }, [])
 

@@ -1,3 +1,12 @@
+# 0.0.9
+- Fix mobile menu auto collapse on select
+- Add /u/ route for public user profiles (Added private flag to db - to implement later)
+- Add /user route for your own profile / edit profile
+- Added handling for if API is offline/incorrect
+- Add index.html loading spinner while react bundle downloads
+- Change HashRouter to BrowserRouter
+- Added sources column to scrobbles
+
 # 0.0.8
 - Added Admin/Site config page in frontend for admin users
 - Added API POST/GET /config endpoint

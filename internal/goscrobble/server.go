@@ -25,11 +25,14 @@ type jsonResponse struct {
 	Msg string `json:"message,omitempty"`
 }
 
-// Limits to 1 req / 10 sec
+// Limits to 1 req / 4 sec
 var heavyLimiter = NewIPRateLimiter(0.25, 2)
 
 // Limits to 5 req / sec
-var standardLimiter = NewIPRateLimiter(1, 5)
+var standardLimiter = NewIPRateLimiter(5, 5)
+
+// Limits to 10 req / sec
+var lightLimiter = NewIPRateLimiter(10, 10)
 
 // List of Reverse proxies
 var ReverseProxies []string
@@ -48,17 +51,21 @@ func HandleRequests(port string) {
 	// Static Token for /ingress
 	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(handleIngress)).Methods("POST")
 
-	// JWT Auth
-	v1.HandleFunc("/user/{id}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
+	// JWT Auth - PWN PROFILE ONLY.
+	v1.HandleFunc("/user", jwtMiddleware(fetchUser)).Methods("GET")
+	// v1.HandleFunc("/user", jwtMiddleware(fetchScrobbleResponse)).Methods("PATCH")
+	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
 
 	// Config auth
 	v1.HandleFunc("/config", adminMiddleware(fetchConfig)).Methods("GET")
 	v1.HandleFunc("/config", adminMiddleware(postConfig)).Methods("POST")
 
 	// No Auth
+	v1.HandleFunc("/stats", handleStats).Methods("GET")
+	v1.HandleFunc("/profile/{username}", limitMiddleware(fetchProfile, lightLimiter)).Methods("GET")
+
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
-	v1.HandleFunc("/stats", handleStats).Methods("GET")
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
@@ -80,7 +87,7 @@ func HandleRequests(port string) {
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
-// MIDDLEWARE
+// MIDDLEWARE RESPONSES
 // throwUnauthorized - Throws a 403
 func throwUnauthorized(w http.ResponseWriter, m string) {
 	jr := jsonResponse{
@@ -149,6 +156,7 @@ func generateJsonError(m string) []byte {
 	return js
 }
 
+// MIDDLEWARE ACTIONS
 // tokenMiddleware - Validates token to a user
 func tokenMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -182,13 +190,9 @@ func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)
 
 		var reqUuid string
 		for k, v := range mux.Vars(r) {
-			if k == "id" {
+			if k == "uuid" {
 				reqUuid = v
 			}
-		}
-
-		if reqUuid == "" {
-			throwBadReq(w, "Invalid Request")
 		}
 
 		next(w, r, claims.Subject, reqUuid)
@@ -311,13 +315,13 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 		if err != nil {
 			// log.Printf("Error inserting track: %+v", err)
 			tx.Rollback()
-			throwBadReq(w, err.Error())
+			throwOkError(w, err.Error())
 			return
 		}
 
 		err = tx.Commit()
 		if err != nil {
-			throwBadReq(w, err.Error())
+			throwOkError(w, err.Error())
 			return
 		}
 
@@ -328,11 +332,35 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	throwBadReq(w, "Unknown ingress type")
 }
 
+// fetchUser - Return personal userprofile
+func fetchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+	// We don't this var most of the time
+	userFull, err := getUser(jwtUser)
+	if err != nil {
+		throwOkError(w, "Failed to fetch user information")
+		return
+	}
+
+	jsonFull, _ := json.Marshal(&userFull)
+
+	// Lets strip out vars we don't want to send.
+	user := UserResponse{}
+	err = json.Unmarshal(jsonFull, &user)
+	if err != nil {
+		throwOkError(w, "Failed to fetch user information")
+		return
+	}
+	json, _ := json.Marshal(&user)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
 // fetchScrobbles - Return an array of scrobbles
 func fetchScrobbleResponse(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
-	resp, err := fetchScrobblesForUser(reqUser, 1)
+	resp, err := fetchScrobblesForUser(reqUser, 100, 1)
 	if err != nil {
-		throwBadReq(w, "Failed to fetch scrobbles")
+		throwOkError(w, "Failed to fetch scrobbles")
 		return
 	}
 
@@ -372,6 +400,37 @@ func postConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	}
 
 	throwOkMessage(w, "Config updated successfully")
+}
+
+// fetchProfile - Returns public user profile data
+func fetchProfile(w http.ResponseWriter, r *http.Request) {
+	var username string
+	for k, v := range mux.Vars(r) {
+		if k == "username" {
+			username = v
+		}
+	}
+
+	if username == "" {
+		throwOkError(w, "Invalid Username")
+		return
+	}
+
+	user, err := getUserByUsername(username)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	resp, err := getProfile(user)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&resp)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
 }
 
 // FRONTEND HANDLING

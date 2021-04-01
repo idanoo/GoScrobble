@@ -45,38 +45,41 @@ const Navigation = () => {
         {user ?
         <Nav className="navLinkLoginMobile" navbar>
           {loggedInMenuItems.map(menuItem =>
-            <NavItem>
-              <Link
+            <NavItem key={menuItem}>
+                <Link
                 key={menuItem}
                 className="navLinkMobile"
                 style={active === menuItem ? activeStyle : {}}
                 to={menuItem}
+                onClick={toggleCollapsed}
               >{menuItem}</Link>
             </NavItem>
           )}
           <Link
-            to="/profile"
-            style={active === "profile" ? activeStyle : {}}
+            to="/user"
+            style={active === "user" ? activeStyle : {}}
             className="navLinkMobile"
-            >Profile</Link>
+            onClick={toggleCollapsed}
+            >{user.username}</Link>
           {user.admin &&
             <Link
               to="/admin"
               style={active === "admin" ? activeStyle : {}}
               className="navLink"
+              onClick={toggleCollapsed}
             >Admin</Link>}
           <Link to="/" className="navLink" onClick={Logout}>Logout</Link>
         </Nav>
       : <Nav className="navLinkLoginMobile" navbar>
               {menuItems.map(menuItem =>
-                <NavItem>
+                <NavItem key={menuItem}>
                   <Link
                     key={menuItem}
                     className="navLinkMobile"
                     style={active === menuItem ? activeStyle : {}}
                     to={menuItem === "Home" ? "/" : menuItem}
-                  >
-                    {menuItem}
+                    onClick={toggleCollapsed}
+                  >{menuItem}
                   </Link>
                 </NavItem>
               )}
@@ -85,6 +88,7 @@ const Navigation = () => {
                   to="/Login"
                   style={active === "Login" ? activeStyle : {}}
                   className="navLinkMobile"
+                  onClick={toggleCollapsed}
                   >Login</Link>
               </NavItem>
               <NavItem>
@@ -92,6 +96,7 @@ const Navigation = () => {
                   to="/Register"
                   className="navLinkMobile"
                   style={active === "Register" ? activeStyle : {}}
+                  onClick={toggleCollapsed}
                 >Register</Link>
               </NavItem>
             </Nav>
@@ -132,8 +137,8 @@ const Navigation = () => {
       {user ?
         <div className="navLinkLogin">
             <Link
-              to="/profile"
-              style={active === "profile" ? activeStyle : {}}
+              to="/user"
+              style={active === "user" ? activeStyle : {}}
               className="navLink"
             >{user.username}</Link>
             {user.admin &&

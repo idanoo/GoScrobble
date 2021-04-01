@@ -14,9 +14,9 @@ const ScrobbleTable = (props) => {
            </thead>
            <tbody>
               {
-                  props.data && props.data.items &&
-                  props.data.items.map(function (element) {
-                     return <tr>
+                  props.data &&
+                  props.data.map(function (element) {
+                     return <tr key={element.uuid}>
                        <td>{element.time}</td>
                        <td>{element.track}</td>
                        <td>{element.artist}</td>
