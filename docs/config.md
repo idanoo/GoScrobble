@@ -1,3 +1,6 @@
+## Timezones
+GoScrobble runs as UTC and connects to MySQL as UTC. All timezone handling is done in the frontend.
+
 ## FRONTEND VARS
 These are stored in `web/.env.production` and `web/.env.development`
 
@@ -16,8 +19,6 @@ These are stored in `web/.env.production` and `web/.env.development`
     REDIS_DB=4 // Redis DB
     REDIS_PREFIX="gs:" // Redis key prefix
     REDIS_AUTH="" // Redis password
-
-    TIMEZONE= // Unix Timezone. Used for MySQL connection
 
     JWT_SECRET= // 32+ Char JWT secret
     JWT_EXPIRY=86400 // JWT expiry

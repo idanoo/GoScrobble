@@ -63,7 +63,7 @@ const Login = () => {
             className="loginButton"
             onClick={redirectReset}
             disabled={loading}
-          >{loading ? <ScaleLoader color="#FFF" size={35} /> : "Reset Password"}</Button>
+          >Reset Password</Button>
         </Form>
         </Formik>
       </div>

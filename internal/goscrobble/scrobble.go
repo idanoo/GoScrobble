@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -16,28 +17,29 @@ type Scrobble struct {
 	Track     string    `json:"track"`
 }
 
-type ScrobbleRequest struct {
-	Meta  ScrobbleRequestMeta   `json:"meta"`
-	Items []ScrobbleRequestItem `json:"items"`
+type ScrobbleResponse struct {
+	Meta  ScrobbleResponseMeta   `json:"meta"`
+	Items []ScrobbleResponseItem `json:"items"`
 }
 
-type ScrobbleRequestMeta struct {
+type ScrobbleResponseMeta struct {
 	Count int `json:"count"`
 	Total int `json:"total"`
 	Page  int `json:"page"`
 }
 
-type ScrobbleRequestItem struct {
+type ScrobbleResponseItem struct {
 	UUID      string    `json:"uuid"`
 	Timestamp time.Time `json:"time"`
 	Artist    string    `json:"artist"`
 	Album     string    `json:"album"`
 	Track     string    `json:"track"`
+	Source    string    `json:"source"`
 }
 
 // insertScrobble - This will return if it exists or create it based on MBID > Name
-func insertScrobble(user string, track string, source string, ip net.IP, tx *sql.Tx) error {
-	err := insertNewScrobble(user, track, source, ip, tx)
+func insertScrobble(user string, track string, source string, timestamp time.Time, ip net.IP, tx *sql.Tx) error {
+	err := insertNewScrobble(user, track, source, timestamp, ip, tx)
 	if err != nil {
 		log.Printf("Error inserting scrobble %s  %+v", user, err)
 		return errors.New("Failed to insert scrobble!")
@@ -46,8 +48,8 @@ func insertScrobble(user string, track string, source string, ip net.IP, tx *sql
 	return nil
 }
 
-func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRequest, error) {
-	scrobbleReq := ScrobbleRequest{}
+func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse, error) {
+	scrobbleReq := ScrobbleResponse{}
 	var count int
 
 	// Yeah this isn't great. But for now.. it works! Cache later
@@ -59,7 +61,8 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleReques
 			"JOIN artists ON track_artist.artist = artists.uuid "+
 			"JOIN albums ON track_album.album = albums.uuid "+
 			"JOIN users ON scrobbles.user = users.uuid "+
-			"WHERE user = UUID_TO_BIN(?, true)",
+			"WHERE user = UUID_TO_BIN(?, true) "+
+			"GROUP BY scrobbles.uuid",
 		userUuid)
 
 	if err != nil {
@@ -68,7 +71,7 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleReques
 	}
 
 	rows, err := db.Query(
-		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, `artists`.`name`, `albums`.`name`,`tracks`.`name` FROM `scrobbles` "+
+		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, `artists`.`name`, `albums`.`name`,`tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
 			"JOIN tracks ON scrobbles.track = tracks.uuid "+
 			"JOIN track_artist ON track_artist.track = tracks.uuid "+
 			"JOIN track_album ON track_album.track = tracks.uuid "+
@@ -85,8 +88,8 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleReques
 	defer rows.Close()
 
 	for rows.Next() {
-		item := ScrobbleRequestItem{}
-		err := rows.Scan(&item.UUID, &item.Timestamp, &item.Artist, &item.Album, &item.Track)
+		item := ScrobbleResponseItem{}
+		err := rows.Scan(&item.UUID, &item.Timestamp, &item.Artist, &item.Album, &item.Track, &item.Source)
 		if err != nil {
 			log.Printf("Failed to fetch scrobbles: %+v", err)
 			return scrobbleReq, errors.New("Failed to fetch scrobbles")
@@ -108,9 +111,21 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleReques
 	return scrobbleReq, nil
 }
 
-func insertNewScrobble(user string, track string, source string, ip net.IP, tx *sql.Tx) error {
+func insertNewScrobble(user string, track string, source string, timestamp time.Time, ip net.IP, tx *sql.Tx) error {
 	_, err := tx.Exec("INSERT INTO `scrobbles` (`uuid`, `created_at`, `created_ip`, `user`, `track`, `source`) "+
-		"VALUES (UUID_TO_BIN(UUID(), true), NOW(), ?, UUID_TO_BIN(?, true),UUID_TO_BIN(?, true), ?)", ip, user, track, source)
+		"VALUES (UUID_TO_BIN(UUID(), true), ?, ?, UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), ?)", timestamp, ip, user, track, source)
 
 	return err
+}
+
+func checkIfScrobbleExists(userUuid string, timestamp time.Time, source string) bool {
+	count, err := getDbCount("SELECT COUNT(*) FROM `scrobbles` WHERE `user` = UUID_TO_BIN(?, true) AND `created_at` = ? AND `source` = ?",
+		userUuid, timestamp, source)
+
+	if err != nil {
+		fmt.Printf("Error fetching scrobble exists count: %+v", err)
+		return true
+	}
+
+	return count != 0
 }

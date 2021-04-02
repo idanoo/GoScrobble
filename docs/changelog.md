@@ -1,3 +1,10 @@
+# 0.0.11
+- Fix redirects to /login for auth required pages
+- Add handling for 401/429 + No connection responses in API calls
+- Add background workers for Go (clear out password resets)
+- Add spotify scrobbling!!!11111!!!!!
+- Fixed timezone issues
+
 # 0.0.10
 - Fixed looking up invalid profiles
 - Added valid error handling to bad request && rate limiting

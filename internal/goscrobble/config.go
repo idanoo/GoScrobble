@@ -1,6 +1,7 @@
 package goscrobble
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
 	"log"
@@ -54,4 +55,18 @@ func updateConfigValue(key string, value string) error {
 	}
 
 	return nil
+}
+
+func getConfigValue(key string) (string, error) {
+	var value string
+
+	err := db.QueryRow("SELECT `value` FROM `config` "+
+		"WHERE `key` = ?",
+		key).Scan(&value)
+
+	if err == sql.ErrNoRows {
+		return value, errors.New("Config key doesn't exist")
+	}
+
+	return value, nil
 }

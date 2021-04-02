@@ -111,6 +111,36 @@ func Inet6_Aton(ip net.IP) string {
 	return ipHex
 }
 
+// calcPageOffsetString - Used to SQL paging
 func calcPageOffsetString(page int, offset int) string {
 	return fmt.Sprintf("%d", page*offset)
+}
+
+// timestampToSeconds - Converts HH:MM:SS to (int)seconds
+func timestampToSeconds(timestamp string) int {
+	var h, m, s int
+	n, err := fmt.Sscanf(timestamp, "%d:%d:%d", &h, &m, &s)
+	if err != nil || n != 3 {
+		return 0
+	}
+	return h*3600 + m*60 + s
+}
+
+func filterSlice(s []string) []string {
+	m := make(map[string]bool)
+	for _, item := range s {
+		if item != "" {
+			if _, ok := m[strings.TrimSpace(item)]; !ok {
+				m[strings.TrimSpace(item)] = true
+			}
+		}
+	}
+
+	var result []string
+	for item, _ := range m {
+		result = append(result, item)
+	}
+
+	fmt.Printf("RESTULS: %+v", result)
+	return result
 }

@@ -22,14 +22,22 @@ const Admin = () => {
         if (data.configs) {
           setConfigs(data.configs);
           setToggle(data.configs.REGISTRATION_ENABLED === "1")
+          setLoading(false);
         }
-        setLoading(false);
       })
   }, [])
 
   const handleToggle = () => {
     setToggle(!toggle);
   };
+
+  if (!user) {
+    history.push("/login")
+  }
+
+  if (user && !user.admin) {
+    history.push("/Dashboard")
+  }
 
   if (loading) {
     return (
@@ -39,9 +47,7 @@ const Admin = () => {
     )
   }
 
-  if (!user || !user.admin) {
-    history.push("/login")
-  }
+
 
   return (
     <div className="pageWrapper">

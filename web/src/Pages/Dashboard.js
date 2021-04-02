@@ -8,7 +8,7 @@ import ScrobbleTable from "../Components/ScrobbleTable";
 import AuthContext from '../Contexts/AuthContext';
 
 const Dashboard = () => {
-  // const history = useHistory();
+  const history = useHistory();
   let { user } = useContext(AuthContext);
   let [loading, setLoading] = useState(true);
   let [dashboardData, setDashboardData] = useState({});
@@ -24,6 +24,10 @@ const Dashboard = () => {
       })
   }, [user])
 
+  if (!user) {
+    history.push("/login")
+  }
+
   if (loading) {
     return (
       <div className="pageWrapper">
@@ -37,10 +41,12 @@ const Dashboard = () => {
       <h1>
         {user.username}'s Dashboard!
       </h1>
+      <div className="dashboardBody">
       {loading
         ? <ScaleLoader color="#6AD7E5" size={60} />
         : <ScrobbleTable data={dashboardData.items} />
       }
+      </div>
     </div>
   );
 }

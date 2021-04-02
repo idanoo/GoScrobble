@@ -7,10 +7,36 @@ function getHeaders() {
   const user = JSON.parse(localStorage.getItem('user'));
 
   if (user && user.jwt) {
-    return { Authorization: 'Bearer ' + user.jwt };
+    return { Authorization: 'Bearer ' + user.jwt, changeOrigin: true };
   } else {
     return {};
   }
+}
+
+function getUserUuid() {
+  // Todo: move this to use Context values instead.
+  const user = JSON.parse(localStorage.getItem('user'));
+
+  if (user && user.uuid) {
+    return user.uuid
+  } else {
+    return '';
+  }
+}
+
+function handleErrorResp(error) {
+  if (error.response) {
+    if (error.response.status === 401)  {
+      toast.error('Unauthorized')
+    } else if (error.response.status === 429) {
+      toast.error('Rate limited. Please try again shortly')
+    } else {
+      toast.error('An unknown error has occurred');
+    }
+  } else {
+    toast.error('Failed to connect to API');
+  }
+  return {};
 }
 
 export const PostLogin = (formValues) => {
@@ -34,7 +60,7 @@ export const PostLogin = (formValues) => {
       }
     }).catch((error) => {
       if (error.response === 401)  {
-        return {};
+        toast.error('Unauthorized')
       } else if (error.response === 429) {
         toast.error('Rate limited. Please try again shortly')
       } else {
@@ -57,14 +83,8 @@ export const PostRegister = (formValues) => {
         return Promise.reject();
       }
     }).catch((error) => {
-    if (error.response === 401)  {
-      return {};
-    } else if (error.response === 429) {
-      toast.error('Rate limited. Please try again shortly')
-    } else {
-      toast.error('Failed to connect');
-    }
-    return Promise.resolve();
+      handleErrorResp(error)
+      return Promise.resolve();
   });
 };
 
@@ -81,15 +101,9 @@ export const PostResetPassword = (formValues) => {
         return Promise.reject();
       }
     }).catch((error) => {
-    if (error.response === 401)  {
-      return {};
-    } else if (error.response === 429) {
-      toast.error('Rate limited. Please try again shortly')
-    } else {
-      toast.error('Failed to connect');
-    }
-    return Promise.resolve();
-  });
+      handleErrorResp(error)
+      return Promise.resolve();
+    });
 };
 
 export const sendPasswordReset = (values) => {
@@ -97,14 +111,7 @@ export const sendPasswordReset = (values) => {
     (data) => {
       return data.data;
   }).catch((error) => {
-    if (error.response === 401)  {
-      return {};
-    } else if (error.response === 429) {
-      toast.error('Rate limited. Please try again shortly')
-    } else {
-      toast.error('Failed to connect');
-    }
-    return {};
+    return handleErrorResp(error)
   });
 };
 
@@ -113,14 +120,7 @@ export const getStats = () => {
     (data) => {
       return data.data;
   }).catch((error) => {
-    if (error.response === 401)  {
-      return {};
-    } else if (error.response === 429) {
-      toast.error('Rate limited. Please try again shortly')
-    } else {
-      toast.error('Failed to connect');
-    }
-    return {};
+    return handleErrorResp(error)
   });
 };
 
@@ -129,14 +129,7 @@ export const getRecentScrobbles = (id) => {
     .then((data) => {
       return data.data;
     }).catch((error) => {
-      if (error.response === 401)  {
-        return {};
-      } else if (error.response === 429) {
-        toast.error('Rate limited. Please try again shortly')
-      } else {
-        toast.error('Failed to connect');
-      }
-      return {};
+      return handleErrorResp(error)
     });
 };
 
@@ -145,14 +138,7 @@ export const getConfigs = () => {
     .then((data) => {
       return data.data;
     }).catch((error) => {
-      if (error.response === 401)  {
-        return {};
-      } else if (error.response === 429) {
-        toast.error('Rate limited. Please try again shortly')
-      } else {
-        toast.error('Failed to connect');
-      }
-      return {};
+      return handleErrorResp(error)
     });
 };
 
@@ -171,15 +157,8 @@ export const postConfigs = (values, toggle) => {
         toast.error(data.data.error);
       }
     }).catch((error) => {
-    if (error.response === 401)  {
-      return {};
-    } else if (error.response === 429) {
-      toast.error('Rate limited. Please try again shortly')
-    } else {
-      toast.error('Failed to connect');
-    }
-    return {};
-  });
+      return handleErrorResp(error)
+    });
 };
 
 export const getProfile = (userName) => {
@@ -187,14 +166,7 @@ export const getProfile = (userName) => {
     .then((data) => {
       return data.data;
     }).catch((error) => {
-      if (error.response === 401)  {
-        return {};
-      } else if (error.response === 429) {
-        toast.error('Rate limited. Please try again shortly')
-      } else {
-        toast.error('Failed to connect');
-      }
-      return {};
+      return handleErrorResp(error)
     });
 };
 
@@ -203,34 +175,56 @@ export const getUser = () => {
     .then((data) => {
       return data.data;
     }).catch((error) => {
-      if (error.response === 401)  {
-        return {};
-      } else if (error.response === 429) {
-        toast.error('Rate limited. Please try again shortly')
-      } else {
-        toast.error('Failed to connect');
-      }
-      return {};
+      return handleErrorResp(error)
     });
 };
 
 export const validateResetPassword = (tokenStr) => {
-  return axios.post(process.env.REACT_APP_API_URL + "resetpassword", { token: tokenStr })
+  return axios.get(process.env.REACT_APP_API_URL + "user/", { headers: getHeaders() })
     .then((data) => {
-      if (data.error) {
-        toast.error(data.error);
-        return {valid: false}
-      }
       return data.data;
     }).catch((error) => {
-      if (error.response === 401)  {
-        return {};
-      } else if (error.response === 429) {
-        toast.error('Rate limited. Please try again shortly')
-      } else {
-        toast.error('Failed to connect');
-      }
-      return {};
+      return handleErrorResp(error)
     });
 };
+
+export const getSpotifyClientId = () => {
+  return axios.get(process.env.REACT_APP_API_URL + "user/spotify", { headers: getHeaders() })
+    .then((data) => {
+      return data.data
+    }).catch((error) => {
+      return handleErrorResp(error)
+    });
+}
+
+export const spotifyConnectionRequest = () => {
+  return getSpotifyClientId().then((resp) => {
+    var scopes = 'user-read-recently-played user-read-currently-playing';
+
+    // Local, lets forward it to API
+    let redirectUri = window.location.origin.toString()+ "/api/v1/link/spotify";
+
+    // Stupid dev
+    if (window.location.origin.toString() === "http://localhost:3000") {
+      redirectUri = "http://localhost:42069/api/v1/link/spotify"
+    }
+
+    window.location = 'https://accounts.spotify.com/authorize' +
+      '?response_type=code' +
+      '&client_id=' + resp.token +
+      '&scope=' + encodeURIComponent(scopes) +
+      '&redirect_uri=' + encodeURIComponent(redirectUri) +
+      '&state=' + getUserUuid();
+  })
+};
+
+export const spotifyDisonnectionRequest = () => {
+  return axios.delete(process.env.REACT_APP_API_URL + "user/spotify", { headers: getHeaders() })
+  .then((data) => {
+    toast.success(data.data.message);
+    return true
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+}
 

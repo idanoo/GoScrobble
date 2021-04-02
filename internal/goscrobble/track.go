@@ -9,44 +9,50 @@ import (
 type Track struct {
 	Uuid          string         `json:"uuid"`
 	Name          string         `json:"name"`
+	Length        int            `json:"length"`
 	Desc          sql.NullString `json:"desc"`
 	Img           sql.NullString `json:"img"`
 	MusicBrainzID sql.NullString `json:"mbid"`
+	SpotifyID     sql.NullString `json:"spotify_id"`
 }
 
 // insertTrack - This will return if it exists or create it based on MBID > Name
-func insertTrack(name string, mbid string, album string, artists []string, tx *sql.Tx) (Track, error) {
+func insertTrack(name string, legnth int, mbid string, spotifyId string, album string, artists []string, tx *sql.Tx) (Track, error) {
 	track := Track{}
 
+	// Try locate our track
 	if mbid != "" {
 		track = fetchTrack("mbid", mbid, tx)
-		if track.Uuid == "" {
-			err := insertNewTrack(name, mbid, tx)
-			if err != nil {
-				log.Printf("Error inserting track via MBID %s  %+v", name, err)
-				return track, errors.New("Failed to insert track")
-			}
+	} else if spotifyId != "" {
+		track = fetchTrack("spotify_id", spotifyId, tx)
+	}
 
-			track = fetchTrack("mbid", mbid, tx)
-			err = track.linkTrack(album, artists, tx)
-			if err != nil {
-				return track, err
-			}
-		}
-	} else {
+	// If it didn't match above, lookup by name
+	if track.Uuid == "" {
 		track = fetchTrack("name", name, tx)
-		if track.Uuid == "" {
-			err := insertNewTrack(name, mbid, tx)
-			if err != nil {
-				log.Printf("Error inserting track via Name %s %+v", name, err)
-				return track, errors.New("Failed to insert track")
-			}
+	}
 
+	// If we can't find it. Lets add it!
+	if track.Uuid == "" {
+		err := insertNewTrack(name, legnth, mbid, spotifyId, tx)
+		if err != nil {
+			return track, errors.New("Failed to insert track")
+		}
+
+		// Fetch the recently inserted track to get the UUID
+		if mbid != "" {
+			track = fetchTrack("mbid", mbid, tx)
+		} else if spotifyId != "" {
+			track = fetchTrack("spotify_id", spotifyId, tx)
+		}
+
+		if track.Uuid == "" {
 			track = fetchTrack("name", name, tx)
-			err = track.linkTrack(album, artists, tx)
-			if err != nil {
-				return track, err
-			}
+		}
+
+		err = track.linkTrack(album, artists, tx)
+		if err != nil {
+			return track, errors.New("Unable to link tracks!")
 		}
 	}
 
@@ -72,9 +78,9 @@ func fetchTrack(col string, val string, tx *sql.Tx) Track {
 	return track
 }
 
-func insertNewTrack(name string, mbid string, tx *sql.Tx) error {
-	_, err := tx.Exec("INSERT INTO `tracks` (`uuid`, `name`, `mbid`) "+
-		"VALUES (UUID_TO_BIN(UUID(), true),?,?)", name, mbid)
+func insertNewTrack(name string, length int, mbid string, spotifyId string, tx *sql.Tx) error {
+	_, err := tx.Exec("INSERT INTO `tracks` (`uuid`, `name`, `length`, `mbid`, `spotify_id`) "+
+		"VALUES (UUID_TO_BIN(UUID(), true),?,?,?,?)", name, length, mbid, spotifyId)
 
 	return err
 }
@@ -109,4 +115,10 @@ func (track Track) linkTrackToArtists(artists []string, tx *sql.Tx) error {
 	}
 
 	return nil
+}
+
+func updateTrack(uuid string, col string, val string, tx *sql.Tx) error {
+	_, err := tx.Exec("UPDATE `tracks` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, uuid)
+
+	return err
 }

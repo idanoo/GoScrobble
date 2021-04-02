@@ -5,12 +5,15 @@ import { useHistory } from "react-router";
 import AuthContext from '../Contexts/AuthContext';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { getUser } from '../Api/index'
+import { Button } from 'reactstrap';
+import { spotifyConnectionRequest, spotifyDisonnectionRequest } from '../Api/index'
 
 const User = () => {
   const history = useHistory();
   const { user } = useContext(AuthContext);
   const [loading, setLoading] = useState(true);
   const [userdata, setUserdata] = useState({});
+
 
   useEffect(() => {
     if (!user) {
@@ -24,16 +27,16 @@ const User = () => {
       })
   }, [user])
 
+  if (!user) {
+    history.push("/login")
+  }
+
   if (loading) {
     return (
       <div className="pageWrapper">
         <ScaleLoader color="#6AD7E5" />
       </div>
     )
-  }
-
-  if (!user) {
-    history.push("/login")
   }
 
   return (
@@ -44,7 +47,25 @@ const User = () => {
       <p className="userBody">
         Created At: {userdata.created_at}<br/>
         Email: {userdata.email}<br/>
-        Verified: {userdata.verified ? '✓' : '✖'}
+        Verified: {userdata.verified ? '✓' : '✖'}<br/>
+        {userdata.spotify_username
+          ? <div>Spotify Account: {userdata.spotify_username}<br/><br/>
+          <Button
+            color="secondary"
+            type="button"
+            className="loginButton"
+            onClick={spotifyDisonnectionRequest}
+          >Disconnect Spotify</Button></div>
+          : <div>
+            <br/>
+            <Button
+              color="primary"
+              type="button"
+              className="loginButton"
+              onClick={spotifyConnectionRequest}
+            >Connect To Spotify</Button>
+          </div>
+        }
       </p>
     </div>
   );

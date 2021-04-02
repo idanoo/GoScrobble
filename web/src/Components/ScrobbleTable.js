@@ -10,6 +10,7 @@ const ScrobbleTable = (props) => {
                 <td>Track</td>
                 <td>Artist</td>
                 <td>Album</td>
+                <td>Source</td>
               </tr>
            </thead>
            <tbody>
@@ -21,6 +22,7 @@ const ScrobbleTable = (props) => {
                        <td>{element.track}</td>
                        <td>{element.artist}</td>
                        <td>{element.album}</td>
+                       <td>{element.source}</td>
                      </tr>;
                   })
               }

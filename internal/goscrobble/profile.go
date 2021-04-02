@@ -1,9 +1,9 @@
 package goscrobble
 
 type ProfileResponse struct {
-	UUID      string                `json:"uuid"`
-	Username  string                `json:"username"`
-	Scrobbles []ScrobbleRequestItem `json:"scrobbles"`
+	UUID      string                 `json:"uuid"`
+	Username  string                 `json:"username"`
+	Scrobbles []ScrobbleResponseItem `json:"scrobbles"`
 }
 
 func getProfile(user User) (ProfileResponse, error) {

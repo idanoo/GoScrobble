@@ -12,6 +12,11 @@ import (
 	"gitlab.com/idanoo/go-scrobble/internal/goscrobble"
 )
 
+func init() {
+	// Set UTC for errything
+	os.Setenv("TZ", "Etc/UTC")
+}
+
 func main() {
 	fmt.Println("Starting goscrobble")
 	err := godotenv.Load()
@@ -51,8 +56,9 @@ func main() {
 	goscrobble.InitRedis()
 	defer goscrobble.CloseRedisConn()
 
-	// Clear old reset tokens regularly
-	// go goscrobble.ClearTokenTimer()
+	// Start background workers
+	go goscrobble.StartBackgroundWorkers()
+	defer goscrobble.EndBackgroundWorkers()
 
 	// Boot up API webserver \o/
 	goscrobble.HandleRequests(port)

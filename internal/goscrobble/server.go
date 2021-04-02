@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -32,26 +33,31 @@ func HandleRequests(port string) {
 	v1 := r.PathPrefix("/api/v1").Subrouter()
 
 	// Static Token for /ingress
-	v1.HandleFunc("/ingress/jellyfin", tokenMiddleware(handleIngress)).Methods("POST")
-	v1.HandleFunc("/ingress/multiscrobbler", tokenMiddleware(handleIngress)).Methods("POST")
+	v1.HandleFunc("/ingress/jellyfin", limitMiddleware(tokenMiddleware(handleIngress), lightLimiter)).Methods("POST")
+	v1.HandleFunc("/ingress/multiscrobbler", limitMiddleware(tokenMiddleware(handleIngress), lightLimiter)).Methods("POST")
 
-	// JWT Auth - PWN PROFILE ONLY.
-	v1.HandleFunc("/user", jwtMiddleware(fetchUser)).Methods("GET")
+	// JWT Auth - Own profile only (Uses uuid in JWT)
+	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(fetchUser), lightLimiter)).Methods("GET")
 	// v1.HandleFunc("/user", jwtMiddleware(fetchScrobbleResponse)).Methods("PATCH")
+	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(getSpotifyClientID), lightLimiter)).Methods("GET")
+	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(deleteSpotifyLink), lightLimiter)).Methods("DELETE")
 	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
 
 	// Config auth
-	v1.HandleFunc("/config", adminMiddleware(fetchConfig)).Methods("GET")
-	v1.HandleFunc("/config", adminMiddleware(postConfig)).Methods("POST")
+	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(fetchConfig), standardLimiter)).Methods("GET")
+	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(postConfig), standardLimiter)).Methods("POST")
 
 	// No Auth
-	v1.HandleFunc("/stats", handleStats).Methods("GET")
+	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/profile/{username}", limitMiddleware(fetchProfile, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
 	v1.HandleFunc("/sendreset", limitMiddleware(handleSendReset, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/resetpassword", limitMiddleware(handleResetPassword, heavyLimiter)).Methods("POST")
+
+	// Redirect from Spotify Oauth
+	v1.HandleFunc("/link/spotify", limitMiddleware(postSpotifyReponse, lightLimiter))
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
@@ -70,6 +76,8 @@ func HandleRequests(port string) {
 
 	// Serve it up!
 	fmt.Printf("Goscrobble listening on port %s", port)
+	fmt.Println("")
+
 	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
 
@@ -225,6 +233,7 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	case "jellyfin":
 		err := ParseJellyfinInput(userUuid, bodyJson, ip, tx)
 		if err != nil {
+			fmt.Printf("Err? %+v", err)
 			tx.Rollback()
 			throwOkError(w, err.Error())
 			return
@@ -269,6 +278,13 @@ func fetchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 		throwOkError(w, "Failed to fetch user information")
 		return
 	}
+
+	//
+	oauth, err := getOauthToken(user.UUID, "spotify")
+	if err == nil {
+		user.SpotifyUsername = oauth.Username
+	}
+
 	json, _ := json.Marshal(&user)
 
 	w.WriteHeader(http.StatusOK)
@@ -350,4 +366,45 @@ func fetchProfile(w http.ResponseWriter, r *http.Request) {
 	json, _ := json.Marshal(&resp)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
+}
+
+// postSpotifyResponse - Oauth Response from Spotify
+func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
+	err := connectSpotifyResponse(r)
+
+	if err != nil {
+		throwOkError(w, "Failed to connect to spotify")
+		return
+	}
+
+	http.Redirect(w, r, os.Getenv("GOSCROBBLE_DOMAIN")+"/user", 302)
+}
+
+// getSpotifyClientID - Returns public spotify APP ID
+func getSpotifyClientID(w http.ResponseWriter, r *http.Request, u string, v string) {
+	key, err := getConfigValue("SPOTIFY_APP_ID")
+	if err != nil {
+		throwOkError(w, "Failed to get Spotify ID")
+		return
+
+	}
+	response := LoginResponse{
+		Token: key,
+	}
+
+	resp, _ := json.Marshal(&response)
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
+}
+
+// deleteSpotifyLink - Unlinks spotify account
+func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v string) {
+	err := removeOauthToken(u, "spotify")
+	if err != nil {
+		fmt.Println(err)
+		throwOkError(w, "Failed to unlink spotify account")
+		return
+	}
+
+	throwOkMessage(w, "Spotify account successfully unlinked")
 }
