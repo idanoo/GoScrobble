@@ -1,8 +1,8 @@
 CREATE TABLE IF NOT EXISTS `users` (
     `uuid` BINARY(16) PRIMARY KEY,
-    `created_at` DATETIME NOT NULL,
+    `created_at` DATETIME NOT NULL DEFAULT NOW(),
     `created_ip` VARBINARY(16) NULL DEFAULT NULL,
-    `modified_at` DATETIME NOT NULL,
+    `modified_at` DATETIME NOT NULL DEFAULT NOW(),
     `modified_ip` VARBINARY(16) NULL DEFAULT NULL,
     `username` VARCHAR(64) NOT NULL,
     `password` VARCHAR(60) NOT NULL,

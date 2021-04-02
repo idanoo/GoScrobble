@@ -1,3 +1,9 @@
+# 0.0.12
+- Add client TZ support + Selectable on user page
+- Move token auth to GET ?key=XYZ for wider webhook support
+- Add Multiscrobbler support
+- Add /api/v1/serverinfo for version information
+
 # 0.0.11
 - Fix redirects to /login for auth required pages
 - Add handling for 401/429 + No connection responses in API calls
@@ -22,7 +28,7 @@
 
 # 0.0.8
 - Added Admin/Site config page in frontend for admin users
-- Added API POST/GET /config endpoint
+- Added API POST/GET /config endpointnpm install react-select-timezone
 
 # 0.0.7
 - Switch redux -> Context

@@ -3,18 +3,24 @@ import jwt from 'jwt-decode'
 import { toast } from 'react-toastify';
 
 function getHeaders() {
-  // Todo: move this to use Context values instead.
+  // TODO: move this to use Context values instead.
   const user = JSON.parse(localStorage.getItem('user'));
 
   if (user && user.jwt) {
-    return { Authorization: 'Bearer ' + user.jwt, changeOrigin: true };
+    var unixtime = Math.round((new Date()).getTime() / 1000);
+    if (user.exp < unixtime) {
+      // TODO: Handle expiry nicer
+      toast.warning("Session expired. Please log in again")
+    }
+
+    return { Authorization: 'Bearer ' + user.jwt };
   } else {
     return {};
   }
 }
 
 function getUserUuid() {
-  // Todo: move this to use Context values instead.
+  // TODO: move this to use Context values instead.
   const user = JSON.parse(localStorage.getItem('user'));
 
   if (user && user.uuid) {
@@ -172,6 +178,15 @@ export const getProfile = (userName) => {
 
 export const getUser = () => {
   return axios.get(process.env.REACT_APP_API_URL + "user", { headers: getHeaders() })
+    .then((data) => {
+      return data.data;
+    }).catch((error) => {
+      return handleErrorResp(error)
+    });
+};
+
+export const patchUser = (values) => {
+  return axios.patch(process.env.REACT_APP_API_URL + "user", values, { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {

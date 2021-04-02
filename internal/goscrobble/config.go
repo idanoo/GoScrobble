@@ -11,6 +11,10 @@ type Config struct {
 	Setting map[string]string `json:"configs"`
 }
 
+type ServerInfo struct {
+	Version string `json:"version"`
+}
+
 func getAllConfigs() (Config, error) {
 	config := Config{}
 	configs := make(map[string]string)

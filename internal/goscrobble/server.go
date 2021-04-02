@@ -38,7 +38,7 @@ func HandleRequests(port string) {
 
 	// JWT Auth - Own profile only (Uses uuid in JWT)
 	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(fetchUser), lightLimiter)).Methods("GET")
-	// v1.HandleFunc("/user", jwtMiddleware(fetchScrobbleResponse)).Methods("PATCH")
+	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(patchUser), lightLimiter)).Methods("PATCH")
 	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(getSpotifyClientID), lightLimiter)).Methods("GET")
 	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(deleteSpotifyLink), lightLimiter)).Methods("DELETE")
 	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
@@ -55,6 +55,7 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
 	v1.HandleFunc("/sendreset", limitMiddleware(handleSendReset, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/resetpassword", limitMiddleware(handleResetPassword, heavyLimiter)).Methods("POST")
+	v1.HandleFunc("/serverinfo", fetchServerInfo).Methods("GET")
 
 	// Redirect from Spotify Oauth
 	v1.HandleFunc("/link/spotify", limitMiddleware(postSpotifyReponse, lightLimiter))
@@ -67,11 +68,12 @@ func HandleRequests(port string) {
 	r.PathPrefix("/").Handler(spa)
 
 	c := cors.New(cors.Options{
-		// Grrrr CORS. To clean up at a later date
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowedHeaders:   []string{"*"},
 	})
+
 	handler := c.Handler(r)
 
 	// Serve it up!
@@ -219,6 +221,7 @@ func handleResetPassword(w http.ResponseWriter, r *http.Request) {
 // serveEndpoint - API stuffs
 func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	bodyJson, err := decodeJson(r.Body)
+	fmt.Println(err)
 	if err != nil {
 		throwInvalidJson(w)
 		return
@@ -289,6 +292,29 @@ func fetchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
+}
+
+// patchUser - Update specific values
+func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+	userFull, err := getUser(jwtUser)
+	if err != nil {
+		throwOkError(w, "Failed to fetch user information")
+		return
+	}
+
+	bodyJson, _ := decodeJson(r.Body)
+
+	ip := getUserIp(r)
+	for k, v := range bodyJson {
+		val := fmt.Sprintf("%s", v)
+		if k == "timezone" {
+			if isValidTimezone(val) {
+				userFull.updateUser("timezone", val, ip)
+			}
+		}
+	}
+
+	throwOkMessage(w, "User updated successfully")
 }
 
 // fetchScrobbles - Return an array of scrobbles
@@ -407,4 +433,14 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 	}
 
 	throwOkMessage(w, "Spotify account successfully unlinked")
+}
+
+func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
+	info := ServerInfo{
+		Version: "0.0.11",
+	}
+
+	js, _ := json.Marshal(&info)
+	w.WriteHeader(http.StatusOK)
+	w.Write(js)
 }

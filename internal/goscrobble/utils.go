@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -79,6 +80,10 @@ func getUserIp(r *http.Request) net.IP {
 		}
 	}
 
+	if host == "" {
+		host = "0.0.0.0"
+	}
+
 	ip = net.ParseIP(host)
 	return ip
 }
@@ -143,4 +148,9 @@ func filterSlice(s []string) []string {
 
 	fmt.Printf("RESTULS: %+v", result)
 	return result
+}
+
+func isValidTimezone(tz string) bool {
+	_, err := time.LoadLocation(tz)
+	return err == nil
 }

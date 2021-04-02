@@ -156,14 +156,14 @@ func insertUser(username string, email string, password []byte, ip net.IP) error
 	return err
 }
 
-func updateUser(uuid string, field string, value string, ip net.IP) error {
-	_, err := db.Exec("UPDATE users SET `"+field+"` = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = ?", value, uuid, ip)
+func (user *User) updateUser(field string, value string, ip net.IP) error {
+	_, err := db.Exec("UPDATE users SET `"+field+"` = ?, modified_at = NOW(), modified_ip = ? WHERE uuid = UUID_TO_BIN(?, true)", value, ip, user.UUID)
 
 	return err
 }
 
-func updateUserDirect(uuid string, field string, value string) error {
-	_, err := db.Exec("UPDATE users SET `"+field+"` = ? WHERE uuid = ?", value, uuid)
+func (user *User) updateUserDirect(field string, value string) error {
+	_, err := db.Exec("UPDATE users SET `"+field+"` = ? WHERE uuid = UUID_TO_BIN(?, true)", value, user.UUID)
 
 	return err
 }

@@ -124,7 +124,6 @@ func (user *User) updateSpotifyPlaydata() {
 				break
 			}
 			tx.Commit()
-			fmt.Printf("Updated spotify track: %+v", v.Track.Name)
 		}
 	}
 

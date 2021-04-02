@@ -20,14 +20,21 @@ var lightLimiter = NewIPRateLimiter(10, 10)
 // tokenMiddleware - Validates token to a user
 func tokenMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fullToken := r.Header.Get("Authorization")
-		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
-		if authToken == "" {
+		key := ""
+		urlParams := r.URL.Query()
+		if val, ok := urlParams["key"]; ok {
+			key = val[0]
+		} else {
+			throwUnauthorized(w, "No key parameter provided")
+			return
+		}
+
+		if key == "" {
 			throwUnauthorized(w, "A token is required")
 			return
 		}
 
-		userUuid, err := getUserUuidForToken(authToken)
+		userUuid, err := getUserUuidForToken(key)
 		if err != nil {
 			throwUnauthorized(w, err.Error())
 			return
