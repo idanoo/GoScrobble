@@ -220,13 +220,7 @@ func handleResetPassword(w http.ResponseWriter, r *http.Request) {
 
 // serveEndpoint - API stuffs
 func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
-	bodyJson, err := decodeJson(r.Body)
-	fmt.Println(err)
-	if err != nil {
-		throwInvalidJson(w)
-		return
-	}
-
+	var err error
 	ip := getUserIp(r)
 	tx, _ := db.Begin()
 
@@ -234,7 +228,14 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 
 	switch ingressType {
 	case "jellyfin":
-		err := ParseJellyfinInput(userUuid, bodyJson, ip, tx)
+		bodyJson, err := decodeJson(r.Body)
+		fmt.Println(err)
+		if err != nil {
+			throwInvalidJson(w)
+			return
+		}
+
+		err = ParseJellyfinInput(userUuid, bodyJson, ip, tx)
 		if err != nil {
 			fmt.Printf("Err? %+v", err)
 			tx.Rollback()
@@ -242,8 +243,18 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 			return
 		}
 	case "multiscrobbler":
-		err := ParseMultiScrobblerInput(userUuid, bodyJson, ip, tx)
+		msInput := MultiScrobblerInput{}
+		err := json.NewDecoder(r.Body).Decode(&msInput)
 		if err != nil {
+			fmt.Println(err)
+			tx.Rollback()
+			throwOkError(w, err.Error())
+			return
+		}
+
+		err = ParseMultiScrobblerInput(userUuid, msInput, ip, tx)
+		if err != nil {
+			fmt.Println(err)
 			tx.Rollback()
 			throwOkError(w, err.Error())
 			return
@@ -437,7 +448,7 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 
 func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	info := ServerInfo{
-		Version: "0.0.11",
+		Version: "0.0.13",
 	}
 
 	js, _ := json.Marshal(&info)

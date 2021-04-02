@@ -1,3 +1,6 @@
+# 0.0.13
+- Fix multiscrobbler support
+
 # 0.0.12
 - Add client TZ support + Selectable on user page
 - Move token auth to GET ?key=XYZ for wider webhook support
