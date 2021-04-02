@@ -447,7 +447,7 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 
 func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	info := ServerInfo{
-		Version: "0.0.14",
+		Version: "0.0.15",
 	}
 
 	js, _ := json.Marshal(&info)

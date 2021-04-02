@@ -1,3 +1,6 @@
+# 0.0.15
+- Fix spotify track duration
+
 # 0.0.14
 - Add duplicate cache checker for jellyfin/multiscrobbler
 

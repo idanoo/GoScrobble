@@ -182,7 +182,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 	}
 
 	// Insert track if not exist
-	length := int(fulltrack.Duration / 60)
+	length := int(fulltrack.Duration / 1000)
 	track, err := insertTrack(fulltrack.Name, length, "", fulltrack.ID.String(), album.Uuid, artists, tx)
 	if err != nil {
 		log.Printf("%+v", err)
