@@ -1,3 +1,6 @@
+# 0.0.14
+- Add duplicate cache checker for jellyfin/multiscrobbler
+
 # 0.0.13
 - Fix multiscrobbler support
 

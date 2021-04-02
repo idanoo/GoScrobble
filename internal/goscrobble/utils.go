@@ -1,6 +1,7 @@
 package goscrobble
 
 import (
+	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -153,4 +154,9 @@ func filterSlice(s []string) []string {
 func isValidTimezone(tz string) bool {
 	_, err := time.LoadLocation(tz)
 	return err == nil
+}
+
+func getMd5(val string) string {
+	hash := md5.Sum([]byte(val))
+	return hex.EncodeToString(hash[:])
 }

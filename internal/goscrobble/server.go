@@ -228,22 +228,21 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 
 	switch ingressType {
 	case "jellyfin":
-		bodyJson, err := decodeJson(r.Body)
-		fmt.Println(err)
+		jfInput := JellyfinRequest{}
+		err := json.NewDecoder(r.Body).Decode(&jfInput)
 		if err != nil {
 			throwInvalidJson(w)
 			return
 		}
 
-		err = ParseJellyfinInput(userUuid, bodyJson, ip, tx)
+		err = ParseJellyfinInput(userUuid, jfInput, ip, tx)
 		if err != nil {
-			fmt.Printf("Err? %+v", err)
 			tx.Rollback()
 			throwOkError(w, err.Error())
 			return
 		}
 	case "multiscrobbler":
-		msInput := MultiScrobblerInput{}
+		msInput := MultiScrobblerRequest{}
 		err := json.NewDecoder(r.Body).Decode(&msInput)
 		if err != nil {
 			fmt.Println(err)
@@ -448,7 +447,7 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 
 func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	info := ServerInfo{
-		Version: "0.0.13",
+		Version: "0.0.14",
 	}
 
 	js, _ := json.Marshal(&info)

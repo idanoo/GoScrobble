@@ -73,3 +73,13 @@ func getRedisVal(key string) string {
 
 	return val
 }
+
+func getRedisKeyExists(key string) bool {
+	val, err := redisDb.Exists(ctx, redisPrefix+key).Result()
+	if err != nil {
+		log.Printf("Failed to fetch redis key (%+v) Error: %+v", key, err)
+		return false
+	}
+
+	return val == 1
+}
