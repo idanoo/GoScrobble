@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"log"
+	"strings"
 )
 
 type Track struct {
@@ -29,7 +30,8 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 
 	// If it didn't match above, lookup by name
 	if track.Uuid == "" {
-		track = fetchTrack("name", name, tx)
+		// TODO: add artist check here too
+		track = fetchTrackWithArtists(name, artists, tx)
 	}
 
 	// If we can't find it. Lets add it!
@@ -47,7 +49,7 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 		}
 
 		if track.Uuid == "" {
-			track = fetchTrack("name", name, tx)
+			track = fetchTrackWithArtists(name, artists, tx)
 		}
 
 		err = track.linkTrack(album, artists, tx)
@@ -68,6 +70,25 @@ func fetchTrack(col string, val string, tx *sql.Tx) Track {
 	err := tx.QueryRow(
 		"SELECT BIN_TO_UUID(`uuid`, true), `name`, `desc`, `img`, `mbid` FROM `tracks` WHERE `"+col+"` = ?",
 		val).Scan(&track.Uuid, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
+
+	if err != nil {
+		if err != sql.ErrNoRows {
+			log.Printf("Error fetching tracks: %+v", err)
+		}
+	}
+
+	return track
+}
+
+func fetchTrackWithArtists(name string, artists []string, tx *sql.Tx) Track {
+	var track Track
+	artistString := strings.Join(artists, "','")
+
+	err := tx.QueryRow(
+		"SELECT BIN_TO_UUID(`uuid`, true), `name`, `desc`, `img`, `mbid` FROM `tracks` "+
+			"LEFT JOIN `track_artist` ON `tracks`.`uuid` = `track_artist`.`track` "+
+			"WHERE `name` = ? AND BIN_TO_UUID(`track_artist`.`artist`, true) IN ('`"+artistString+"`')",
+		name).Scan(&track.Uuid, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
 
 	if err != nil {
 		if err != sql.ErrNoRows {

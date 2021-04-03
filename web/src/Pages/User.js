@@ -56,7 +56,7 @@ const User = () => {
 
   const resetToken = () => {
     setLoading(true);
-    resetScrobbleToken(user.uuid)
+    patchUser({ token: '' })
       .then(() => {
         getUser()
         .then(data => {

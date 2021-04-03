@@ -1,3 +1,7 @@
+# 0.0.17
+- Add check for registration_enabled on /register endpoint
+- Made songlookup check artist name as well
+
 # 0.0.16
 - Add registration_enabled to /api/v1/serverinfo
 - Add config table caching on save

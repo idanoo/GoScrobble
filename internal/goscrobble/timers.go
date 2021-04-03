@@ -8,6 +8,8 @@ import (
 var endTicker chan bool
 
 func StartBackgroundWorkers() {
+	updateSpotifyData()
+
 	endTicker := make(chan bool)
 
 	hourTicker := time.NewTicker(time.Hour)

@@ -86,6 +86,21 @@ func HandleRequests(port string) {
 // API ENDPOINT HANDLING
 // handleRegister - Does as it says!
 func handleRegister(w http.ResponseWriter, r *http.Request) {
+	cachedRegistrationEnabled := getRedisVal("REGISTRATION_ENABLED")
+	if cachedRegistrationEnabled == "" {
+		registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
+		if err != nil {
+			throwOkError(w, "Error checking if registration is enabled")
+		}
+		setRedisVal("REGISTRATION_ENABLED", registrationEnabled)
+		cachedRegistrationEnabled = registrationEnabled
+	}
+
+	if cachedRegistrationEnabled == "0" {
+		throwOkError(w, "Registration is currently disabled")
+		return
+	}
+
 	regReq := RegisterRequest{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&regReq)
@@ -462,7 +477,7 @@ func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.16",
+		Version:             "0.0.17",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

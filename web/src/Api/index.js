@@ -252,12 +252,3 @@ export const getServerInfo = () => {
     return handleErrorResp(error)
   });
 }
-
-export const resetScrobbleToken = () => {
-  return axios.patch(process.env.REACT_APP_API_URL + "user", { token: "" }, { headers: getHeaders() })
-  .then((data) => {
-    return data.data
-  }).catch((error) => {
-    return handleErrorResp(error)
-  });
-}
