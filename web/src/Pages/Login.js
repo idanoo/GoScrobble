@@ -25,7 +25,7 @@ const Login = () => {
       <h1>
         Login
       </h1>
-      <div className="loginBody">
+      <div className="pageBody">
         <Formik
           initialValues={{ username: '', password: '' }}
           onSubmit={values => Login(values)}

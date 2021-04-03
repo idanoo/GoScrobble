@@ -42,7 +42,7 @@ const Dashboard = () => {
       <h1>
         {user.username}'s Dashboard!
       </h1>
-      <div className="dashboardBody">
+      <div className="pageBody">
       {loading
         ? <ScaleLoader color="#6AD7E5" size={60} />
         : <ScrobbleTable data={dashboardData.items} />

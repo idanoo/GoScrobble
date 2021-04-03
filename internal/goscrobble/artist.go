@@ -11,8 +11,8 @@ type Artist struct {
 	Name          string         `json:"name"`
 	Desc          sql.NullString `json:"desc"`
 	Img           sql.NullString `json:"img"`
-	MusicBrainzID sql.NullString `json:"mbid"`
-	SpotifyID     sql.NullString `json:"spotify_id"`
+	MusicBrainzID string         `json:"mbid"`
+	SpotifyID     string         `json:"spotify_id"`
 }
 
 // insertArtist - This will return if it exists or create it based on MBID > Name
@@ -55,6 +55,16 @@ func insertArtist(name string, mbid string, spotifyId string, tx *sql.Tx) (Artis
 		return artist, errors.New("Unable to fetch artist!")
 	}
 
+	if artist.MusicBrainzID != mbid {
+		artist.MusicBrainzID = mbid
+		artist.updateArtist("mbid", mbid, tx)
+	}
+
+	if artist.SpotifyID != spotifyId {
+		artist.SpotifyID = spotifyId
+		artist.updateArtist("spotify_id", spotifyId, tx)
+	}
+
 	return artist, nil
 }
 
@@ -80,8 +90,8 @@ func insertNewArtist(name string, mbid string, spotifyId string, tx *sql.Tx) err
 	return err
 }
 
-func updateArtist(uuid string, col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE `artists` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, uuid)
+func (artist *Artist) updateArtist(col string, val string, tx *sql.Tx) error {
+	_, err := tx.Exec("UPDATE `artists` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, artist.Uuid)
 
 	return err
 }

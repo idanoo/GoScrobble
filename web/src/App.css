@@ -44,6 +44,11 @@ html, body {
   color: white;
 }
 
+.pageBody {
+  padding: 20px 5px 5px 5px;
+  font-size: 16pt;
+}
+
 .App-link {
   color: #61dafb;
 }

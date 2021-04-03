@@ -8,7 +8,7 @@ const Settings = () => {
       <h1>
         Settings
       </h1>
-      <div className="loginBody">
+      <div className="pageBody">
       <p>
         All the settings
       </p>

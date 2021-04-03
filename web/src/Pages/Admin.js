@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import '../App.css';
-import './Login.css';
+import './Admin.css';
 import { Button } from 'reactstrap';
 import { Formik, Form, Field } from 'formik';
 import ScaleLoader from 'react-spinners/ScaleLoader';
@@ -54,7 +54,7 @@ const Admin = () => {
       <h1>
         Admin Panel
       </h1>
-      <div className="loginBody">
+      <div className="pageBody">
         <Formik
           initialValues={configs}
           onSubmit={(values) => postConfigs(values, toggle)}

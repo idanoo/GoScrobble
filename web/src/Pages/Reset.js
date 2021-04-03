@@ -64,7 +64,7 @@ const Reset = (route) => {
         <h1>
           Reset Password
         </h1>
-        <div className="loginBody">
+        <div className="pageBody">
           <Formik
             initialValues={{ email: '' }}
             onSubmit={values => sendReset(values)}

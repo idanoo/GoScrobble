@@ -1,33 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import './Profile.css';
+import './Album.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import { getProfile } from '../Api/index'
 import ScrobbleTable from '../Components/ScrobbleTable'
 
-const Profile = (route) => {
+const Album = (route) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({});
 
-  let username = false;
+  let album = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    username = route.match.params.uuid;
+    album = route.match.params.uuid;
   } else {
-    username = false;
+    album = false;
   }
 
   useEffect(() => {
-    if (!username) {
+    if (!album) {
       return false;
     }
 
-    getProfile(username)
-      .then(data => {
-        setProfile(data);
-        console.log(data)
-        setLoading(false);
-      })
-  }, [username])
+    // getProfile(username)
+    //   .then(data => {
+    //     setProfile(data);
+    //     console.log(data)
+    //     setLoading(false);
+    //   })
+  }, [album])
 
   if (loading) {
     return (
@@ -37,7 +36,7 @@ const Profile = (route) => {
     )
   }
 
-  if (!username || !profile.username) {
+  if (!album || !album) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -48,14 +47,13 @@ const Profile = (route) => {
   return (
     <div className="pageWrapper">
       <h1>
-        {profile.username}'s Profile
+        {album}
       </h1>
       <div className="pageBody">
-        Last 10 scrobbles...<br/>
-        <ScrobbleTable data={profile.scrobbles}/>
+        Album
       </div>
     </div>
   );
 }
 
-export default Profile;
+export default Album;

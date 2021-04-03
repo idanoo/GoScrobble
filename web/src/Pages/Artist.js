@@ -1,33 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
-import './Profile.css';
+import './Artist.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import { getProfile } from '../Api/index'
 import ScrobbleTable from '../Components/ScrobbleTable'
 
-const Profile = (route) => {
+const Artist = (route) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({});
 
-  let username = false;
+  let artist = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    username = route.match.params.uuid;
+    artist = route.match.params.uuid;
   } else {
-    username = false;
+    artist = false;
   }
 
   useEffect(() => {
-    if (!username) {
+    if (!artist) {
       return false;
     }
 
-    getProfile(username)
-      .then(data => {
-        setProfile(data);
-        console.log(data)
-        setLoading(false);
-      })
-  }, [username])
+    // getProfile(username)
+    //   .then(data => {
+    //     setProfile(data);
+    //     console.log(data)
+    //     setLoading(false);
+    //   })
+  }, [artist])
 
   if (loading) {
     return (
@@ -37,7 +36,7 @@ const Profile = (route) => {
     )
   }
 
-  if (!username || !profile.username) {
+  if (!artist || !artist) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -48,14 +47,13 @@ const Profile = (route) => {
   return (
     <div className="pageWrapper">
       <h1>
-        {profile.username}'s Profile
+        {artist}
       </h1>
       <div className="pageBody">
-        Last 10 scrobbles...<br/>
-        <ScrobbleTable data={profile.scrobbles}/>
+        Artist
       </div>
     </div>
   );
 }
 
-export default Profile;
+export default Artist;

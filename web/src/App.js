@@ -3,6 +3,9 @@ import Home from './Pages/Home';
 import About from './Pages/About';
 import Dashboard from './Pages/Dashboard';
 import Profile from './Pages/Profile';
+import Artist from './Pages/Artist';
+import Album from './Pages/Album';
+import Track from './Pages/Track';
 import User from './Pages/User';
 import Admin from './Pages/Admin';
 import Login from './Pages/Login';
@@ -33,6 +36,9 @@ const App = () => {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/user" component={User} />
           <Route path="/u/:uuid" component={Profile} />
+          <Route path="/artist/:uuid" component={Artist} />
+          <Route path="/album/:uuid" component={Album} />
+          <Route path="/track/:uuid" component={Track} />
 
           <Route path="/admin" component={Admin} />
 

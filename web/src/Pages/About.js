@@ -12,7 +12,7 @@ const About = () => {
         Used to track your listening history and build a profile to discover new music.
       </p>
       <a
-        className="aboutBody"
+        className="pageBody"
         href="https://gitlab.com/idanoo/go-scrobble"
         target="_blank"
         rel="noopener noreferrer"

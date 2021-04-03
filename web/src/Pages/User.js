@@ -95,7 +95,7 @@ const User = () => {
       <h1>
         Welcome {userdata.username}
       </h1>
-      <p className="userBody">
+      <p className="pageBody">
       Timezone<br/>
       <TimezoneSelect
           className="userDropdown"

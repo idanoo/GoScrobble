@@ -252,6 +252,7 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 
 		err = ParseJellyfinInput(userUuid, jfInput, ip, tx)
 		if err != nil {
+			fmt.Println(err)
 			tx.Rollback()
 			throwOkError(w, err.Error())
 			return
@@ -477,7 +478,7 @@ func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.17",
+		Version:             "0.0.18",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

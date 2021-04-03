@@ -47,7 +47,7 @@ const Register = () => {
           <h1>
           Register
           </h1>
-          <div className="registerBody">
+          <div className="pageBody">
             <Formik
               initialValues={{ username: '', email: '', password: '', passwordconfirm: '' }}
               onSubmit={async values => Register(values)}

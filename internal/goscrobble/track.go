@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 )
@@ -13,8 +14,8 @@ type Track struct {
 	Length        int            `json:"length"`
 	Desc          sql.NullString `json:"desc"`
 	Img           sql.NullString `json:"img"`
-	MusicBrainzID sql.NullString `json:"mbid"`
-	SpotifyID     sql.NullString `json:"spotify_id"`
+	MusicBrainzID string         `json:"mbid"`
+	SpotifyID     string         `json:"spotify_id"`
 }
 
 // insertTrack - This will return if it exists or create it based on MBID > Name
@@ -24,14 +25,16 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 	// Try locate our track
 	if mbid != "" {
 		track = fetchTrack("mbid", mbid, tx)
+		fmt.Printf("Fetech mbid: %s", mbid)
 	} else if spotifyId != "" {
 		track = fetchTrack("spotify_id", spotifyId, tx)
+		fmt.Printf("Fetech spotify: %s", spotifyId)
 	}
 
 	// If it didn't match above, lookup by name
 	if track.Uuid == "" {
 		// TODO: add artist check here too
-		track = fetchTrackWithArtists(name, artists, tx)
+		track = fetchTrackWithArtists(name, artists, album, tx)
 	}
 
 	// If we can't find it. Lets add it!
@@ -49,7 +52,7 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 		}
 
 		if track.Uuid == "" {
-			track = fetchTrackWithArtists(name, artists, tx)
+			track = fetchTrackWithArtists(name, artists, album, tx)
 		}
 
 		err = track.linkTrack(album, artists, tx)
@@ -62,13 +65,23 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 		return track, errors.New("Unable to fetch track!")
 	}
 
+	if track.MusicBrainzID != mbid {
+		track.MusicBrainzID = mbid
+		track.updateTrack("mbid", mbid, tx)
+	}
+
+	if track.SpotifyID != spotifyId {
+		track.SpotifyID = spotifyId
+		track.updateTrack("spotify_id", spotifyId, tx)
+	}
+
 	return track, nil
 }
 
 func fetchTrack(col string, val string, tx *sql.Tx) Track {
 	var track Track
 	err := tx.QueryRow(
-		"SELECT BIN_TO_UUID(`uuid`, true), `name`, `desc`, `img`, `mbid` FROM `tracks` WHERE `"+col+"` = ?",
+		"SELECT BIN_TO_UUID(`uuid`, true), `name`, `desc`, `img`, `mbid` FROM `tracks` WHERE `"+col+"` = ? LIMIT 1",
 		val).Scan(&track.Uuid, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
 
 	if err != nil {
@@ -80,15 +93,16 @@ func fetchTrack(col string, val string, tx *sql.Tx) Track {
 	return track
 }
 
-func fetchTrackWithArtists(name string, artists []string, tx *sql.Tx) Track {
+func fetchTrackWithArtists(name string, artists []string, album string, tx *sql.Tx) Track {
 	var track Track
 	artistString := strings.Join(artists, "','")
-
 	err := tx.QueryRow(
 		"SELECT BIN_TO_UUID(`uuid`, true), `name`, `desc`, `img`, `mbid` FROM `tracks` "+
 			"LEFT JOIN `track_artist` ON `tracks`.`uuid` = `track_artist`.`track` "+
-			"WHERE `name` = ? AND BIN_TO_UUID(`track_artist`.`artist`, true) IN ('`"+artistString+"`')",
-		name).Scan(&track.Uuid, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
+			"LEFT JOIN `track_album` ON `tracks`.`uuid` = `track_album`.`track` "+
+			"WHERE `name` = ? AND BIN_TO_UUID(`track_artist`.`artist`, true) IN ('"+artistString+"') "+
+			"AND BIN_TO_UUID(`track_album`.`album`,true) = ? LIMIT 1",
+		name, album).Scan(&track.Uuid, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
 
 	if err != nil {
 		if err != sql.ErrNoRows {
@@ -138,8 +152,8 @@ func (track Track) linkTrackToArtists(artists []string, tx *sql.Tx) error {
 	return nil
 }
 
-func updateTrack(uuid string, col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE `tracks` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, uuid)
+func (track *Track) updateTrack(col string, val string, tx *sql.Tx) error {
+	_, err := tx.Exec("UPDATE `tracks` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, track.Uuid)
 
 	return err
 }

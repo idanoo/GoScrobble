@@ -1,3 +1,7 @@
+# 0.0.18
+- Add MBID/Spotify Autolinking if track exists
+- Add Genre table + .go files
+
 # 0.0.17
 - Add check for registration_enabled on /register endpoint
 - Made songlookup check artist name as well

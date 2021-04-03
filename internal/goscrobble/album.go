@@ -12,8 +12,8 @@ type Album struct {
 	Name          string         `json:"name"`
 	Desc          sql.NullString `json:"desc"`
 	Img           sql.NullString `json:"img"`
-	MusicBrainzID sql.NullString `json:"mbid"`
-	SpotifyID     sql.NullString `json:"spotify_id"`
+	MusicBrainzID string         `json:"mbid"`
+	SpotifyID     string         `json:"spotify_id"`
 }
 
 // insertAlbum - This will return if it exists or create it based on MBID > Name
@@ -61,6 +61,16 @@ func insertAlbum(name string, mbid string, spotifyId string, artists []string, t
 		return album, errors.New("Unable to fetch album!")
 	}
 
+	if album.MusicBrainzID != mbid {
+		album.MusicBrainzID = mbid
+		album.updateAlbum("mbid", mbid, tx)
+	}
+
+	if album.SpotifyID != spotifyId {
+		album.SpotifyID = spotifyId
+		album.updateAlbum("spotify_id", spotifyId, tx)
+	}
+
 	return album, nil
 }
 
@@ -100,8 +110,8 @@ func (album *Album) linkAlbumToArtists(artists []string, tx *sql.Tx) error {
 	return err
 }
 
-func updateAlbum(uuid string, col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE `albums` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, uuid)
+func (album *Album) updateAlbum(col string, val string, tx *sql.Tx) error {
+	_, err := tx.Exec("UPDATE `albums` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, album.Uuid)
 
 	return err
 }
