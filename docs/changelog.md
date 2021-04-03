@@ -1,3 +1,12 @@
+# 0.0.16
+- Add registration_enabled to /api/v1/serverinfo
+- Add config table caching on save
+- Fix redis TTL not being parsed correctly
+- Move registration enabled to backend toggle
+- Fixed navbar when loading /u/profile URL
+- Token now shows on user page + can reset
+- Added basic popup validation to disconnect/reset buttons
+
 # 0.0.15
 - Fix spotify track duration
 

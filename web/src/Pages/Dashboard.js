@@ -24,6 +24,7 @@ const Dashboard = () => {
       })
   }, [user])
 
+
   if (!user) {
     history.push("/login")
   }

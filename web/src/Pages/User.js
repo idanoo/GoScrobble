@@ -6,8 +6,9 @@ import AuthContext from '../Contexts/AuthContext';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { getUser, patchUser } from '../Api/index'
 import { Button } from 'reactstrap';
-
-import { spotifyConnectionRequest, spotifyDisonnectionRequest } from '../Api/index'
+import { confirmAlert } from 'react-confirm-alert';
+import 'react-confirm-alert/src/react-confirm-alert.css';
+import { spotifyConnectionRequest, spotifyDisonnectionRequest, resetScrobbleToken } from '../Api/index'
 import TimezoneSelect from 'react-timezone-select'
 
 const User = () => {
@@ -17,9 +18,52 @@ const User = () => {
   const [userdata, setUserdata] = useState({});
 
   const updateTimezone = (vals) => {
-    console.log(vals)
     setUserdata({...userdata, timezone: vals});
     patchUser({timezone: vals.value})
+  }
+
+  const resetTokenPopup = () => {
+    confirmAlert({
+      title: 'Reset token',
+      message: 'Resetting your token will require you to update your sources with the new token. Continue?',
+      buttons: [
+        {
+          label: 'Reset',
+          onClick: () => resetToken()
+        },
+        {
+          label: 'No',
+        }
+      ]
+    });
+  };
+
+  const disconnectSpotifyPopup = () => {
+    confirmAlert({
+      title: 'Disconnect Spotify',
+      message: 'Are you sure you want to disconnect your spotify account?',
+      buttons: [
+        {
+          label: 'Disconnect',
+          onClick: () => spotifyDisonnectionRequest()
+        },
+        {
+          label: 'No',
+        }
+      ]
+    });
+  };
+
+  const resetToken = () => {
+    setLoading(true);
+    resetScrobbleToken(user.uuid)
+      .then(() => {
+        getUser()
+        .then(data => {
+          setUserdata(data);
+          setLoading(false);
+        })
+      })
   }
 
   useEffect(() => {
@@ -58,23 +102,31 @@ const User = () => {
           value={userdata.timezone}
           onChange={updateTimezone}
       /><br/>
+        Token: {userdata.token}<br/>
+        <Button
+              color="primary"
+              type="button"
+              className="userButton"
+              onClick={resetTokenPopup}
+            >Reset Token</Button><br/><br/>
         Created At: {userdata.created_at}<br/>
         Email: {userdata.email}<br/>
         Verified: {userdata.verified ? '✓' : '✖'}<br/>
+
         {userdata.spotify_username
           ? <div>Spotify Account: {userdata.spotify_username}<br/><br/>
           <Button
             color="secondary"
             type="button"
-            className="loginButton"
-            onClick={spotifyDisonnectionRequest}
+            className="userButton"
+            onClick={disconnectSpotifyPopup}
           >Disconnect Spotify</Button></div>
           : <div>
             <br/>
             <Button
               color="primary"
               type="button"
-              className="loginButton"
+              className="userButton"
               onClick={spotifyConnectionRequest}
             >Connect To Spotify</Button>
           </div>

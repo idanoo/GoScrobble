@@ -58,7 +58,7 @@ func setRedisVal(key string, val string) error {
 
 // setRedisTtl - Allows custom TTL
 func setRedisValTtl(key string, val string, ttl time.Duration) error {
-	return redisDb.Set(ctx, redisPrefix+key, val, 0).Err()
+	return redisDb.Set(ctx, redisPrefix+key, val, ttl).Err()
 }
 
 // getRedisVal - Returns value if exists

@@ -24,7 +24,7 @@ const Navigation = () => {
   const location = useLocation();
 
   // Lovely hack to highlight the current page (:
-  let active = "Home"
+  let active = "home"
   if (location && location.pathname && location.pathname.length > 1) {
     active = location.pathname.replace(/\//, "");
   }
@@ -49,8 +49,8 @@ const Navigation = () => {
                 <Link
                 key={menuItem}
                 className="navLinkMobile"
-                style={active === menuItem ? activeStyle : {}}
-                to={menuItem}
+                style={active === menuItem.toLowerCase() ? activeStyle : {}}
+                to={menuItem.toLowerCase()}
                 onClick={toggleCollapsed}
               >{menuItem}</Link>
             </NavItem>
@@ -76,8 +76,8 @@ const Navigation = () => {
                   <Link
                     key={menuItem}
                     className="navLinkMobile"
-                    style={active === menuItem ? activeStyle : {}}
-                    to={menuItem === "Home" ? "/" : menuItem}
+                    style={active === "home" && menuItem.toLowerCase() === "home" ? activeStyle : (active === menuItem.toLowerCase() ? activeStyle : {})}
+                    to={menuItem.toLowerCase() === "home" ? "/" : "/" + menuItem.toLowerCase()}
                     onClick={toggleCollapsed}
                   >{menuItem}
                   </Link>
@@ -85,17 +85,17 @@ const Navigation = () => {
               )}
               <NavItem>
                 <Link
-                  to="/Login"
-                  style={active === "Login" ? activeStyle : {}}
+                  to="/login"
+                  style={active === "login" ? activeStyle : {}}
                   className="navLinkMobile"
                   onClick={toggleCollapsed}
                   >Login</Link>
               </NavItem>
               <NavItem>
                 <Link
-                  to="/Register"
+                  to="/register"
                   className="navLinkMobile"
-                  style={active === "Register" ? activeStyle : {}}
+                  style={active === "register" ? activeStyle : {}}
                   onClick={toggleCollapsed}
                 >Register</Link>
               </NavItem>
@@ -114,8 +114,8 @@ const Navigation = () => {
           <Link
             key={menuItem}
             className="navLink"
-            style={active === menuItem ? activeStyle : {}}
-            to={menuItem}
+            style={active === menuItem.toLowerCase() ? activeStyle : {}}
+            to={"/" + menuItem.toLowerCase()}
           >
             {menuItem}
           </Link>
@@ -126,8 +126,8 @@ const Navigation = () => {
           <Link
             key={menuItem}
             className="navLink"
-            style={active === menuItem ? activeStyle : {}}
-            to={menuItem === "Home" ? "/" : menuItem}
+            style={active === "home" && menuItem.toLowerCase() === "home" ? activeStyle : (active === menuItem.toLowerCase() ? activeStyle : {})}
+            to={menuItem.toLowerCase() === "home" ? "/" : "/" + menuItem.toLowerCase()}
           >
             {menuItem}
           </Link>

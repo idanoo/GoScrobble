@@ -321,6 +321,9 @@ func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 			if isValidTimezone(val) {
 				userFull.updateUser("timezone", val, ip)
 			}
+		} else if k == "token" {
+			token := generateToken(32)
+			userFull.updateUser("token", token, ip)
 		}
 	}
 
@@ -363,11 +366,13 @@ func postConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	}
 
 	for k, v := range bodyJson {
-		err = updateConfigValue(k, fmt.Sprintf("%s", v))
+		val := fmt.Sprintf("%s", v)
+		err = updateConfigValue(k, val)
 		if err != nil {
 			throwOkError(w, err.Error())
 			return
 		}
+		setRedisVal(k, val)
 	}
 
 	throwOkMessage(w, "Config updated successfully")
@@ -446,8 +451,19 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 }
 
 func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
+	cachedRegistrationEnabled := getRedisVal("REGISTRATION_ENABLED")
+	if cachedRegistrationEnabled == "" {
+		registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
+		if err != nil {
+			throwOkError(w, "Error fetching serverinfo")
+		}
+		setRedisVal("REGISTRATION_ENABLED", registrationEnabled)
+		cachedRegistrationEnabled = registrationEnabled
+	}
+
 	info := ServerInfo{
-		Version: "0.0.15",
+		Version:             "0.0.16",
+		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 
 	js, _ := json.Marshal(&info)

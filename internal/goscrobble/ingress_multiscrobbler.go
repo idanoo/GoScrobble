@@ -2,7 +2,6 @@ package goscrobble
 
 import (
 	"database/sql"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -21,10 +20,9 @@ type MultiScrobblerRequest struct {
 // ParseMultiScrobblerInput - Transform API data
 func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip net.IP, tx *sql.Tx) error {
 	// Cache key
-	json, _ := json.Marshal(data)
-	redisKey := getMd5(string(json) + userUUID)
+	json := fmt.Sprintf("%s:%s:%s:%s", data.PlayedAt, data.Track, data.Album, userUUID)
+	redisKey := getMd5(json)
 	if getRedisKeyExists(redisKey) {
-		fmt.Printf("Prevented duplicate entry!")
 		return nil
 	}
 
@@ -63,8 +61,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 		return errors.New("Failed to map track")
 	}
 
-	// Add cache key for the duration of the song *2 since we're caching the start time too
-	ttl := time.Duration(data.Duration*2) * time.Second
+	ttl := time.Duration(30) * time.Minute
 	setRedisValTtl(redisKey, "1", ttl)
 
 	return nil

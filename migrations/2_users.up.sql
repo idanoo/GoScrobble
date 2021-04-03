@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `active` TINYINT(1) NOT NULL DEFAULT 1,
     `admin` TINYINT(1) NOT NULL DEFAULT 0,
     `private` TINYINT(1) NOT NULL DEFAULT 0,
-    `timezone` VARCHAR(100) NOT NULL DEFAULT 'Etc/UTC',
+    `timezone` VARCHAR(100) NOT NULL DEFAULT 'Pacific/Auckland',
     KEY `usernameLookup` (`username`, `active`),
     KEY `emailLookup` (`email`, `active`)
 ) DEFAULT CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci;

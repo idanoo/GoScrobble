@@ -11,7 +11,9 @@ const Profile = (route) => {
 
   let username = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    username = route.match.params.uuid
+    username = route.match.params.uuid;
+  } else {
+    username = false;
   }
 
   useEffect(() => {

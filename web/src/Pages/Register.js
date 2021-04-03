@@ -1,16 +1,37 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import '../App.css';
 import './Register.css';
 import { Button } from 'reactstrap';
 import ScaleLoader from "react-spinners/ScaleLoader";
 import AuthContext from '../Contexts/AuthContext';
 import { Formik, Field, Form } from 'formik';
-import { useHistory } from "react-router";
-
+import { useHistory } from 'react-router';
+import { getServerInfo } from '../Api/index';
 const Register = () => {
   const history = useHistory();
   let boolTrue = true;
   let { Register, user, loading } = useContext(AuthContext);
+  let [serverInfo, setServerInfo] = useState({ registration_enabled: true });
+  let [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user) {
+      return
+    }
+    getServerInfo()
+      .then(data => {
+        setServerInfo(data);
+        setIsLoading(false);
+      })
+  }, [user])
+
+  if (isLoading) {
+    return (
+      <div className="pageWrapper">
+        <ScaleLoader color="#6AD7E5" />
+      </div>
+    )
+  }
 
   if (user) {
     history.push("/dashboard");
@@ -19,8 +40,7 @@ const Register = () => {
   return (
     <div className="pageWrapper">
       {
-        // TODO: Move to DB:config REGISTRATION_DISABLED=1|0 :upsidedownsmile:
-        process.env.REACT_APP_REGISTRATION_DISABLED === "true" ?
+        serverInfo.registration_enabled !== "1" ?
         <p>Registration is temporarily disabled. Please try again soon!</p>
         :
         <div>

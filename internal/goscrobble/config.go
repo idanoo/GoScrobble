@@ -12,7 +12,8 @@ type Config struct {
 }
 
 type ServerInfo struct {
-	Version string `json:"version"`
+	Version             string `json:"version"`
+	RegistrationEnabled string `json:"registration_enabled"`
 }
 
 func getAllConfigs() (Config, error) {

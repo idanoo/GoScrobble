@@ -17,8 +17,9 @@ const ScrobbleTable = (props) => {
               {
                   props.data &&
                   props.data.map(function (element) {
+                     let localTime = new Date(element.time);
                      return <tr key={element.uuid}>
-                       <td>{element.time}</td>
+                       <td>{localTime.toLocaleString()}</td>
                        <td>{element.track}</td>
                        <td>{element.artist}</td>
                        <td>{element.album}</td>

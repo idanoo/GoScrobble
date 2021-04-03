@@ -54,16 +54,7 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRespon
 
 	// Yeah this isn't great. But for now.. it works! Cache later
 	total, err := getDbCount(
-		"SELECT COUNT(*) FROM `scrobbles` "+
-			"JOIN tracks ON scrobbles.track = tracks.uuid "+
-			"JOIN track_artist ON track_artist.track = tracks.uuid "+
-			"JOIN track_album ON track_album.track = tracks.uuid "+
-			"JOIN artists ON track_artist.artist = artists.uuid "+
-			"JOIN albums ON track_album.album = albums.uuid "+
-			"JOIN users ON scrobbles.user = users.uuid "+
-			"WHERE user = UUID_TO_BIN(?, true) "+
-			"GROUP BY scrobbles.uuid",
-		userUuid)
+		"SELECT COUNT(*) FROM `scrobbles` WHERE `user` = UUID_TO_BIN(?, true) ", userUuid)
 
 	if err != nil {
 		log.Printf("Failed to fetch scrobble count: %+v", err)
@@ -71,7 +62,7 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRespon
 	}
 
 	rows, err := db.Query(
-		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, `artists`.`name`, `albums`.`name`,`tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
+		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, GROUP_CONCAT(`artists`.`name` separator ','), `albums`.`name`, `tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
 			"JOIN tracks ON scrobbles.track = tracks.uuid "+
 			"JOIN track_artist ON track_artist.track = tracks.uuid "+
 			"JOIN track_album ON track_album.track = tracks.uuid "+
@@ -79,8 +70,10 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRespon
 			"JOIN albums ON track_album.album = albums.uuid "+
 			"JOIN users ON scrobbles.user = users.uuid "+
 			"WHERE user = UUID_TO_BIN(?, true) "+
+			"GROUP BY scrobbles.uuid, albums.uuid "+
 			"ORDER BY scrobbles.created_at DESC LIMIT ?",
 		userUuid, limit)
+
 	if err != nil {
 		log.Printf("Failed to fetch scrobbles: %+v", err)
 		return scrobbleReq, errors.New("Failed to fetch scrobbles")
