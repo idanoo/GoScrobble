@@ -6,12 +6,12 @@ type ProfileResponse struct {
 	Scrobbles []ScrobbleResponseItem `json:"scrobbles"`
 }
 
-func getProfile(user User) (ProfileResponse, error) {
+func getProfileForUser(user User) (ProfileResponse, error) {
 	resp := ProfileResponse{
 		UUID:     user.UUID,
 		Username: user.Username,
 	}
-	scrobbleReq, err := fetchScrobblesForUser(user.UUID, 10, 1)
+	scrobbleReq, err := getScrobblesForUser(user.UUID, 10, 1)
 	if err != nil {
 		return resp, err
 	}

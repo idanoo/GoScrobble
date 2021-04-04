@@ -1,3 +1,8 @@
+# 0.0.19
+- Tidy init/goscrobble.service
+- Add routers for Artist/Album/Track endpoints + basic pages
+- Move UUID generation into Go so we don't have to query the record!! Wooo!
+
 # 0.0.18
 - Add MBID/Spotify Autolinking if track exists
 - Add Genre table + .go files

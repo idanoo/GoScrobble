@@ -8,7 +8,7 @@ import { getUser, patchUser } from '../Api/index'
 import { Button } from 'reactstrap';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { spotifyConnectionRequest, spotifyDisonnectionRequest, resetScrobbleToken } from '../Api/index'
+import { spotifyConnectionRequest, spotifyDisonnectionRequest } from '../Api/index'
 import TimezoneSelect from 'react-timezone-select'
 
 const User = () => {

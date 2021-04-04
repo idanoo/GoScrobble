@@ -10,7 +10,7 @@ type Genre struct {
 	Name string `json:"name"`
 }
 
-func getGenre(uuid string) Genre {
+func getGenreByUUID(uuid string) Genre {
 	var genre Genre
 	err := db.QueryRow(
 		"SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE `uuid` = UUID_TO_BIN(?,true)",

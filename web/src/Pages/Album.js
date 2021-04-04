@@ -2,31 +2,30 @@ import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './Album.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import ScrobbleTable from '../Components/ScrobbleTable'
+import { getAlbum } from '../Api/index'
 
 const Album = (route) => {
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({});
+  const [album, setAlbum] = useState({});
 
-  let album = false;
+  let albumUUID = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    album = route.match.params.uuid;
+    albumUUID = route.match.params.uuid;
   } else {
-    album = false;
+    albumUUID = false;
   }
 
   useEffect(() => {
-    if (!album) {
+    if (!albumUUID) {
       return false;
     }
 
-    // getProfile(username)
-    //   .then(data => {
-    //     setProfile(data);
-    //     console.log(data)
-    //     setLoading(false);
-    //   })
-  }, [album])
+    getAlbum(albumUUID)
+      .then(data => {
+        setAlbum(data);
+        setLoading(false);
+      })
+  }, [albumUUID])
 
   if (loading) {
     return (
@@ -36,7 +35,7 @@ const Album = (route) => {
     )
   }
 
-  if (!album || !album) {
+  if (!albumUUID || !album) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -47,10 +46,11 @@ const Album = (route) => {
   return (
     <div className="pageWrapper">
       <h1>
-        {album}
+        {album.name}
       </h1>
       <div className="pageBody">
-        Album
+        MusicBrainzId: {album.mbid}<br/>
+        SpotifyID: {album.spotify_id}
       </div>
     </div>
   );

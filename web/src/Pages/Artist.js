@@ -2,31 +2,30 @@ import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './Artist.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import ScrobbleTable from '../Components/ScrobbleTable'
+import { getArtist } from '../Api/index'
 
 const Artist = (route) => {
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({});
+  const [artist, setArtist] = useState({});
 
-  let artist = false;
+  let artistUUID = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    artist = route.match.params.uuid;
+    artistUUID = route.match.params.uuid;
   } else {
-    artist = false;
+    artistUUID = false;
   }
 
   useEffect(() => {
-    if (!artist) {
+    if (!artistUUID) {
       return false;
     }
 
-    // getProfile(username)
-    //   .then(data => {
-    //     setProfile(data);
-    //     console.log(data)
-    //     setLoading(false);
-    //   })
-  }, [artist])
+    getArtist(artistUUID)
+      .then(data => {
+        setArtist(data);
+        setLoading(false);
+      })
+  }, [artistUUID])
 
   if (loading) {
     return (
@@ -36,7 +35,7 @@ const Artist = (route) => {
     )
   }
 
-  if (!artist || !artist) {
+  if (!artistUUID || !artist) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -47,10 +46,11 @@ const Artist = (route) => {
   return (
     <div className="pageWrapper">
       <h1>
-        {artist}
+        {artist.name}
       </h1>
       <div className="pageBody">
-        Artist
+        MusicBrainzId: {artist.mbid}<br/>
+        SpotifyID: {artist.spotify_id}
       </div>
     </div>
   );

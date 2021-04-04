@@ -48,7 +48,7 @@ func insertScrobble(user string, track string, source string, timestamp time.Tim
 	return nil
 }
 
-func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse, error) {
+func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse, error) {
 	scrobbleReq := ScrobbleResponse{}
 	var count int
 
@@ -106,7 +106,7 @@ func fetchScrobblesForUser(userUuid string, limit int, page int) (ScrobbleRespon
 
 func insertNewScrobble(user string, track string, source string, timestamp time.Time, ip net.IP, tx *sql.Tx) error {
 	_, err := tx.Exec("INSERT INTO `scrobbles` (`uuid`, `created_at`, `created_ip`, `user`, `track`, `source`) "+
-		"VALUES (UUID_TO_BIN(UUID(), true), ?, ?, UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), ?)", timestamp, ip, user, track, source)
+		"VALUES (UUID_TO_BIN(?, true), ?, ?, UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), ?)", newUUID(), timestamp, ip, user, track, source)
 
 	return err
 }

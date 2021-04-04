@@ -12,6 +12,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+\\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -147,7 +149,6 @@ func filterSlice(s []string) []string {
 		result = append(result, item)
 	}
 
-	fmt.Printf("RESTULS: %+v", result)
 	return result
 }
 
@@ -159,4 +160,8 @@ func isValidTimezone(tz string) bool {
 func getMd5(val string) string {
 	hash := md5.Sum([]byte(val))
 	return hex.EncodeToString(hash[:])
+}
+
+func newUUID() string {
+	return uuid.New().String()
 }

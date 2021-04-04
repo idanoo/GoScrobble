@@ -77,7 +77,7 @@ func adminMiddleware(next func(http.ResponseWriter, *http.Request, string)) http
 			return
 		}
 
-		user, err := getUser(claims.Subject)
+		user, err := getUserByUUID(claims.Subject)
 		if err != nil {
 			throwUnauthorized(w, err.Error())
 			return

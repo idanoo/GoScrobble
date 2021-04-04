@@ -13,7 +13,7 @@ const menuItems = [
 
 const loggedInMenuItems = [
   'Dashboard',
-  'About',
+  'Docs',
 ]
 
 const isMobile = () => {

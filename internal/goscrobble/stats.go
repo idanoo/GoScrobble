@@ -34,7 +34,7 @@ func getStats() (StatsRequest, error) {
 		}
 	} else {
 		// If not cached, pull data then return
-		statsReq, err = fetchStats()
+		statsReq, err = getAllStats()
 		if err != nil {
 			log.Printf("Error fetching stats: %+v", err)
 			return statsReq, errors.New("Error fetching stats")
@@ -46,10 +46,10 @@ func getStats() (StatsRequest, error) {
 
 // goFetchStats - Async call
 func goFetchStats() {
-	_, _ = fetchStats()
+	_, _ = getAllStats()
 }
 
-func fetchStats() (StatsRequest, error) {
+func getAllStats() (StatsRequest, error) {
 	statsReq := StatsRequest{}
 	var err error
 

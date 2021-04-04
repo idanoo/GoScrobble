@@ -37,25 +37,28 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/ingress/multiscrobbler", limitMiddleware(tokenMiddleware(handleIngress), lightLimiter)).Methods("POST")
 
 	// JWT Auth - Own profile only (Uses uuid in JWT)
-	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(fetchUser), lightLimiter)).Methods("GET")
+	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(getUser), lightLimiter)).Methods("GET")
 	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(patchUser), lightLimiter)).Methods("PATCH")
 	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(getSpotifyClientID), lightLimiter)).Methods("GET")
 	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(deleteSpotifyLink), lightLimiter)).Methods("DELETE")
-	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(fetchScrobbleResponse)).Methods("GET")
+	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(getScrobbles)).Methods("GET")
 
 	// Config auth
-	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(fetchConfig), standardLimiter)).Methods("GET")
+	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(getConfig), standardLimiter)).Methods("GET")
 	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(postConfig), standardLimiter)).Methods("POST")
 
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/profile/{username}", limitMiddleware(fetchProfile, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artist/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/album/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/track/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
 	v1.HandleFunc("/sendreset", limitMiddleware(handleSendReset, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/resetpassword", limitMiddleware(handleResetPassword, heavyLimiter)).Methods("POST")
-	v1.HandleFunc("/serverinfo", fetchServerInfo).Methods("GET")
+	v1.HandleFunc("/serverinfo", getServerInfo).Methods("GET")
 
 	// Redirect from Spotify Oauth
 	v1.HandleFunc("/link/spotify", limitMiddleware(postSpotifyReponse, lightLimiter))
@@ -289,10 +292,10 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 	return
 }
 
-// fetchUser - Return personal userprofile
-func fetchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+// getUser - Return personal userprofile
+func getUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
 	// We don't this var most of the time
-	userFull, err := getUser(jwtUser)
+	userFull, err := getUserByUUID(jwtUser)
 	if err != nil {
 		throwOkError(w, "Failed to fetch user information")
 		return
@@ -322,7 +325,7 @@ func fetchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 
 // patchUser - Update specific values
 func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
-	userFull, err := getUser(jwtUser)
+	userFull, err := getUserByUUID(jwtUser)
 	if err != nil {
 		throwOkError(w, "Failed to fetch user information")
 		return
@@ -346,9 +349,9 @@ func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 	throwOkMessage(w, "User updated successfully")
 }
 
-// fetchScrobbles - Return an array of scrobbles
-func fetchScrobbleResponse(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
-	resp, err := fetchScrobblesForUser(reqUser, 100, 1)
+// getScrobbles - Return an array of scrobbles
+func getScrobbles(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+	resp, err := getScrobblesForUser(reqUser, 100, 1)
 	if err != nil {
 		throwOkError(w, "Failed to fetch scrobbles")
 		return
@@ -360,8 +363,8 @@ func fetchScrobbleResponse(w http.ResponseWriter, r *http.Request, jwtUser strin
 	w.Write(json)
 }
 
-// fetchScrobbles - Return an array of scrobbles
-func fetchConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
+// getConfig - Return an array of scrobbles
+func getConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	config, err := getAllConfigs()
 	if err != nil {
 		throwOkError(w, "Failed to fetch scrobbles")
@@ -373,7 +376,7 @@ func fetchConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	w.Write(json)
 }
 
-// fetchScrobbles - Return an array of scrobbles
+// postConfig - Return an array of scrobbles
 func postConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	bodyJson, err := decodeJson(r.Body)
 	if err != nil {
@@ -394,8 +397,8 @@ func postConfig(w http.ResponseWriter, r *http.Request, jwtUser string) {
 	throwOkMessage(w, "Config updated successfully")
 }
 
-// fetchProfile - Returns public user profile data
-func fetchProfile(w http.ResponseWriter, r *http.Request) {
+// getProfile - Returns public user profile data
+func getProfile(w http.ResponseWriter, r *http.Request) {
 	var username string
 	for k, v := range mux.Vars(r) {
 		if k == "username" {
@@ -414,13 +417,88 @@ func fetchProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := getProfile(user)
+	resp, err := getProfileForUser(user)
 	if err != nil {
 		throwOkError(w, err.Error())
 		return
 	}
 
 	json, _ := json.Marshal(&resp)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getArtist - Returns artist data
+func getArtist(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	artist, err := getArtistByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&artist)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getAlbum - Returns album data
+func getAlbum(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	album, err := getAlbumByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&album)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getTrack - Returns track data
+func getTrack(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	track, err := getTrackByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&track)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
@@ -466,7 +544,7 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v strin
 	throwOkMessage(w, "Spotify account successfully unlinked")
 }
 
-func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
+func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	cachedRegistrationEnabled := getRedisVal("REGISTRATION_ENABLED")
 	if cachedRegistrationEnabled == "" {
 		registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
@@ -478,7 +556,7 @@ func fetchServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.18",
+		Version:             "0.0.19",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

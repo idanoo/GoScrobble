@@ -2,31 +2,30 @@ import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './Track.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import ScrobbleTable from '../Components/ScrobbleTable'
+import { getTrack } from '../Api/index'
 
 const Track = (route) => {
   const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState({});
+  const [track, setTrack] = useState({});
 
-  let artist = false;
+  let trackUUID = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
-    artist = route.match.params.uuid;
+    trackUUID = route.match.params.uuid;
   } else {
-    artist = false;
+    trackUUID = false;
   }
 
   useEffect(() => {
-    if (!artist) {
+    if (!trackUUID) {
       return false;
     }
 
-    // getProfile(username)
-    //   .then(data => {
-    //     setProfile(data);
-    //     console.log(data)
-    //     setLoading(false);
-    //   })
-  }, [artist])
+    getTrack(trackUUID)
+      .then(data => {
+        setTrack(data);
+        setLoading(false);
+      })
+  }, [trackUUID])
 
   if (loading) {
     return (
@@ -36,7 +35,7 @@ const Track = (route) => {
     )
   }
 
-  if (!artist || !artist) {
+  if (!trackUUID || !track) {
     return (
       <div className="pageWrapper">
         Unable to fetch user
@@ -44,13 +43,21 @@ const Track = (route) => {
     )
   }
 
+  let length = "0";
+  if (track.length !== '') {
+    length = new Date(track.length * 1000).toISOString().substr(11, 8)
+  }
+
+
   return (
     <div className="pageWrapper">
       <h1>
-        {artist}
+        {track.name}
       </h1>
       <div className="pageBody">
-        Artist
+        MusicBrainzId: {track.mbid}<br/>
+        SpotifyID: {track.spotify_id}<br/>
+        Track Length: {length}
       </div>
     </div>
   );

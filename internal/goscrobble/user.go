@@ -211,7 +211,7 @@ func userAlreadyExists(req *RegisterRequest) bool {
 	return count > 0
 }
 
-func getUser(uuid string) (User, error) {
+func getUserByUUID(uuid string) (User, error) {
 	var user User
 	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `timezone`, `token` FROM `users` WHERE `uuid` = UUID_TO_BIN(?, true) AND `active` = 1",
 		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone, &user.Token)

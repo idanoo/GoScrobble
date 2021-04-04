@@ -61,7 +61,6 @@ func connectSpotifyResponse(r *http.Request) error {
 	auth := getSpotifyAuthHandler()
 	token, err := auth.Token(userUuid, r)
 	if err != nil {
-		fmt.Printf("%+v", err)
 		return err
 	}
 
@@ -74,7 +73,6 @@ func connectSpotifyResponse(r *http.Request) error {
 	time := time.Now().UTC().Add(-(time.Duration(30) * time.Minute))
 	err = insertOauthToken(userUuid, "spotify", token.AccessToken, token.RefreshToken, token.Expiry, spotifyUser.DisplayName, time)
 	if err != nil {
-		fmt.Printf("%+v", err)
 		return err
 	}
 
@@ -153,7 +151,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 			log.Printf("%+v", err)
 			return errors.New("Failed to map artist: " + artist.Name)
 		}
-		artists = append(artists, artist.Uuid)
+		artists = append(artists, artist.UUID)
 	}
 
 	// Get full track data (album / track info)
@@ -171,7 +169,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 			log.Printf("%+v", err)
 			return errors.New("Failed to map album: " + artist.Name)
 		}
-		albumartists = append(albumartists, albumartist.Uuid)
+		albumartists = append(albumartists, albumartist.UUID)
 	}
 
 	// Insert album if not exist
@@ -183,7 +181,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 
 	// Insert track if not exist
 	length := int(fulltrack.Duration / 1000)
-	track, err := insertTrack(fulltrack.Name, length, "", fulltrack.ID.String(), album.Uuid, artists, tx)
+	track, err := insertTrack(fulltrack.Name, length, "", fulltrack.ID.String(), album.UUID, artists, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")
@@ -191,7 +189,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 
 	// Insert scrobble if not exist
 	ip := net.ParseIP("0.0.0.0")
-	err = insertScrobble(userUUID, track.Uuid, "spotify", data.PlayedAt, ip, tx)
+	err = insertScrobble(userUUID, track.UUID, "spotify", data.PlayedAt, ip, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")

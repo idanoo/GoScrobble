@@ -11,6 +11,9 @@ function getHeaders() {
     if (user.exp < unixtime) {
       // TODO: Handle expiry nicer
       toast.warning("Session expired. Please log in again")
+      // localStorage.removeItem('user');
+      // window.location.reload();
+      return {};
     }
 
     return { Authorization: 'Bearer ' + user.jwt };
@@ -252,3 +255,30 @@ export const getServerInfo = () => {
     return handleErrorResp(error)
   });
 }
+
+export const getArtist = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "artist/" + uuid).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+};
+
+export const getAlbum = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "album/" + uuid).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+};
+
+export const getTrack = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "track/" + uuid).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+};

@@ -3,7 +3,6 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -80,7 +79,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	}
 
 	// Insert album if not exist
-	artists := []string{artist.Uuid}
+	artists := []string{artist.UUID}
 	album, err := insertAlbum(jf.Album, jf.ProviderMusicbrainzalbum, "", artists, tx)
 	if err != nil {
 		log.Printf("%+v", err)
@@ -89,7 +88,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 
 	// Insert track if not exist
 	length := timestampToSeconds(jf.RunTime)
-	track, err := insertTrack(jf.Name, length, jf.ProviderMusicbrainztrack, "", album.Uuid, artists, tx)
+	track, err := insertTrack(jf.Name, length, jf.ProviderMusicbrainztrack, "", album.UUID, artists, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")
@@ -97,8 +96,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 
 	// Insert scrobble if not exist
 	timestamp := time.Now()
-	fmt.Println(timestamp)
-	err = insertScrobble(userUUID, track.Uuid, "jellyfin", timestamp, ip, tx)
+	err = insertScrobble(userUUID, track.UUID, "jellyfin", timestamp, ip, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")

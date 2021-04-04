@@ -37,7 +37,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 			log.Printf("%+v", err)
 			return errors.New("Failed to map artist: " + artist.Name)
 		}
-		artists = append(artists, artist.Uuid)
+		artists = append(artists, artist.UUID)
 	}
 
 	// Insert album if not exist
@@ -48,14 +48,14 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 	}
 
 	// Insert track if not exist
-	track, err := insertTrack(data.Track, data.Duration, "", "", album.Uuid, artists, tx)
+	track, err := insertTrack(data.Track, data.Duration, "", "", album.UUID, artists, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")
 	}
 
 	// Insert scrobble if not exist
-	err = insertScrobble(userUUID, track.Uuid, "multiscrobbler", data.PlayedAt, ip, tx)
+	err = insertScrobble(userUUID, track.UUID, "multiscrobbler", data.PlayedAt, ip, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map track")

@@ -4,8 +4,8 @@ After=network.target
 
 [Service]
 Type=simple
-User=www-data
-ExecStart=/opt/goscrobble/goscrobble
+User=root
+ExecStart=/bin/bash -c 'cd /root/go-scrobble && ./goscrobble'
 Restart=on-failure
 
 [Install]
