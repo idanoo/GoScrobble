@@ -44,7 +44,7 @@ const Track = (route) => {
   }
 
   let length = "0";
-  if (track.length !== '') {
+  if (track.length && track.length !== '') {
     length = new Date(track.length * 1000).toISOString().substr(11, 8)
   }
 
@@ -57,7 +57,7 @@ const Track = (route) => {
       <div className="pageBody">
         MusicBrainzId: {track.mbid}<br/>
         SpotifyID: {track.spotify_id}<br/>
-        Track Length: {length}
+        Track Length: {length && length}
       </div>
     </div>
   );

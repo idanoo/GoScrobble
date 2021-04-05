@@ -1,3 +1,7 @@
+# 0.0.20
+- Return related data on artist/album/track endpoints
+- Scrobble table now links to tracks
+
 # 0.0.19
 - Tidy init/goscrobble.service
 - Add routers for Artist/Album/Track endpoints + basic pages

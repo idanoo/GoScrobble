@@ -35,7 +35,6 @@ const Reset = (route) => {
     validateResetPassword(reqToken)
       .then(data => {
         setReset(data);
-        console.log(data)
         setLoading(false);
       })
   }, [reqToken])

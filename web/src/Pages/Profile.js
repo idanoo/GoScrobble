@@ -24,7 +24,6 @@ const Profile = (route) => {
     getProfile(username)
       .then(data => {
         setProfile(data);
-        console.log(data)
         setLoading(false);
       })
   }, [username])
