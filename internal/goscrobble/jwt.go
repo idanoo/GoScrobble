@@ -1,6 +1,8 @@
 package goscrobble
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -12,14 +14,21 @@ var JwtToken []byte
 // JwtExpiry - Expiry in seconds
 var JwtExpiry time.Duration
 
+// RefereshExpiry - Expiry for refresh token
+var RefereshExpiry time.Duration
+
 type CustomClaims struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Admin    bool   `json:"admin"`
+	Username     string `json:"username"`
+	Email        string `json:"email"`
+	Admin        bool   `json:"admin"`
+	RefreshToken string `json:"refresh_token"`
+	RefreshExp   int    `json:"refresh_exp"`
 	jwt.StandardClaims
 }
 
-func generateJWTToken(user User) (string, error) {
+func generateJWTToken(user User, existingRefresh string) (string, error) {
+	refreshToken := generateToken(64)
+
 	atClaims := jwt.MapClaims{}
 	atClaims["sub"] = user.UUID
 	atClaims["username"] = user.Username
@@ -27,10 +36,23 @@ func generateJWTToken(user User) (string, error) {
 	atClaims["admin"] = user.Admin
 	atClaims["iat"] = time.Now().Unix()
 	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
+	atClaims["refresh_token"] = refreshToken
+	atClaims["refresh_exp"] = time.Now().Add(RefereshExpiry).Unix()
 	at := jwt.NewWithClaims(jwt.SigningMethodHS512, atClaims)
 	token, err := at.SignedString(JwtToken)
 	if err != nil {
 		return "", err
+	}
+
+	// Store refresh token
+	err = insertRefreshToken(user.UUID, refreshToken)
+	if err != nil {
+		fmt.Println(err)
+		return token, errors.New("Failed to generate token")
+	}
+
+	if existingRefresh != "" {
+		deleteRefreshToken(existingRefresh)
 	}
 
 	return token, nil

@@ -8,7 +8,7 @@ const Home = () => {
   return (
     <div className="pageWrapper">
       <img src={logo} className="App-logo" alt="logo" />
-      <p className="homeText">Go-Scrobble is an open source music scrobbling service written in Go and React.</p>
+      <p className="homeText">GoScrobble is an open source music scrobbling service.</p>
       <HomeBanner />
     </div>
     );

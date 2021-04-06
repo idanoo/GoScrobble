@@ -45,7 +45,7 @@ func tokenMiddleware(next func(http.ResponseWriter, *http.Request, string)) http
 }
 
 // jwtMiddleware - Validates middleware to a user
-func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)) http.HandlerFunc {
+func jwtMiddleware(next func(http.ResponseWriter, *http.Request, CustomClaims, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fullToken := r.Header.Get("Authorization")
 		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
@@ -62,7 +62,7 @@ func jwtMiddleware(next func(http.ResponseWriter, *http.Request, string, string)
 			}
 		}
 
-		next(w, r, claims.Subject, reqUuid)
+		next(w, r, claims, reqUuid)
 	}
 }
 

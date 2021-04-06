@@ -135,7 +135,7 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 	}
 
 	// Issue JWT + Response
-	token, err := generateJWTToken(user)
+	token, err := generateJWTToken(user, "")
 	if err != nil {
 		log.Printf("Error generating JWT: %v", err)
 		return resp, errors.New("Error logging in")

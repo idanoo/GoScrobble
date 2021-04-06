@@ -21,6 +21,7 @@ type MultiScrobblerRequest struct {
 func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip net.IP, tx *sql.Tx) error {
 	// Cache key
 	json := fmt.Sprintf("%s:%s:%s:%s", data.PlayedAt, data.Track, data.Album, userUUID)
+	fmt.Printf(json)
 	redisKey := getMd5(json)
 	if getRedisKeyExists(redisKey) {
 		return nil

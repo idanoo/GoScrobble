@@ -1,17 +1,19 @@
 import axios from 'axios';
 import jwt from 'jwt-decode'
 import { toast } from 'react-toastify';
+import AuthContext from '../Contexts/AuthContext';
+import { useContext } from 'react';
 
 function getHeaders() {
-  // TODO: move this to use Context values instead.
   const user = JSON.parse(localStorage.getItem('user'));
 
   if (user && user.jwt) {
     var unixtime = Math.round((new Date()).getTime() / 1000);
     if (user.exp < unixtime) {
-      // TODO: Handle expiry nicer
-      toast.warning("Session expired. Please log in again")
-      // localStorage.removeItem('user');
+      // Trigger refresh
+      localStorage.removeItem('user');
+      window.location.reload();
+      // toast.warning("Session expired. Please log in again")
       // window.location.reload();
       return {};
     }
@@ -58,7 +60,9 @@ export const PostLogin = (formValues) => {
           uuid: expandedUser.sub,
           exp: expandedUser.exp,
           username: expandedUser.username,
-          admin: expandedUser.admin
+          admin: expandedUser.admin,
+          refresh_token: expandedUser.refresh_token,
+          refresh_exp: expandedUser.refresh_exp,
         }
 
         toast.success('Successfully logged in.');
@@ -78,6 +82,39 @@ export const PostLogin = (formValues) => {
       return Promise.resolve();
     });
 };
+
+export const PostRefreshToken = (refreshToken) => {
+  return axios.post(process.env.REACT_APP_API_URL + "refresh", {token: refreshToken})
+    .then((response) => {
+      if (response.data.token) {
+        let expandedUser = jwt(response.data.token)
+        let user = {
+          jwt: response.data.token,
+          uuid: expandedUser.sub,
+          exp: expandedUser.exp,
+          username: expandedUser.username,
+          admin: expandedUser.admin,
+          refresh_token: expandedUser.refresh_token,
+          refresh_exp: expandedUser.refresh_exp,
+        }
+
+        return user;
+      } else {
+        toast.error(response.data.error ? response.data.error: 'An Unknown Error has occurred');
+        return null
+      }
+    }).catch((error) => {
+      if (error.response === 401)  {
+        toast.error('Unauthorized')
+      } else if (error.response === 429) {
+        toast.error('Rate limited. Please try again shortly')
+      } else {
+        toast.error('Failed to connect');
+      }
+      return Promise.resolve();
+    });
+};
+
 
 export const PostRegister = (formValues) => {
   return axios.post(process.env.REACT_APP_API_URL + "register", formValues)

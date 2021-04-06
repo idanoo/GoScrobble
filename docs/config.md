@@ -20,7 +20,8 @@ These are stored in `web/.env.production` and `web/.env.development`
     REDIS_AUTH="" // Redis password
 
     JWT_SECRET= // 32+ Char JWT secret
-    JWT_EXPIRY=86400 // JWT expiry
+    JWT_EXPIRY=1800 // JWT expiry in seconds
+    REFRESH_EXPIRY=604800 // Refresh token expiry
 
     REVERSE_PROXIES=127.0.0.1 // Comma separated list of servers to ignore for IP logs
     PORT=42069 // Server port

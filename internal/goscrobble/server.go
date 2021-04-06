@@ -59,6 +59,7 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/sendreset", limitMiddleware(handleSendReset, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/resetpassword", limitMiddleware(handleResetPassword, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/serverinfo", getServerInfo).Methods("GET")
+	v1.HandleFunc("/refresh", limitMiddleware(handleTokenRefresh, standardLimiter)).Methods("POST")
 
 	// Redirect from Spotify Oauth
 	v1.HandleFunc("/link/spotify", limitMiddleware(postSpotifyReponse, lightLimiter))
@@ -141,6 +142,33 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(data)
+}
+
+// handleTokenRefresh - Refresh access token based on refresh token
+func handleTokenRefresh(w http.ResponseWriter, r *http.Request) {
+	logReq := LoginResponse{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&logReq)
+	user, err := isValidRefreshToken(logReq.Token)
+	if err != nil {
+		throwOkError(w, "Invalid refresh token")
+		return
+	}
+
+	// Issue JWT + Response
+	token, err := generateJWTToken(user, logReq.Token)
+	if err != nil {
+		throwOkError(w, "Failed to refresh Token")
+		return
+	}
+
+	loginResp := LoginResponse{
+		Token: token,
+	}
+
+	resp, _ := json.Marshal(&loginResp)
+	w.WriteHeader(http.StatusOK)
+	w.Write(resp)
 }
 
 // handleStats - Returns stats for homepage
@@ -293,8 +321,8 @@ func handleIngress(w http.ResponseWriter, r *http.Request, userUuid string) {
 }
 
 // getUser - Return personal userprofile
-func getUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
-	// We don't this var most of the time
+func getUser(w http.ResponseWriter, r *http.Request, claims CustomClaims, reqUser string) {
+	jwtUser := claims.Subject
 	userFull, err := getUserByUUID(jwtUser)
 	if err != nil {
 		throwOkError(w, "Failed to fetch user information")
@@ -324,7 +352,9 @@ func getUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser str
 }
 
 // patchUser - Update specific values
-func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+func patchUser(w http.ResponseWriter, r *http.Request, claims CustomClaims, reqUser string) {
+	jwtUser := claims.Subject
+
 	userFull, err := getUserByUUID(jwtUser)
 	if err != nil {
 		throwOkError(w, "Failed to fetch user information")
@@ -350,7 +380,7 @@ func patchUser(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser s
 }
 
 // getScrobbles - Return an array of scrobbles
-func getScrobbles(w http.ResponseWriter, r *http.Request, jwtUser string, reqUser string) {
+func getScrobbles(w http.ResponseWriter, r *http.Request, claims CustomClaims, reqUser string) {
 	resp, err := getScrobblesForUser(reqUser, 100, 1)
 	if err != nil {
 		throwOkError(w, "Failed to fetch scrobbles")
@@ -516,7 +546,7 @@ func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 }
 
 // getSpotifyClientID - Returns public spotify APP ID
-func getSpotifyClientID(w http.ResponseWriter, r *http.Request, u string, v string) {
+func getSpotifyClientID(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
 	key, err := getConfigValue("SPOTIFY_APP_ID")
 	if err != nil {
 		throwOkError(w, "Failed to get Spotify ID")
@@ -533,8 +563,9 @@ func getSpotifyClientID(w http.ResponseWriter, r *http.Request, u string, v stri
 }
 
 // deleteSpotifyLink - Unlinks spotify account
-func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, u string, v string) {
-	err := removeOauthToken(u, "spotify")
+func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
+	jwtUser := claims.Subject
+	err := removeOauthToken(jwtUser, "spotify")
 	if err != nil {
 		fmt.Println(err)
 		throwOkError(w, "Failed to unlink spotify account")
@@ -556,7 +587,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.20",
+		Version:             "0.0.21",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

@@ -8,7 +8,7 @@ const About = () => {
         About GoScrobble.com
       </h1>
       <p className="aboutBody">
-        Go-Scrobble is an open source music scorbbling service written in Go and React.<br/>
+        Go-Scrobble is an open source music scrobbling service written in Go and React.<br/>
         Used to track your listening history and build a profile to discover new music.
       </p>
       <a

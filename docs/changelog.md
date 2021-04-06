@@ -1,3 +1,7 @@
+# 0.0.21
+- Add ez deploy script
+- Half implemented JWT refresh tokens, need to finish JS implementation
+
 # 0.0.20
 - Return related data on artist/album/track endpoints
 - Scrobble table now links to tracks

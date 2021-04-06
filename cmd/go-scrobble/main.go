@@ -39,6 +39,18 @@ func main() {
 		goscrobble.JwtExpiry = time.Duration(i) * time.Second
 	}
 
+	// Store Refresh expiry
+	goscrobble.RefereshExpiry = (86400 * 7)
+	refreshExpiryStr := os.Getenv("REFRESH_EXPIRY")
+	if refreshExpiryStr != "" {
+		i, err := strconv.ParseFloat(refreshExpiryStr, 64)
+		if err != nil {
+			panic("Invalid REFRESH_EXPIRY value")
+		}
+
+		goscrobble.RefereshExpiry = time.Duration(i) * time.Second
+	}
+
 	// Ignore reverse proxies
 	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 

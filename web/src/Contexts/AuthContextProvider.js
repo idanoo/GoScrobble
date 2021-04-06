@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import AuthContext from './AuthContext';
-import { PostLogin, PostRegister, PostResetPassword } from '../Api/index';
+import { PostLogin, PostRegister, PostResetPassword, PostRefreshToken } from '../Api/index';
 
 const AuthContextProvider = ({ children }) => {
   const [user, setUser] = useState();
@@ -9,9 +9,22 @@ const AuthContextProvider = ({ children }) => {
 
   useEffect(() => {
     setLoading(true)
-    const user = JSON.parse(localStorage.getItem('user'));
+    let curTime = Math.round((new Date()).getTime() / 1000);
+    let user = JSON.parse(localStorage.getItem('user'));
+
+    // Confirm JWT is set.
     if (user && user.jwt) {
-      setUser(user)
+      // Check refresh expiry is valid.
+      if (user.refresh_exp && (user.refresh_exp > curTime)) {
+        // Check if JWT is still valid
+        if (user.exp < curTime) {
+          // Refresh if not
+          user = RefreshToken(user.refresh_token)
+          localStorage.setItem('user', JSON.stringify(user));
+        }
+
+        setUser(user)
+      }
     }
     setLoading(false)
   }, []);
@@ -35,7 +48,11 @@ const AuthContextProvider = ({ children }) => {
   };
 
   const ResetPassword = (formValues) => {
-    return PostResetPassword(formValues)
+    return PostResetPassword(formValues);
+  }
+
+  const RefreshToken = (refreshToken) => {
+    return PostRefreshToken(refreshToken);
   }
 
   const Logout = () => {
@@ -51,6 +68,7 @@ const AuthContextProvider = ({ children }) => {
         Login,
         Register,
         ResetPassword,
+        RefreshToken,
         loading,
         user,
       }}
