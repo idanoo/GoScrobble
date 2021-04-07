@@ -4,6 +4,7 @@ import './Profile.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { getProfile } from '../Api/index'
 import ScrobbleTable from '../Components/ScrobbleTable'
+import TopTable from '../Components/TopTable'
 
 const Profile = (route) => {
   const [loading, setLoading] = useState(true);
@@ -50,6 +51,8 @@ const Profile = (route) => {
         {profile.username}'s Profile
       </h1>
       <div className="pageBody">
+        <TopTable type="Artists" />
+        <br/>
         Last 10 scrobbles...<br/>
         <ScrobbleTable data={profile.scrobbles}/>
       </div>

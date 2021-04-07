@@ -12,8 +12,9 @@ const menuItems = [
 ];
 
 const loggedInMenuItems = [
-  'Dashboard',
-  'Docs',
+  'Home',
+  'My Profile',
+  // 'Docs',
 ]
 
 const isMobile = () => {
@@ -50,8 +51,7 @@ const Navigation = () => {
                 key={menuItem}
                 className="navLinkMobile"
                 style={active === menuItem.toLowerCase() ? activeStyle : {}}
-                to={menuItem.toLowerCase()}
-                onClick={toggleCollapsed}
+                to={menuItem === "My Profile" ? "/u/" + user.username : "/" + menuItem.toLowerCase()}                onClick={toggleCollapsed}
               >{menuItem}</Link>
             </NavItem>
           )}
@@ -60,7 +60,7 @@ const Navigation = () => {
             style={active === "user" ? activeStyle : {}}
             className="navLinkMobile"
             onClick={toggleCollapsed}
-            >{user.username}</Link>
+            >Settings</Link>
           {user.admin &&
             <Link
               to="/admin"
@@ -115,7 +115,7 @@ const Navigation = () => {
             key={menuItem}
             className="navLink"
             style={active === menuItem.toLowerCase() ? activeStyle : {}}
-            to={"/" + menuItem.toLowerCase()}
+            to={menuItem === "My Profile" ? "/u/" + user.username : "/" + menuItem.toLowerCase()}
           >
             {menuItem}
           </Link>
@@ -140,7 +140,7 @@ const Navigation = () => {
               to="/user"
               style={active === "user" ? activeStyle : {}}
               className="navLink"
-            >{user.username}</Link>
+            >Settings</Link>
             {user.admin &&
             <Link
               to="/admin"

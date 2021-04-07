@@ -22,8 +22,8 @@ const AuthContextProvider = ({ children }) => {
           user = RefreshToken(user.refresh_token)
           localStorage.setItem('user', JSON.stringify(user));
         }
-
-        setUser(user)
+ 
+        setUser(user);
       }
     }
     setLoading(false)

@@ -1,8 +1,6 @@
 import axios from 'axios';
 import jwt from 'jwt-decode'
 import { toast } from 'react-toastify';
-import AuthContext from '../Contexts/AuthContext';
-import { useContext } from 'react';
 
 function getHeaders() {
   const user = JSON.parse(localStorage.getItem('user'));

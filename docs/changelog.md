@@ -1,3 +1,6 @@
+# 0.0.22
+- Rework navbar + user pages
+
 # 0.0.21
 - Add ez deploy script
 - Half implemented JWT refresh tokens, need to finish JS implementation

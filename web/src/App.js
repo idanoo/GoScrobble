@@ -1,7 +1,6 @@
 import { Route, Switch, withRouter } from 'react-router-dom';
 import Home from './Pages/Home';
 import About from './Pages/About';
-import Dashboard from './Pages/Dashboard';
 import Profile from './Pages/Profile';
 import Artist from './Pages/Artist';
 import Album from './Pages/Album';
@@ -33,7 +32,6 @@ const App = () => {
           <Route exact={boolTrue} path={["/", "/home"]} component={Home} />
           <Route path="/about" component={About} />
 
-          <Route path="/dashboard" component={Dashboard} />
           <Route path="/user" component={User} />
           <Route path="/u/:uuid" component={Profile} />
           <Route path="/artist/:uuid" component={Artist} />

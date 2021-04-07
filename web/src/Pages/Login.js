@@ -13,7 +13,7 @@ const Login = () => {
   let { Login, loading, user } = useContext(AuthContext);
 
   if (user) {
-    history.push("/dashboard");
+    history.push("/u/" + user.username);
   }
 
   const redirectReset = () => {

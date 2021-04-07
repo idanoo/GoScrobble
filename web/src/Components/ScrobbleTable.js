@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 const ScrobbleTable = (props) => {
     return (
         <div>
-        <table border={1} cellPadding={5}>
+        <table width={900} border={1} cellPadding={5}>
            <thead>
               <tr>
                 <td>Timestamp</td>
