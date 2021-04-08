@@ -50,12 +50,12 @@ func HandleRequests(port string) {
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/artist/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/artist/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/album/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/album/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/track/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/track/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artists/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artists/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/albums/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/albums/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
@@ -665,7 +665,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.23",
+		Version:             "0.0.24",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

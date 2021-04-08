@@ -145,7 +145,13 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 
 	// Insert track artists
 	for _, artist := range data.Track.Artists {
-		artist, err := insertArtist(artist.Name, "", artist.ID.String(), tx)
+		fullArtist, err := client.GetArtist(artist.ID)
+		img := ""
+		if len(fullArtist.Images) > 0 {
+			img = fullArtist.Images[0].URL
+		}
+
+		artist, err := insertArtist(artist.Name, "", artist.ID.String(), img, tx)
 
 		if err != nil {
 			log.Printf("%+v", err)
@@ -163,7 +169,13 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 
 	// Insert album artists
 	for _, artist := range fulltrack.Album.Artists {
-		albumartist, err := insertArtist(artist.Name, "", artist.ID.String(), tx)
+		fullArtist, err := client.GetArtist(artist.ID)
+		img := ""
+		if len(fullArtist.Images) > 0 {
+			img = fullArtist.Images[0].URL
+		}
+
+		albumartist, err := insertArtist(artist.Name, "", artist.ID.String(), img, tx)
 
 		if err != nil {
 			log.Printf("%+v", err)
@@ -173,7 +185,11 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 	}
 
 	// Insert album if not exist
-	album, err := insertAlbum(fulltrack.Album.Name, "", fulltrack.Album.ID.String(), albumartists, tx)
+	albumImage := ""
+	if len(fulltrack.Album.Images) > 0 {
+		albumImage = fulltrack.Album.Images[0].URL
+	}
+	album, err := insertAlbum(fulltrack.Album.Name, "", fulltrack.Album.ID.String(), albumartists, albumImage, tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map album")
@@ -195,5 +211,9 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 		return errors.New("Failed to map track")
 	}
 
+	return nil
+}
+
+func (track *Track) updateImageFromSpotify() error {
 	return nil
 }

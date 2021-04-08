@@ -16,7 +16,7 @@ type Album struct {
 }
 
 // insertAlbum - This will return if it exists or create it based on MBID > Name
-func insertAlbum(name string, mbid string, spotifyId string, artists []string, tx *sql.Tx) (Album, error) {
+func insertAlbum(name string, mbid string, spotifyId string, artists []string, img string, tx *sql.Tx) (Album, error) {
 	album := Album{}
 
 	// Try locate our album
@@ -33,7 +33,7 @@ func insertAlbum(name string, mbid string, spotifyId string, artists []string, t
 
 	// If we can't find it. Lets add it!
 	if album.UUID == "" {
-		err := insertNewAlbum(&album, name, mbid, spotifyId, tx)
+		err := insertNewAlbum(&album, name, mbid, spotifyId, img, tx)
 		if err != nil {
 			return album, errors.New("Failed to insert album")
 		}
@@ -60,6 +60,13 @@ func insertAlbum(name string, mbid string, spotifyId string, artists []string, t
 		album.updateAlbum("spotify_id", spotifyId, tx)
 	}
 
+	if album.Img == "" {
+		if img != "" {
+			album.Img = img
+			album.updateAlbum("img", img, tx)
+		}
+	}
+
 	return album, nil
 }
 
@@ -78,14 +85,15 @@ func getAlbumByCol(col string, val string, tx *sql.Tx) Album {
 	return album
 }
 
-func insertNewAlbum(album *Album, name string, mbid string, spotifyId string, tx *sql.Tx) error {
+func insertNewAlbum(album *Album, name string, mbid string, spotifyId string, img string, tx *sql.Tx) error {
 	album.UUID = newUUID()
 	album.Name = name
 	album.MusicBrainzID = mbid
 	album.SpotifyID = spotifyId
+	album.Img = img
 
-	_, err := tx.Exec("INSERT INTO `albums` (`uuid`, `name`, `mbid`, `spotify_id`) "+
-		"VALUES (UUID_TO_BIN(?, true),?,?,?)", album.UUID, album.Name, album.MusicBrainzID, album.SpotifyID)
+	_, err := tx.Exec("INSERT INTO `albums` (`uuid`, `name`, `mbid`, `spotify_id`, `img`) "+
+		"VALUES (UUID_TO_BIN(?, true),?,?,?,?)", album.UUID, album.Name, album.MusicBrainzID, album.SpotifyID, album.Img)
 
 	return err
 }

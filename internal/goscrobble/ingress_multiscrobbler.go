@@ -32,7 +32,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 
 	// Insert track artists
 	for _, artist := range data.Artists {
-		artist, err := insertArtist(artist, "", "", tx)
+		artist, err := insertArtist(artist, "", "", "", tx)
 
 		if err != nil {
 			log.Printf("%+v", err)
@@ -42,7 +42,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 	}
 
 	// Insert album if not exist
-	album, err := insertAlbum(data.Album, "", "", albumartists, tx)
+	album, err := insertAlbum(data.Album, "", "", albumartists, "", tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map album")

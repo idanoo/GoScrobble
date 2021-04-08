@@ -16,7 +16,7 @@ type Artist struct {
 }
 
 // insertArtist - This will return if it exists or create it based on MBID > Name
-func insertArtist(name string, mbid string, spotifyId string, tx *sql.Tx) (Artist, error) {
+func insertArtist(name string, mbid string, spotifyId string, img string, tx *sql.Tx) (Artist, error) {
 	artist := Artist{}
 
 	// Try locate our artist
@@ -33,7 +33,7 @@ func insertArtist(name string, mbid string, spotifyId string, tx *sql.Tx) (Artis
 
 	// If we can't find it. Lets add it!
 	if artist.UUID == "" {
-		err := insertNewArtist(&artist, name, mbid, spotifyId, tx)
+		err := insertNewArtist(&artist, name, mbid, spotifyId, img, tx)
 		if err != nil {
 			log.Printf("Error inserting artist: %+v", err)
 			return artist, errors.New("Failed to insert artist")
@@ -44,7 +44,7 @@ func insertArtist(name string, mbid string, spotifyId string, tx *sql.Tx) (Artis
 		}
 	}
 
-	// Updates these values if we match earlier!M
+	// Updates these values if we have the data!
 	if artist.MusicBrainzID == "" {
 		if artist.MusicBrainzID != mbid {
 			artist.MusicBrainzID = mbid
@@ -56,6 +56,13 @@ func insertArtist(name string, mbid string, spotifyId string, tx *sql.Tx) (Artis
 		if artist.SpotifyID != spotifyId {
 			artist.SpotifyID = spotifyId
 			artist.updateArtist("spotify_id", spotifyId, tx)
+		}
+	}
+
+	if artist.Img == "" {
+		if img != "" {
+			artist.Img = img
+			artist.updateArtist("img", img, tx)
 		}
 	}
 
@@ -77,14 +84,15 @@ func getArtistByCol(col string, val string, tx *sql.Tx) Artist {
 	return artist
 }
 
-func insertNewArtist(artist *Artist, name string, mbid string, spotifyId string, tx *sql.Tx) error {
+func insertNewArtist(artist *Artist, name string, mbid string, spotifyId string, img string, tx *sql.Tx) error {
 	artist.UUID = newUUID()
 	artist.Name = name
 	artist.MusicBrainzID = mbid
 	artist.SpotifyID = spotifyId
+	artist.Img = img
 
-	_, err := tx.Exec("INSERT INTO `artists` (`uuid`, `name`, `mbid`, `spotify_id`) "+
-		"VALUES (UUID_TO_BIN(?, true),?,?,?)", artist.UUID, artist.Name, artist.MusicBrainzID, artist.SpotifyID)
+	_, err := tx.Exec("INSERT INTO `artists` (`uuid`, `name`, `mbid`, `spotify_id`, `img`) "+
+		"VALUES (UUID_TO_BIN(?, true),?,?,?,?)", artist.UUID, artist.Name, artist.MusicBrainzID, artist.SpotifyID, artist.Img)
 
 	return err
 }

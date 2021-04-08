@@ -72,7 +72,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	}
 
 	// Insert artist if not exist
-	artist, err := insertArtist(jf.Artist, jf.ProviderMusicbrainzartist, "", tx)
+	artist, err := insertArtist(jf.Artist, jf.ProviderMusicbrainzartist, "", "", tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map artist")
@@ -80,7 +80,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 
 	// Insert album if not exist
 	artists := []string{artist.UUID}
-	album, err := insertAlbum(jf.Album, jf.ProviderMusicbrainzalbum, "", artists, tx)
+	album, err := insertAlbum(jf.Album, jf.ProviderMusicbrainzalbum, "", artists, "", tx)
 	if err != nil {
 		log.Printf("%+v", err)
 		return errors.New("Failed to map album")

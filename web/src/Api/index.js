@@ -292,7 +292,7 @@ export const getServerInfo = () => {
 }
 
 export const getArtist = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "artist/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "artists/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -301,7 +301,7 @@ export const getArtist = (uuid) => {
 };
 
 export const getAlbum = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "album/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "albums/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -310,7 +310,7 @@ export const getAlbum = (uuid) => {
 };
 
 export const getTrack = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "track/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "tracks/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -319,7 +319,7 @@ export const getTrack = (uuid) => {
 };
 
 export const getTopTracks = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "track/top/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "tracks/top/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {

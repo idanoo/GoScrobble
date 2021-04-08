@@ -13,7 +13,7 @@ func StartBackgroundWorkers() {
 	endTicker := make(chan bool)
 
 	hourTicker := time.NewTicker(time.Hour)
-	minuteTicker := time.NewTicker(time.Duration(1) * time.Minute)
+	minuteTicker := time.NewTicker(time.Duration(60) * time.Second)
 
 	go func() {
 		for {
