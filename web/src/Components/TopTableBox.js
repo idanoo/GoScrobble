@@ -9,7 +9,7 @@ const TopTableBox = (props) => {
    }
 
    return (
-         <Link to={"/artist/"+props.uuid} float="left" >
+         <Link to={props.link} float="left" >
             <div
                className="topTableBox"
                style={{
@@ -20,8 +20,10 @@ const TopTableBox = (props) => {
                   height: `${props.size}px`,
                   float: `left`,
                }} >
-               <div className="topOverlay">
-                  <span className="topText">#{props.number} {props.title}</span>
+               <div className="topOverlay" style={{ maxWidth: `${props.size-'10'}px` }}>
+                  <span className="topText" style={{
+                     fontSize: `${props.size === 300 ? '11pt' : (props.size === 150 ? '8pt': '8pt' )}`
+                  }}>#{props.number} {props.title}</span>
                </div>
             </div>
          </Link>

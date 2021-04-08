@@ -50,8 +50,11 @@ func HandleRequests(port string) {
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artist/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/artist/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/album/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/album/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/track/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/track/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
@@ -533,6 +536,81 @@ func getTrack(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+// getArtists - Returns artist data for a user
+func getArtists(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	artist, err := getArtistByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&artist)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getAlbums - Returns album data for a user
+func getAlbums(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	album, err := getAlbumByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&album)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getTracks - Returns track data for a user
+func getTracks(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	track, err := getTopTracks(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&track)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
 // postSpotifyResponse - Oauth Response from Spotify
 func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 	err := connectSpotifyResponse(r)
@@ -587,7 +665,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.22",
+		Version:             "0.0.23",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

@@ -11,8 +11,9 @@ img {
 .topOverlay {
     position: absolute;
     margin: 5px;
-    padding: 0 5px 0 5px;
+    padding: 2px 5px 5px 5px;
     background-color: rgba(0, 0, 0, 0.6);
+    line-height: 0.6em;
 }
 
 .topText {

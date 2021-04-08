@@ -1,3 +1,6 @@
+# 0.0.23
+- Get top tracks pulling correctly :)
+
 # 0.0.22
 - Rework navbar + user pages
 

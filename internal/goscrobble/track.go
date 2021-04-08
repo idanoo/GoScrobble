@@ -17,6 +17,16 @@ type Track struct {
 	SpotifyID     string `json:"spotify_id"`
 }
 
+type TopTrack struct {
+	UUID  string `json:"uuid"`
+	Name  string `json:"name"`
+	Img   string `json:"img"`
+	Plays int    `json:"plays"`
+}
+type TopTracks struct {
+	Tracks map[int]TopTrack `json:"tracks"`
+}
+
 // insertTrack - This will return if it exists or create it based on MBID > Name
 func insertTrack(name string, legnth int, mbid string, spotifyId string, album string, artists []string, tx *sql.Tx) (Track, error) {
 	track := Track{}
@@ -163,4 +173,43 @@ func getTrackByUUID(uuid string) (Track, error) {
 	}
 
 	return track, nil
+}
+
+func getTopTracks(userUuid string) (TopTracks, error) {
+	var topTracks TopTracks
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`artists`.`img`,''), count(*) "+
+		"FROM `scrobbles` "+
+		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` "+
+		"JOIN track_artist ON track_artist.track = tracks.uuid "+
+		"JOIN artists ON track_artist.artist = artists.uuid "+
+		"WHERE `user` = UUID_TO_BIN(?, true) "+
+		"GROUP BY `scrobbles`.`track` "+
+		"ORDER BY count(*) DESC "+
+		"LIMIT 14",
+		userUuid)
+	if err != nil {
+		log.Printf("Failed to fetch top tracks: %+v", err)
+		return topTracks, errors.New("Failed to fetch top tracks")
+	}
+	defer rows.Close()
+
+	i := 1
+	tempTracks := make(map[int]TopTrack)
+
+	for rows.Next() {
+		var track TopTrack
+		err := rows.Scan(&track.UUID, &track.Name, &track.Img, &track.Plays)
+		if err != nil {
+			log.Printf("Failed to fetch track: %+v", err)
+			return topTracks, errors.New("Failed to fetch track")
+		}
+
+		tempTracks[i] = track
+		i++
+	}
+
+	topTracks.Tracks = tempTracks
+
+	return topTracks, nil
 }

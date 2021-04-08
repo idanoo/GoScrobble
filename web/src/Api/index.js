@@ -317,3 +317,12 @@ export const getTrack = (uuid) => {
     return handleErrorResp(error)
   });
 };
+
+export const getTopTracks = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "track/top/" + uuid).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+}
