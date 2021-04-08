@@ -3,7 +3,7 @@ stages:
  - bundle
 
 variables:
-  VERSION: 0.0.24
+  VERSION: 0.0.25
 
 build-go:
   image: golang:1.16.2

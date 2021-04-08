@@ -1,3 +1,7 @@
+# 0.0.25
+- Images now pull from spotify if setup!
+- Show top artists/album
+
 # 0.0.24
 - Spotify will now add images on scrobble
 - Renamed /api/v1/track to tracks to bypass blocklists... (uBlock :()

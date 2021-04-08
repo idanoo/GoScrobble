@@ -214,6 +214,102 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 	return nil
 }
 
-func (track *Track) updateImageFromSpotify() error {
+// updateImageDataFromSpotify update artist/album images from spotify ;D
+func (user *User) updateImageDataFromSpotify() error {
+	// Check that data is set before we attempt to pull
+	val, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	if val == "" {
+		return nil
+	}
+
+	// TO BE REWORKED TO NOT USE A DAMN USER ARGHHH
+	dbToken, err := user.getSpotifyTokens()
+	if err != nil {
+		return nil
+	}
+
+	token := new(oauth2.Token)
+	token.AccessToken = dbToken.AccessToken
+	token.RefreshToken = dbToken.RefreshToken
+	token.Expiry = dbToken.Expiry
+	token.TokenType = "Bearer"
+
+	auth := getSpotifyAuthHandler()
+	client := auth.NewClient(token)
+	client.AutoRetry = true
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') = '' LIMIT 50")
+	if err != nil {
+		log.Printf("Failed to fetch config: %+v", err)
+		return errors.New("Failed to fetch artists")
+	}
+
+	toUpdate := make(map[string]string)
+	for rows.Next() {
+		var uuid string
+		var name string
+		err := rows.Scan(&uuid, &name)
+		if err != nil {
+			log.Printf("Failed to fetch artists: %+v", err)
+			rows.Close()
+			return errors.New("Failed to fetch artist")
+		}
+		res, err := client.Search(name, spotify.SearchTypeArtist)
+		if len(res.Artists.Artists) > 0 {
+			if len(res.Artists.Artists[0].Images) > 0 {
+				toUpdate[uuid] = res.Artists.Artists[0].Images[0].URL
+			}
+		}
+
+	}
+	rows.Close()
+
+	var artist Artist
+	tx, _ := db.Begin()
+	for uuid, img := range toUpdate {
+		artist, err = getArtistByUUID(uuid)
+		if err != nil {
+			continue
+		}
+		_ = artist.updateArtist("img", img, tx)
+	}
+	tx.Commit()
+
+	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') = '' LIMIT 50")
+	if err != nil {
+		log.Printf("Failed to fetch config: %+v", err)
+		return errors.New("Failed to fetch artists")
+	}
+
+	toUpdate = make(map[string]string)
+	for rows.Next() {
+		var uuid string
+		var name string
+		err := rows.Scan(&uuid, &name)
+		if err != nil {
+			log.Printf("Failed to fetch albums: %+v", err)
+			rows.Close()
+			return errors.New("Failed to fetch album")
+		}
+		res, err := client.Search(name, spotify.SearchTypeAlbum)
+		if len(res.Albums.Albums) > 0 {
+			if len(res.Albums.Albums[0].Images) > 0 {
+				toUpdate[uuid] = res.Albums.Albums[0].Images[0].URL
+			}
+		}
+
+	}
+	rows.Close()
+
+	var album Album
+	tx, _ = db.Begin()
+	for uuid, img := range toUpdate {
+		album, err = getAlbumByUUID(uuid)
+		if err != nil {
+			continue
+		}
+		_ = album.updateAlbum("img", img, tx)
+	}
+	tx.Commit()
 	return nil
 }

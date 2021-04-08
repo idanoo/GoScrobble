@@ -550,13 +550,13 @@ func getArtists(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	artist, err := getArtistByUUID(uuid)
+	track, err := getTopArtists(uuid)
 	if err != nil {
 		throwOkError(w, err.Error())
 		return
 	}
 
-	json, _ := json.Marshal(&artist)
+	json, _ := json.Marshal(&track)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
 }
@@ -665,7 +665,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.24",
+		Version:             "0.0.25",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

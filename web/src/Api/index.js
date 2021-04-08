@@ -326,3 +326,12 @@ export const getTopTracks = (uuid) => {
     return handleErrorResp(error)
   });
 }
+
+export const getTopArtists = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "artists/top/" + uuid).then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+}

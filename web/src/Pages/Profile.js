@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './Profile.css';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import { getProfile, getTopTracks } from '../Api/index'
+import { getProfile, getTopTracks, getTopArtists } from '../Api/index'
 import ScrobbleTable from '../Components/ScrobbleTable'
 import TopTable from '../Components/TopTable'
 
@@ -10,6 +10,7 @@ const Profile = (route) => {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState({});
   const [topTracks, setTopTracks] = useState({})
+  const [topArtists, setTopArtists] = useState({})
 
   let username = false;
   if (route && route.match && route.match.params && route.match.params.uuid) {
@@ -30,9 +31,14 @@ const Profile = (route) => {
         // Fetch top tracks
         getTopTracks(data.uuid)
           .then(data => {
-            setTopTracks(data)
-          }
-        )
+            setTopTracks(data.tracks)
+        })
+
+        // Fetch top artists
+        getTopArtists(data.uuid)
+          .then(data => {
+            setTopArtists(data.artists)
+        })
 
         setLoading(false);
       })
@@ -62,6 +68,8 @@ const Profile = (route) => {
       </h1>
       <div className="pageBody">
         <TopTable type="track" items={topTracks} />
+        <br/>
+        <TopTable type="artist" items={topArtists} />
         <br/>
         Last 10 scrobbles...<br/>
         <ScrobbleTable data={profile.scrobbles}/>

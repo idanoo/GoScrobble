@@ -20,7 +20,7 @@ const TopTableBox = (props) => {
                   height: `${props.size}px`,
                   float: `left`,
                }} >
-               <div className="topOverlay" style={{ maxWidth: `${props.size-'10'}px` }}>
+               <div className="topOverlay" style={{ maxWidth: `${props.size-'5'}px` }}>
                   <span className="topText" style={{
                      fontSize: `${props.size === 300 ? '11pt' : (props.size === 150 ? '8pt': '8pt' )}`
                   }}>#{props.number} {props.title}</span>

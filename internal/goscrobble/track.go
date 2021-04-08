@@ -178,11 +178,11 @@ func getTrackByUUID(uuid string) (Track, error) {
 func getTopTracks(userUuid string) (TopTracks, error) {
 	var topTracks TopTracks
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`artists`.`img`,''), count(*) "+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`albums`.`img`,''), count(*) "+
 		"FROM `scrobbles` "+
 		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` "+
-		"JOIN track_artist ON track_artist.track = tracks.uuid "+
-		"JOIN artists ON track_artist.artist = artists.uuid "+
+		"JOIN track_album ON track_album.track = tracks.uuid "+
+		"JOIN albums ON track_album.album = albums.uuid "+
 		"WHERE `user` = UUID_TO_BIN(?, true) "+
 		"GROUP BY `scrobbles`.`track` "+
 		"ORDER BY count(*) DESC "+
