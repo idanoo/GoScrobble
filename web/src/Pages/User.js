@@ -4,11 +4,18 @@ import './User.css';
 import { useHistory } from "react-router";
 import AuthContext from '../Contexts/AuthContext';
 import ScaleLoader from 'react-spinners/ScaleLoader';
-import { getUser, patchUser } from '../Api/index'
 import { Button } from 'reactstrap';
+import { Formik, Form, Field } from 'formik';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
-import { spotifyConnectionRequest, spotifyDisonnectionRequest } from '../Api/index'
+import {
+  getUser,
+  patchUser,
+  spotifyConnectionRequest,
+  spotifyDisonnectionRequest,
+  navidromeDisonnectionRequest,
+  navidromeConnectionRequest,
+} from '../Api/index'
 import TimezoneSelect from 'react-timezone-select'
 
 const User = () => {
@@ -25,7 +32,7 @@ const User = () => {
   const resetTokenPopup = () => {
     confirmAlert({
       title: 'Reset token',
-      message: 'Resetting your token will require you to update your sources with the new token. Continue?',
+      message: 'Resetting your token will require you to update your Jellyfin server / custom scroblers with the new token. Continue?',
       buttons: [
         {
           label: 'Reset',
@@ -38,10 +45,73 @@ const User = () => {
     });
   };
 
+  const connectNavidromePopup = () => {
+    confirmAlert({
+      title: 'Connect Navidrome',
+      buttons: [
+        {
+          label: 'Close',
+        }
+      ],
+      childrenElement: () =>  <Formik
+            initialValues={{ url: '', username: '', password: '' }}
+            onSubmit={values => navidromeConnectionRequest(values)}
+        >
+          <Form>
+          <label>
+            Server URL<br/>
+            <Field
+              name="url"
+              type="text"
+            />
+          </label>
+          <br/>
+          <label>
+            Username<br/>
+            <Field
+              name="username"
+              type="text"
+            />
+          </label>
+          <br/>
+          <label>
+            Password<br/>
+            <Field
+              name="password"
+              type="password"
+            />
+          </label>
+          <br/><br/>
+          <Button
+            color="primary"
+            type="submit"
+            className="loginButton"
+          >Connect</Button>
+        </Form>
+      </Formik>,
+    });
+  };
+
+  const disconnectNavidromePopup = () => {
+    confirmAlert({
+      title: 'Disconnect Navidrome',
+      message: 'Are you sure you want to disconnect your Navidrome connection?',
+      buttons: [
+        {
+          label: 'Disconnect',
+          onClick: () => navidromeDisonnectionRequest()
+        },
+        {
+          label: 'No',
+        }
+      ]
+    });
+  };
+
   const disconnectSpotifyPopup = () => {
     confirmAlert({
       title: 'Disconnect Spotify',
-      message: 'Are you sure you want to disconnect your spotify account?',
+      message: 'Are you sure you want to disconnect your Spotify account?',
       buttons: [
         {
           label: 'Disconnect',
@@ -53,6 +123,32 @@ const User = () => {
       ]
     });
   };
+
+  const connectJellyfinPopup = () => {
+    confirmAlert({
+      title: 'Connect Jellyfin',
+      message: 'Install the webhook plugin. Add a webhook to {API_URL}/api/v1/ingress/jellyfin?key='+userdata.token
+        +'\nSet it to only send "Playback Start" and "Songs/Albums"',
+      buttons: [
+        {
+          label: 'Close',
+        }
+      ]
+    });
+  }
+
+  const connectOtherPopup = () => {
+    confirmAlert({
+      title: 'Connect Jellyfin',
+      message: 'Endpoint: {API_URL}/api/v1/ingress/multiscrobbler?key='+userdata.token
+        +'\nNeed to send JSON body with a string array for artists names, album:string, track:string, playDate:timestamp of scrobble, duration:tracklength in seconds',
+      buttons: [
+        {
+          label: 'Close',
+        }
+      ]
+    });
+  }
 
   const resetToken = () => {
     setLoading(true);
@@ -95,32 +191,29 @@ const User = () => {
       <h1>
         Welcome {userdata.username}
       </h1>
-      <p className="pageBody">
-      Timezone<br/>
-      <TimezoneSelect
-          className="userDropdown"
-          value={userdata.timezone}
-          onChange={updateTimezone}
-      /><br/>
-        Token: {userdata.token}<br/>
-        <Button
-              color="primary"
-              type="button"
-              className="userButton"
-              onClick={resetTokenPopup}
-            >Reset Token</Button><br/><br/>
-        Created At: {userdata.created_at}<br/>
-        Email: {userdata.email}<br/>
-        Verified: {userdata.verified ? '✓' : '✖'}<br/>
-
-        {userdata.spotify_username
-          ? <div>Spotify Account: {userdata.spotify_username}<br/><br/>
-          <Button
+      <div style={{display: `flex`, flexWrap: `wrap`, textAlign: `center`}}>
+        <div style={{width: `300px`, padding: `0 10px 10px 10px`, textAlign: `left`}}>
+          <h3 style={{textAlign: `center`}}>Profile</h3>
+          Timezone<br/>
+          <TimezoneSelect
+              className="userDropdown"
+              value={userdata.timezone}
+              onChange={updateTimezone}
+          /><br/>
+          Created At:<br/>{userdata.created_at}<br/>
+          Email:<br/>{userdata.email}<br/>
+          Verified: {userdata.verified ? '✓' : '✖'}
+        </div>
+        <div style={{width: `300px`, padding: `0 10px 10px 10px`}}>
+          <h3>Scrobblers</h3>
+          <br/>
+          {userdata.spotify_username
+          ? <Button
             color="secondary"
             type="button"
             className="userButton"
             onClick={disconnectSpotifyPopup}
-          >Disconnect Spotify</Button></div>
+          >Disconnect Spotify ({userdata.spotify_username})</Button>
           : <div>
             <br/>
             <Button
@@ -129,9 +222,55 @@ const User = () => {
               className="userButton"
               onClick={spotifyConnectionRequest}
             >Connect To Spotify</Button>
-          </div>
-        }
-      </p>
+            </div>
+          }
+          <br/><br/>
+          {userdata.navidrome_server
+            ? <Button
+              color="secondary"
+              type="button"
+              className="userButton"
+              onClick={disconnectNavidromePopup}
+            >Disconnect Navidrome ({userdata.navidrome_server})</Button>
+            : <Button
+                color="primary"
+                type="button"
+                className="userButton"
+                onClick={connectNavidromePopup}
+              >Connect Navidrome</Button>
+          }
+          <br/><br/>
+          <Button
+            color="primary"
+            type="button"
+            className="userButton"
+            onClick={connectJellyfinPopup}
+          >Connect Jellyfin</Button>
+          <br/><br/>
+          <Button
+            color="primary"
+            type="button"
+            className="userButton"
+            onClick={connectOtherPopup}
+          >Other Scrobblers</Button>
+        </div>
+        <div style={{width: `300px`, padding: `0 10px 10px 10px`}}>
+          <h3>Sad Settings</h3>
+          <br/>
+          <Button
+            color="secondary"
+            type="button"
+            className="userButton"
+          >Delete Account</Button>
+          <br/><br/>
+          <Button
+            color="secondary"
+            type="button"
+            className="userButton"
+            onClick={resetTokenPopup}
+          >Reset Scrobbler Token</Button>
+        </div>
+      </div>
     </div>
   );
 }

@@ -22,14 +22,17 @@ func StartBackgroundWorkers() {
 				return
 			case <-hourTicker.C:
 				// Clear old password reset tokens
-				clearOldResetTokens()
+				go clearOldResetTokens()
 
 				// Attempt to pull missing images from spotify - hackerino version!
 				user, _ := getUserByUsername("idanoo")
-				user.updateImageDataFromSpotify()
+				go user.updateImageDataFromSpotify()
 			case <-minuteTicker.C:
-				// Update playdata from spotify
-				updateSpotifyData()
+				// Update playdata from Spotify
+				go updateSpotifyData()
+
+				// Update playdate from Navidrome
+				go updateNavidromeData()
 			}
 		}
 	}()

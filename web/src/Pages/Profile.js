@@ -71,7 +71,7 @@ const Profile = (route) => {
         <br/>
         <TopTable type="artist" items={topArtists} />
         <br/>
-        Last 10 scrobbles...<br/>
+        Last 10 scrobbles<br/>
         <ScrobbleTable data={profile.scrobbles}/>
       </div>
     </div>

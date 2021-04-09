@@ -20,8 +20,7 @@ type MultiScrobblerRequest struct {
 // ParseMultiScrobblerInput - Transform API data
 func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip net.IP, tx *sql.Tx) error {
 	// Cache key
-	json := fmt.Sprintf("%s:%s:%s:%s", data.PlayedAt, data.Track, data.Album, userUUID)
-	fmt.Printf(json)
+	json := fmt.Sprintf("%s:%s:%s", data.PlayedAt, data.Track, userUUID)
 	redisKey := getMd5(json)
 	if getRedisKeyExists(redisKey) {
 		return nil
@@ -62,7 +61,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 		return errors.New("Failed to map track")
 	}
 
-	ttl := time.Duration(30) * time.Minute
+	ttl := time.Duration(24) * time.Hour
 	setRedisValTtl(redisKey, "1", ttl)
 
 	return nil

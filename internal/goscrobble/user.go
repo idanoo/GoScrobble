@@ -44,28 +44,11 @@ type UserResponse struct {
 	SpotifyUsername string    `json:"spotify_username"`
 	Timezone        string    `json:"timezone"`
 	Token           string    `json:"token"`
-}
-
-// RegisterRequest - Incoming JSON
-type RegisterRequest struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
-// RegisterRequest - Incoming JSON
-type LoginRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
-
-// LoginResponse - JWT issued
-type LoginResponse struct {
-	Token string `json:"token"`
+	NavidromeURL    string    `json:"navidrome_server"`
 }
 
 // createUser - Called from API
-func createUser(req *RegisterRequest, ip net.IP) error {
+func createUser(req *RequestRequest, ip net.IP) error {
 	// Check if user already exists..
 	if len(req.Password) < 8 {
 		return errors.New("Password must be at least 8 characters")
@@ -102,7 +85,7 @@ func createUser(req *RegisterRequest, ip net.IP) error {
 	return insertUser(req.Username, req.Email, hash, ip)
 }
 
-func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
+func loginUser(logReq *RequestRequest, ip net.IP) ([]byte, error) {
 	var resp []byte
 	var user User
 
@@ -141,7 +124,7 @@ func loginUser(logReq *LoginRequest, ip net.IP) ([]byte, error) {
 		return resp, errors.New("Error logging in")
 	}
 
-	loginResp := LoginResponse{
+	loginResp := RequestResponse{
 		Token: token,
 	}
 
@@ -187,7 +170,7 @@ func isValidPassword(password string, user User) bool {
 
 // userAlreadyExists - Returns bool indicating if a record exists for either username or email
 // Using two look ups to make use of DB indexes.
-func userAlreadyExists(req *RegisterRequest) bool {
+func userAlreadyExists(req *RequestRequest) bool {
 	count, err := getDbCount("SELECT COUNT(*) FROM users WHERE username = ?", req.Username)
 	if err != nil {
 		fmt.Printf("Error querying for duplicate users: %v", err)
@@ -327,6 +310,10 @@ func (user *User) getSpotifyTokens() (OauthToken, error) {
 	return getOauthToken(user.UUID, "spotify")
 }
 
+func (user *User) getNavidromeTokens() (OauthToken, error) {
+	return getOauthToken(user.UUID, "navidrome")
+}
+
 func getAllSpotifyUsers() ([]User, error) {
 	users := make([]User, 0)
 	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `timezone` FROM `users` " +
@@ -353,6 +340,38 @@ func getAllSpotifyUsers() ([]User, error) {
 	err = rows.Err()
 	if err != nil {
 		log.Printf("Failed to fetch spotify users: %+v", err)
+		return users, errors.New("Failed to fetch users")
+	}
+
+	return users, nil
+}
+
+func getAllNavidromeUsers() ([]User, error) {
+	users := make([]User, 0)
+	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `timezone` FROM `users` " +
+		"JOIN `oauth_tokens` ON `oauth_tokens`.`user` = `users`.`uuid` AND `oauth_tokens`.`service` = 'navidrome' WHERE `users`.`active` = 1")
+
+	if err != nil {
+		log.Printf("Failed to fetch navidrome users: %+v", err)
+		return users, errors.New("Failed to fetch configs")
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var user User
+		err := rows.Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone)
+		if err != nil {
+			log.Printf("Failed to fetch navidrome user: %+v", err)
+			return users, errors.New("Failed to fetch users")
+		}
+
+		users = append(users, user)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Printf("Failed to fetch navidrome users: %+v", err)
 		return users, errors.New("Failed to fetch users")
 	}
 

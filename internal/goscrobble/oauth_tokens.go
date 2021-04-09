@@ -14,14 +14,15 @@ type OauthToken struct {
 	Expiry       time.Time `json:"expiry"`
 	Username     string    `json:"username"`
 	LastSynced   time.Time `json:"last_synced"`
+	URL          string    `json:"url"`
 }
 
 func getOauthToken(userUuid string, service string) (OauthToken, error) {
 	var oauth OauthToken
 
-	err := db.QueryRow("SELECT BIN_TO_UUID(`user`, true), `service`, `access_token`, `refresh_token`, `expiry`, `username`, `last_synced` FROM `oauth_tokens` "+
+	err := db.QueryRow("SELECT BIN_TO_UUID(`user`, true), `service`, `access_token`, `refresh_token`, `expiry`, `username`, `last_synced`, `url` FROM `oauth_tokens` "+
 		"WHERE `user` = UUID_TO_BIN(?, true) AND `service` = ?",
-		userUuid, service).Scan(&oauth.UserUUID, &oauth.Service, &oauth.AccessToken, &oauth.RefreshToken, &oauth.Expiry, &oauth.Username, &oauth.LastSynced)
+		userUuid, service).Scan(&oauth.UserUUID, &oauth.Service, &oauth.AccessToken, &oauth.RefreshToken, &oauth.Expiry, &oauth.Username, &oauth.LastSynced, &oauth.URL)
 
 	if err == sql.ErrNoRows {
 		return oauth, errors.New("No token for user")
@@ -30,9 +31,9 @@ func getOauthToken(userUuid string, service string) (OauthToken, error) {
 	return oauth, nil
 }
 
-func insertOauthToken(userUuid string, service string, token string, refresh string, expiry time.Time, username string, lastSynced time.Time) error {
-	_, err := db.Exec("REPLACE INTO `oauth_tokens` (`user`, `service`, `access_token`, `refresh_token`, `expiry`, `username`, `last_synced`) "+
-		"VALUES (UUID_TO_BIN(?, true),?,?,?,?,?,?)", userUuid, service, token, refresh, expiry, username, lastSynced)
+func insertOauthToken(userUuid string, service string, token string, refresh string, expiry time.Time, username string, lastSynced time.Time, url string) error {
+	_, err := db.Exec("REPLACE INTO `oauth_tokens` (`user`, `service`, `access_token`, `refresh_token`, `expiry`, `username`, `last_synced`, `url`) "+
+		"VALUES (UUID_TO_BIN(?, true),?,?,?,?,?,?,?)", userUuid, service, token, refresh, expiry, username, lastSynced, url)
 
 	return err
 }

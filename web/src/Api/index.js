@@ -281,6 +281,26 @@ export const spotifyDisonnectionRequest = () => {
   });
 }
 
+export const navidromeConnectionRequest = (values) => {
+  return axios.post(process.env.REACT_APP_API_URL + "user/navidrome", values, { headers: getHeaders() })
+  .then((data) => {
+    toast.success(data.data.message);
+    return true
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+};
+
+export const navidromeDisonnectionRequest = () => {
+  return axios.delete(process.env.REACT_APP_API_URL + "user/navidrome", { headers: getHeaders() })
+  .then((data) => {
+    toast.success(data.data.message);
+    return true
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+}
+
 
 export const getServerInfo = () => {
   return axios.get(process.env.REACT_APP_API_URL + "serverinfo")

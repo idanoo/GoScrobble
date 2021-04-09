@@ -54,7 +54,7 @@ const Register = () => {
             >
               <Form>
                 <label>
-                  Username*<br/>
+                  Username<br/>
                   <Field
                     name="username"
                     type="text"
@@ -68,12 +68,13 @@ const Register = () => {
                   <Field
                     name="email"
                     type="email"
+                    required={boolTrue}
                     className="registerFields"
                   />
                 </label>
                 <br/>
                 <label>
-                  Password*<br/>
+                  Password<br/>
                   <Field
                     name="password"
                     type="password"
@@ -83,7 +84,7 @@ const Register = () => {
                 </label>
                 <br/>
                 <label>
-                  Confirm Password*<br/>
+                  Confirm Password<br/>
                   <Field
                     name="passwordconfirm"
                     type="password"

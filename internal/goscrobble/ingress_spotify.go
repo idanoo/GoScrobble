@@ -71,7 +71,7 @@ func connectSpotifyResponse(r *http.Request) error {
 
 	// Lets pull in last 30 minutes
 	time := time.Now().UTC().Add(-(time.Duration(30) * time.Minute))
-	err = insertOauthToken(userUuid, "spotify", token.AccessToken, token.RefreshToken, token.Expiry, spotifyUser.DisplayName, time)
+	err = insertOauthToken(userUuid, "spotify", token.AccessToken, token.RefreshToken, token.Expiry, spotifyUser.DisplayName, time, "")
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func (user *User) updateSpotifyPlaydata() {
 
 	// Check if token has changed.. if so, save it to db
 	currToken, err := client.Token()
-	err = insertOauthToken(user.UUID, "spotify", currToken.AccessToken, currToken.RefreshToken, currToken.Expiry, dbToken.Username, currTime)
+	err = insertOauthToken(user.UUID, "spotify", currToken.AccessToken, currToken.RefreshToken, currToken.Expiry, dbToken.Username, currTime, "")
 	if err != nil {
 		fmt.Printf("Failed to update spotify token in database")
 	}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
@@ -20,6 +21,21 @@ type jsonResponse struct {
 
 // List of Reverse proxies
 var ReverseProxies []string
+
+// RequestRequest - Incoming JSON!
+type RequestRequest struct {
+	URL      string `json:"url"`
+	Token    string `json:"token"`
+	Email    string `json:"email"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
+
+type RequestResponse struct {
+	Token   string `json:"token,omitempty"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
 
 func enableCors(w *http.ResponseWriter) {
 	(*w).Header().Set("Access-Control-Allow-Origin", "*")
@@ -39,8 +55,10 @@ func HandleRequests(port string) {
 	// JWT Auth - Own profile only (Uses uuid in JWT)
 	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(getUser), lightLimiter)).Methods("GET")
 	v1.HandleFunc("/user", limitMiddleware(jwtMiddleware(patchUser), lightLimiter)).Methods("PATCH")
+	v1.HandleFunc("/user/navidrome", limitMiddleware(jwtMiddleware(postNavidrome), lightLimiter)).Methods("POST")
+	v1.HandleFunc("/user/navidrome", limitMiddleware(jwtMiddleware(deleteNavidrome), lightLimiter)).Methods("DELETE")
 	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(getSpotifyClientID), lightLimiter)).Methods("GET")
-	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(deleteSpotifyLink), lightLimiter)).Methods("DELETE")
+	v1.HandleFunc("/user/spotify", limitMiddleware(jwtMiddleware(deleteSpotify), lightLimiter)).Methods("DELETE")
 	v1.HandleFunc("/user/{uuid}/scrobbles", jwtMiddleware(getScrobbles)).Methods("GET")
 
 	// Config auth
@@ -108,7 +126,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	regReq := RegisterRequest{}
+	regReq := RequestRequest{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&regReq)
 	if err != nil {
@@ -128,7 +146,7 @@ func handleRegister(w http.ResponseWriter, r *http.Request) {
 
 // handleLogin - Does as it says!
 func handleLogin(w http.ResponseWriter, r *http.Request) {
-	logReq := LoginRequest{}
+	logReq := RequestRequest{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&logReq)
 	if err != nil {
@@ -149,7 +167,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 // handleTokenRefresh - Refresh access token based on refresh token
 func handleTokenRefresh(w http.ResponseWriter, r *http.Request) {
-	logReq := LoginResponse{}
+	logReq := RequestRequest{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&logReq)
 	user, err := isValidRefreshToken(logReq.Token)
@@ -165,7 +183,7 @@ func handleTokenRefresh(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	loginResp := LoginResponse{
+	loginResp := RequestResponse{
 		Token: token,
 	}
 
@@ -189,7 +207,7 @@ func handleStats(w http.ResponseWriter, r *http.Request) {
 
 // handleSendReset - Does as it says!
 func handleSendReset(w http.ResponseWriter, r *http.Request) {
-	req := RegisterRequest{}
+	req := RequestRequest{}
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&req)
 	if err != nil {
@@ -342,10 +360,14 @@ func getUser(w http.ResponseWriter, r *http.Request, claims CustomClaims, reqUse
 		return
 	}
 
-	//
-	oauth, err := getOauthToken(user.UUID, "spotify")
+	oauthNavi, err := getOauthToken(user.UUID, "navidrome")
 	if err == nil {
-		user.SpotifyUsername = oauth.Username
+		user.NavidromeURL = oauthNavi.URL
+	}
+
+	oauthSpotify, err := getOauthToken(user.UUID, "spotify")
+	if err == nil {
+		user.SpotifyUsername = oauthSpotify.Username
 	}
 
 	json, _ := json.Marshal(&user)
@@ -631,7 +653,7 @@ func getSpotifyClientID(w http.ResponseWriter, r *http.Request, claims CustomCla
 		return
 
 	}
-	response := LoginResponse{
+	response := RequestResponse{
 		Token: key,
 	}
 
@@ -640,8 +662,8 @@ func getSpotifyClientID(w http.ResponseWriter, r *http.Request, claims CustomCla
 	w.Write(resp)
 }
 
-// deleteSpotifyLink - Unlinks spotify account
-func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
+// deleteSpotify - Unlinks spotify account
+func deleteSpotify(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
 	jwtUser := claims.Subject
 	err := removeOauthToken(jwtUser, "spotify")
 	if err != nil {
@@ -651,6 +673,52 @@ func deleteSpotifyLink(w http.ResponseWriter, r *http.Request, claims CustomClai
 	}
 
 	throwOkMessage(w, "Spotify account successfully unlinked")
+}
+
+// postNavidrome - Submits data for navidrome URL/User/Password
+func postNavidrome(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
+	jwtUser := claims.Subject
+
+	request := RequestRequest{}
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&request)
+	if err != nil {
+		throwOkError(w, "Invalid JSON")
+		return
+	}
+
+	// hash password with salt
+	salt := generateToken(32)
+	hash := getMd5(request.Password + salt)
+
+	err = validateNavidromeConnection(request.URL, request.Username, hash, salt)
+	if err != nil {
+		throwOkError(w, "Failed to validate credentials")
+		return
+	}
+
+	// Lets set this back 30min
+	time := time.Now().UTC().Add(-(time.Duration(30) * time.Minute))
+	err = insertOauthToken(jwtUser, "navidrome", hash, salt, time, request.Username, time, request.URL)
+	if err != nil {
+		throwOkError(w, "Failed to save Navidome token")
+		return
+	}
+
+	throwOkMessage(w, "Successfully saved!")
+}
+
+// deleteNavidrome - Unlinks Navidrome account
+func deleteNavidrome(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
+	jwtUser := claims.Subject
+	err := removeOauthToken(jwtUser, "navidrome")
+	if err != nil {
+		fmt.Println(err)
+		throwOkError(w, "Failed to unlink navidrome account")
+		return
+	}
+
+	throwOkMessage(w, "Navidrome account successfully unlinked")
 }
 
 func getServerInfo(w http.ResponseWriter, r *http.Request) {
@@ -665,7 +733,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.25",
+		Version:             "0.0.26",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

@@ -1,3 +1,9 @@
+# 0.0.26
+- Make email required
+- Add basic navidrome/subsonic connection
+- Tidy up request/response structure in backend
+- Tidy Settings page
+
 # 0.0.25
 - Images now pull from spotify if setup!
 - Show top artists/album
