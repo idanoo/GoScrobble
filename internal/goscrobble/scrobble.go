@@ -31,7 +31,7 @@ type ScrobbleResponseMeta struct {
 type ScrobbleResponseItem struct {
 	UUID      string            `json:"uuid"`
 	Timestamp time.Time         `json:"time"`
-	Artist    string            `json:"artist"`
+	Artist    ScrobbleTrackItem `json:"artist"`
 	Album     string            `json:"album"`
 	Track     ScrobbleTrackItem `json:"track"`
 	Source    string            `json:"source"`
@@ -67,7 +67,7 @@ func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse
 	}
 
 	rows, err := db.Query(
-		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, GROUP_CONCAT(`artists`.`name` separator ','), `albums`.`name`, BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
+		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, `albums`.`name`, BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
 			"JOIN tracks ON scrobbles.track = tracks.uuid "+
 			"JOIN track_artist ON track_artist.track = tracks.uuid "+
 			"JOIN track_album ON track_album.track = tracks.uuid "+
@@ -87,7 +87,7 @@ func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse
 
 	for rows.Next() {
 		item := ScrobbleResponseItem{}
-		err := rows.Scan(&item.UUID, &item.Timestamp, &item.Artist, &item.Album, &item.Track.UUID, &item.Track.Name, &item.Source)
+		err := rows.Scan(&item.UUID, &item.Timestamp, &item.Artist.UUID, &item.Artist.Name, &item.Album, &item.Track.UUID, &item.Track.Name, &item.Source)
 		if err != nil {
 			log.Printf("Failed to fetch scrobbles: %+v", err)
 			return scrobbleReq, errors.New("Failed to fetch scrobbles")

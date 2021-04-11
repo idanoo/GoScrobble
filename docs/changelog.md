@@ -1,3 +1,8 @@
+# 0.0.28
+- Fix mobile view on user pages
+- Fix favicon issue
+- Return Artist UUID with scrobble list
+
 # 0.0.27
 - Navidrome works!
 - Tidy up request/response structure in backend

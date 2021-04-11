@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 )
@@ -165,10 +166,15 @@ func (track *Track) updateTrack(col string, val string, tx *sql.Tx) error {
 
 func getTrackByUUID(uuid string) (Track, error) {
 	var track Track
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `name`, IFNULL(`desc`,''), IFNULL(`img`,''), `length`, `mbid`, `spotify_id` FROM `tracks` WHERE `uuid` = UUID_TO_BIN(?, true)",
+	err := db.QueryRow("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`albums`.`desc`,''), IFNULL(`albums`.`img`,''), `tracks`.`length`, `tracks`.`mbid`, `tracks`.`spotify_id` "+
+		"FROM `tracks` "+
+		"LEFT JOIN track_album ON track_album.track = tracks.uuid "+
+		"LEFT JOIN albums ON track_album.album = albums.uuid "+
+		"WHERE `tracks`.`uuid` = UUID_TO_BIN(?, true)",
 		uuid).Scan(&track.UUID, &track.Name, &track.Desc, &track.Img, &track.Length, &track.MusicBrainzID, &track.SpotifyID)
 
 	if err != nil {
+		fmt.Println(err)
 		return track, errors.New("Invalid UUID")
 	}
 

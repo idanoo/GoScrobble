@@ -12,7 +12,7 @@ const TopTable = (props) => {
    let tracks = props.items;
 
     return (
-      <div>
+      <div style={{textAlign: `center`}}>
          <span>Top {props.type}s</span>
          <div className="biggestWrapper">
             <div className="biggestBox">

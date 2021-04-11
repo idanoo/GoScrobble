@@ -43,6 +43,7 @@ const Track = (route) => {
     )
   }
 
+  console.log(track)
   let length = "0";
   if (track.length && track.length !== '') {
     length = new Date(track.length * 1000).toISOString().substr(11, 8)
@@ -54,9 +55,11 @@ const Track = (route) => {
       <h1>
         {track.name}
       </h1>
-      <div className="pageBody">
-        MusicBrainzId: {track.mbid}<br/>
-        SpotifyID: {track.spotify_id}<br/>
+
+      <div className="pageBody" style={{textAlign: `center`}}>
+        <img src={track.img} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
+        {track.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/track/" + track.mbid}>Open on MusicBrainz<br/></a>}
+        {track.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/track/" + track.spotify_id}>Open on Spotify<br/></a>}
         Track Length: {length && length}
       </div>
     </div>
