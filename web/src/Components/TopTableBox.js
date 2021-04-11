@@ -3,17 +3,12 @@ import { Link } from 'react-router-dom';
 import './TopTableBox.css'
 
 const TopTableBox = (props) => {
-   let img = 'https://www.foot.com/wp-content/uploads/2017/06/placeholder-square-300x300.jpg';
-   if (props.img && props.img !== '') {
-      img = props.img
-   }
-
    return (
          <Link to={props.link} float="left" >
             <div
                className="topTableBox"
                style={{
-                  backgroundImage: `url(${img})`,
+                  backgroundImage: `url(${process.env.REACT_APP_API_URL + "/img/" + props.uuid + "_full.jpg"})`,
                   backgroundSize: `cover`,
                   backgroundPosition: `top center`,
                   width: `${props.size}px`,

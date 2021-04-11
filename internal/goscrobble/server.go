@@ -22,6 +22,9 @@ type jsonResponse struct {
 // List of Reverse proxies
 var ReverseProxies []string
 
+// Static image directory
+var StaticDirectory string
+
 // RequestRequest - Incoming JSON!
 type RequestRequest struct {
 	URL      string `json:"url"`
@@ -87,6 +90,10 @@ func HandleRequests(port string) {
 
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
+
+	// SERVE STATIC FILES - NO AUTH
+	spaStatic := spaStaticHandler{staticPath: StaticDirectory}
+	r.PathPrefix("/img").Handler(spaStatic)
 
 	// SERVE FRONTEND - NO AUTH
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
@@ -733,7 +740,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.28",
+		Version:             "0.0.29",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

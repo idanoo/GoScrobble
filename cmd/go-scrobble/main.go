@@ -51,6 +51,12 @@ func main() {
 		goscrobble.RefereshExpiry = time.Duration(i) * time.Second
 	}
 
+	goscrobble.StaticDirectory = "web"
+	staticDirectoryStr := os.Getenv("STATIC_DIR")
+	if staticDirectoryStr != "" {
+		goscrobble.StaticDirectory = staticDirectoryStr
+	}
+
 	// Ignore reverse proxies
 	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 

@@ -84,7 +84,6 @@ func (user *User) updateNavidromePlaydata(tx *sql.Tx) error {
 	}
 
 	response, err := getNavidromeNowPlaying(&tokens)
-	fmt.Println(response)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Failed to fetch Navidrome Tokens %+v", err))
 	}

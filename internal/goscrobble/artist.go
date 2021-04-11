@@ -129,7 +129,7 @@ func getArtistByUUID(uuid string) (Artist, error) {
 func getTopArtists(userUuid string) (TopArtists, error) {
 	var topArtist TopArtists
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(`artists`.`img`,''), count(*) "+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) "+
 		"FROM `scrobbles` "+
 		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` "+
 		"JOIN track_artist ON track_artist.track = tracks.uuid "+

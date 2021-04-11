@@ -9,6 +9,8 @@
 web/.env.production
 web/.env.development
 
+web/img/*
+
 # Test binary, built with `go test -c`
 *.test
 

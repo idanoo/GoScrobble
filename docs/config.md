@@ -31,3 +31,4 @@ These are stored in `web/.env.production` and `web/.env.development`
     MAIL_FROM_NAME= // FROM name
 
     GOSCROBBLE_DOMAIN="" // Full domain for email links (https://goscrobble.com))
+    STATIC_DIR="web" // Location to store images (This will serve from web/static)

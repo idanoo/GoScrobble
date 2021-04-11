@@ -49,7 +49,7 @@ function handleErrorResp(error) {
 }
 
 export const PostLogin = (formValues) => {
-  return axios.post(process.env.REACT_APP_API_URL + "login", formValues)
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/login", formValues)
     .then((response) => {
       if (response.data.token) {
         let expandedUser = jwt(response.data.token)
@@ -82,7 +82,7 @@ export const PostLogin = (formValues) => {
 };
 
 export const PostRefreshToken = (refreshToken) => {
-  return axios.post(process.env.REACT_APP_API_URL + "refresh", {token: refreshToken})
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/refresh", {token: refreshToken})
     .then((response) => {
       if (response.data.token) {
         let expandedUser = jwt(response.data.token)
@@ -115,7 +115,7 @@ export const PostRefreshToken = (refreshToken) => {
 
 
 export const PostRegister = (formValues) => {
-  return axios.post(process.env.REACT_APP_API_URL + "register", formValues)
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/register", formValues)
     .then((response) => {
       if (response.data.message) {
         toast.success(response.data.message);
@@ -133,7 +133,7 @@ export const PostRegister = (formValues) => {
 };
 
 export const PostResetPassword = (formValues) => {
-  return axios.post(process.env.REACT_APP_API_URL + "resetpassword", formValues)
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/resetpassword", formValues)
     .then((response) => {
       if (response.data.message) {
         toast.success(response.data.message);
@@ -151,7 +151,7 @@ export const PostResetPassword = (formValues) => {
 };
 
 export const sendPasswordReset = (values) => {
-  return axios.post(process.env.REACT_APP_API_URL + "sendreset", values).then(
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/sendreset", values).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -160,7 +160,7 @@ export const sendPasswordReset = (values) => {
 };
 
 export const getStats = () => {
-  return axios.get(process.env.REACT_APP_API_URL + "stats").then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/stats").then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -169,7 +169,7 @@ export const getStats = () => {
 };
 
 export const getRecentScrobbles = (id) => {
-  return axios.get(process.env.REACT_APP_API_URL + "user/" + id + "/scrobbles", { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/user/" + id + "/scrobbles", { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -178,7 +178,7 @@ export const getRecentScrobbles = (id) => {
 };
 
 export const getConfigs = () => {
-  return axios.get(process.env.REACT_APP_API_URL + "config", { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/config", { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -193,7 +193,7 @@ export const postConfigs = (values, toggle) => {
     values.REGISTRATION_ENABLED = "0"
   }
 
-  return axios.post(process.env.REACT_APP_API_URL + "config", values, { headers: getHeaders() })
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/config", values, { headers: getHeaders() })
     .then((data) => {
       if (data.data && data.data.message) {
         toast.success(data.data.message);
@@ -206,7 +206,7 @@ export const postConfigs = (values, toggle) => {
 };
 
 export const getProfile = (userName) => {
-  return axios.get(process.env.REACT_APP_API_URL + "profile/" + userName, { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/profile/" + userName, { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -215,7 +215,7 @@ export const getProfile = (userName) => {
 };
 
 export const getUser = () => {
-  return axios.get(process.env.REACT_APP_API_URL + "user", { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/user", { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -224,7 +224,7 @@ export const getUser = () => {
 };
 
 export const patchUser = (values) => {
-  return axios.patch(process.env.REACT_APP_API_URL + "user", values, { headers: getHeaders() })
+  return axios.patch(process.env.REACT_APP_API_URL + "/api/v1/user", values, { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -233,7 +233,7 @@ export const patchUser = (values) => {
 };
 
 export const validateResetPassword = (tokenStr) => {
-  return axios.get(process.env.REACT_APP_API_URL + "user/", { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/user/", { headers: getHeaders() })
     .then((data) => {
       return data.data;
     }).catch((error) => {
@@ -242,7 +242,7 @@ export const validateResetPassword = (tokenStr) => {
 };
 
 export const getSpotifyClientId = () => {
-  return axios.get(process.env.REACT_APP_API_URL + "user/spotify", { headers: getHeaders() })
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/user/spotify", { headers: getHeaders() })
     .then((data) => {
       return data.data
     }).catch((error) => {
@@ -272,7 +272,7 @@ export const spotifyConnectionRequest = () => {
 };
 
 export const spotifyDisonnectionRequest = () => {
-  return axios.delete(process.env.REACT_APP_API_URL + "user/spotify", { headers: getHeaders() })
+  return axios.delete(process.env.REACT_APP_API_URL + "/api/v1/user/spotify", { headers: getHeaders() })
   .then((data) => {
     toast.success(data.data.message);
     return true
@@ -282,7 +282,7 @@ export const spotifyDisonnectionRequest = () => {
 }
 
 export const navidromeConnectionRequest = (values) => {
-  return axios.post(process.env.REACT_APP_API_URL + "user/navidrome", values, { headers: getHeaders() })
+  return axios.post(process.env.REACT_APP_API_URL + "/api/v1/user/navidrome", values, { headers: getHeaders() })
   .then((data) => {
     toast.success(data.data.message);
     return true
@@ -292,7 +292,7 @@ export const navidromeConnectionRequest = (values) => {
 };
 
 export const navidromeDisonnectionRequest = () => {
-  return axios.delete(process.env.REACT_APP_API_URL + "user/navidrome", { headers: getHeaders() })
+  return axios.delete(process.env.REACT_APP_API_URL + "/api/v1/user/navidrome", { headers: getHeaders() })
   .then((data) => {
     toast.success(data.data.message);
     return true
@@ -303,7 +303,7 @@ export const navidromeDisonnectionRequest = () => {
 
 
 export const getServerInfo = () => {
-  return axios.get(process.env.REACT_APP_API_URL + "serverinfo")
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/serverinfo")
   .then((data) => {
     return data.data
   }).catch((error) => {
@@ -312,7 +312,7 @@ export const getServerInfo = () => {
 }
 
 export const getArtist = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "artists/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/artists/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -321,7 +321,7 @@ export const getArtist = (uuid) => {
 };
 
 export const getAlbum = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "albums/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/albums/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -330,7 +330,7 @@ export const getAlbum = (uuid) => {
 };
 
 export const getTrack = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "tracks/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/tracks/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -339,7 +339,7 @@ export const getTrack = (uuid) => {
 };
 
 export const getTopTracks = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "tracks/top/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/tracks/top/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {
@@ -348,7 +348,7 @@ export const getTopTracks = (uuid) => {
 }
 
 export const getTopArtists = (uuid) => {
-  return axios.get(process.env.REACT_APP_API_URL + "artists/top/" + uuid).then(
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/artists/top/" + uuid).then(
     (data) => {
       return data.data;
   }).catch((error) => {

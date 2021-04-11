@@ -238,7 +238,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	client := auth.NewClient(token)
 	client.AutoRetry = true
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') = '' LIMIT 50")
+	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 50")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")
@@ -271,11 +271,18 @@ func (user *User) updateImageDataFromSpotify() error {
 		if err != nil {
 			continue
 		}
-		_ = artist.updateArtist("img", img, tx)
+
+		err = importImage(uuid, img)
+		if err != nil {
+			fmt.Printf("Failed to import image: %+v", err)
+			continue
+		}
+
+		_ = artist.updateArtist("img", "pending", tx)
 	}
 	tx.Commit()
 
-	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') = '' LIMIT 50")
+	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 50")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")
@@ -305,10 +312,12 @@ func (user *User) updateImageDataFromSpotify() error {
 	tx, _ = db.Begin()
 	for uuid, img := range toUpdate {
 		album, err = getAlbumByUUID(uuid)
+		err = importImage(uuid, img)
+
 		if err != nil {
 			continue
 		}
-		_ = album.updateAlbum("img", img, tx)
+		_ = album.updateAlbum("img", "pending", tx)
 	}
 	tx.Commit()
 	return nil

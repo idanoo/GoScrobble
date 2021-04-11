@@ -6,10 +6,41 @@ import (
 	"path/filepath"
 )
 
+// spaStaticHandler - Handles static imges
+type spaStaticHandler struct {
+	staticPath string
+	indexPath  string
+}
+
 // spaHandler - Handles Single Page Applications (React)
 type spaHandler struct {
 	staticPath string
 	indexPath  string
+}
+
+// ServerHTTP - Frontend React server
+func (h spaStaticHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Get the absolute path to prevent directory traversal
+	path, err := filepath.Abs(r.URL.Path)
+	if err != nil {
+		http.ServeFile(w, r, filepath.Join(h.staticPath, "img/placeholder.jpg"))
+		return
+	}
+
+	path = filepath.Join(h.staticPath, path)
+
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		// file does not exist, serve placeholder
+		http.ServeFile(w, r, filepath.Join(h.staticPath, "img/placeholder.jpg"))
+		return
+	} else if err != nil {
+		http.ServeFile(w, r, filepath.Join(h.staticPath, "img/placeholder.jpg"))
+		return
+	}
+
+	// otherwise, use http.FileServer to serve the static images
+	http.FileServer(http.Dir(h.staticPath)).ServeHTTP(w, r)
 }
 
 // ServerHTTP - Frontend React server

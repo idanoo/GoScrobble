@@ -1,3 +1,7 @@
+# 0.0.29
+- Add image handler
+- Store images locally
+
 # 0.0.28
 - Fix mobile view on user pages
 - Fix favicon issue

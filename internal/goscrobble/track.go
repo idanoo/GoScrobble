@@ -166,7 +166,7 @@ func (track *Track) updateTrack(col string, val string, tx *sql.Tx) error {
 
 func getTrackByUUID(uuid string) (Track, error) {
 	var track Track
-	err := db.QueryRow("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`albums`.`desc`,''), IFNULL(`albums`.`img`,''), `tracks`.`length`, `tracks`.`mbid`, `tracks`.`spotify_id` "+
+	err := db.QueryRow("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`albums`.`desc`,''), IFNULL(BIN_TO_UUID(`albums`.`uuid`, true),''), `tracks`.`length`, `tracks`.`mbid`, `tracks`.`spotify_id` "+
 		"FROM `tracks` "+
 		"LEFT JOIN track_album ON track_album.track = tracks.uuid "+
 		"LEFT JOIN albums ON track_album.album = albums.uuid "+
@@ -184,7 +184,7 @@ func getTrackByUUID(uuid string) (Track, error) {
 func getTopTracks(userUuid string) (TopTracks, error) {
 	var topTracks TopTracks
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(`albums`.`img`,''), count(*) "+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(BIN_TO_UUID(`albums`.`uuid`, true),''), count(*) "+
 		"FROM `scrobbles` "+
 		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` "+
 		"JOIN track_album ON track_album.track = tracks.uuid "+
