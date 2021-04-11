@@ -8,7 +8,6 @@ import (
 var endTicker chan bool
 
 func StartBackgroundWorkers() {
-
 	endTicker := make(chan bool)
 
 	hourTicker := time.NewTicker(time.Duration(1) * time.Hour)

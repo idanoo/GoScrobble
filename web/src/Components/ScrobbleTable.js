@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const ScrobbleTable = (props) => {
     return (
-        <div style={{width: `100%`}}>
+        <div style={{width: `100%`, maxWidth: `900px`}}>
         <table style={{width: `100%`}} border={1} cellPadding={5}>
            <thead>
               <tr>
