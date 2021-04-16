@@ -38,9 +38,13 @@ func importImage(uuid string, url string) error {
 		return err
 	}
 
+	// Goroutine the resize to keep it _faaaast_
+	go resizeImage(uuid)
 	return nil
 }
 
-func resizeImage(uuid string) error {
-	return nil
+func resizeImage(uuid string) {
+	// resize to 300x300 and maybe smaller?
+
+	return
 }

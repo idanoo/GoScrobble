@@ -49,7 +49,7 @@ const Artist = (route) => {
         {artist.name}
       </h1>
       <div className="pageBody" style={{textAlign: `center`}}>
-        <img src={artist.img} alt={artist.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
+        <img src={process.env.REACT_APP_API_URL + "/img/" + artist.uuid + "_full.jpg"} alt={artist.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
         {artist.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/artist/" + artist.mbid}>Open on MusicBrainz<br/></a>}
         {artist.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/artist/" + artist.spotify_id}>Open on Spotify<br/></a>}
       </div>

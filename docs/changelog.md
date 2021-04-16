@@ -1,3 +1,6 @@
+# 0.0.30
+- Fix artist/album/track images
+
 # 0.0.29
 - Add image handler
 - Store images locally

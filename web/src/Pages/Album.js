@@ -49,6 +49,7 @@ const Album = (route) => {
         {album.name}
       </h1>
       <div className="pageBody">
+      <img src={process.env.REACT_APP_API_URL + "/img/" + album.uuid + "_full.jpg"} alt={album.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
         {album.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/album/" + album.mbid}>Open on MusicBrainz<br/></a>}
         {album.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/album/" + album.spotify_id}>Open on Spotify<br/></a>}
       </div>

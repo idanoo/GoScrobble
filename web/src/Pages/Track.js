@@ -57,7 +57,7 @@ const Track = (route) => {
       </h1>
 
       <div className="pageBody" style={{textAlign: `center`}}>
-        <img src={track.img} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
+        <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
         {track.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/track/" + track.mbid}>Open on MusicBrainz<br/></a>}
         {track.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/track/" + track.spotify_id}>Open on Spotify<br/></a>}
         Track Length: {length && length}

@@ -8,9 +8,6 @@ import (
 var endTicker chan bool
 
 func StartBackgroundWorkers() {
-	user, _ := getUserByUsername("idanoo")
-	go user.updateImageDataFromSpotify()
-
 	endTicker := make(chan bool)
 
 	hourTicker := time.NewTicker(time.Duration(1) * time.Hour)

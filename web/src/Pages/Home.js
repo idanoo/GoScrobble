@@ -9,6 +9,7 @@ const Home = () => {
     <div className="pageWrapper">
       <img src={logo} className="App-logo" alt="logo" />
       <p className="homeText">GoScrobble is an open source music scrobbling service.</p>
+      <p className="subHomeText">Supports Spotify, Jellyfin, Navidrome / Subsonic / Airsonic.</p>
       <HomeBanner />
     </div>
     );
