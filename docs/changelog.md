@@ -1,3 +1,7 @@
+# 0.0.31
+- Added newlines for flamerohr
+- Tidied pages
+
 # 0.0.30
 - Fix artist/album/track images
 
