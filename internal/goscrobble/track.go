@@ -9,13 +9,15 @@ import (
 )
 
 type Track struct {
-	UUID          string `json:"uuid"`
-	Name          string `json:"name"`
-	Length        int    `json:"length"`
-	Desc          string `json:"desc"`
-	Img           string `json:"img"`
-	MusicBrainzID string `json:"mbid"`
-	SpotifyID     string `json:"spotify_id"`
+	UUID          string   `json:"uuid"`
+	Name          string   `json:"name"`
+	Length        int      `json:"length"`
+	Desc          string   `json:"desc"`
+	Img           string   `json:"img"`
+	MusicBrainzID string   `json:"mbid"`
+	SpotifyID     string   `json:"spotify_id"`
+	Artists       []Artist `json:"artists"` // Optional Artist
+	Albums        []Album  `json:"albums"`  // Optional Albums
 }
 
 type TopTrack struct {
@@ -218,4 +220,77 @@ func getTopTracks(userUuid string) (TopTracks, error) {
 	topTracks.Tracks = tempTracks
 
 	return topTracks, nil
+}
+
+func (track *Track) loadExtraTrackInfo() error {
+	err := track.getArtistsForTrack()
+	if err != nil {
+		return err
+	}
+	err = track.getAlbumsForTrack()
+	return err
+}
+
+func (track *Track) getArtistsForTrack() error {
+	artists := []Artist{}
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`track_artist`.`artist`, true) "+
+		"FROM `track_artist` "+
+		"WHERE `track_artist`.`track` = UUID_TO_BIN(?, true)",
+		track.UUID)
+	if err != nil {
+		log.Printf("Failed to fetch artists for track: %+v", err)
+		return errors.New("Failed to fetch top tracks")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var artistUUID string
+		err := rows.Scan(&artistUUID)
+		if err != nil {
+			log.Printf("Failed to fetch track_artist: %+v", err)
+			return errors.New("Failed to fetch track")
+		}
+
+		artist, err := getArtistByUUID(artistUUID)
+		if err != nil {
+			return err
+		}
+		artists = append(artists, artist)
+	}
+
+	track.Artists = artists
+	return nil
+}
+
+func (track *Track) getAlbumsForTrack() error {
+	albums := []Album{}
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`track_album`.`album`, true) "+
+		"FROM `track_album` "+
+		"WHERE `track_album`.`track` = UUID_TO_BIN(?, true)",
+		track.UUID)
+	if err != nil {
+		log.Printf("Failed to fetch album for track: %+v", err)
+		return errors.New("Failed to fetch top tracks")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var albumUUID string
+		err := rows.Scan(&albumUUID)
+		if err != nil {
+			log.Printf("Failed to fetch track_album: %+v", err)
+			return errors.New("Failed to fetch track")
+		}
+
+		album, err := getAlbumByUUID(albumUUID)
+		if err != nil {
+			return err
+		}
+		albums = append(albums, album)
+	}
+
+	track.Albums = albums
+	return nil
 }

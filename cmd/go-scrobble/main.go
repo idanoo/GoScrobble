@@ -75,8 +75,8 @@ func main() {
 	defer goscrobble.CloseRedisConn()
 
 	// Start background workers
-	go goscrobble.StartBackgroundWorkers()
-	defer goscrobble.EndBackgroundWorkers()
+	// go goscrobble.StartBackgroundWorkers()
+	// defer goscrobble.EndBackgroundWorkers()
 
 	// Boot up API webserver \o/
 	goscrobble.HandleRequests(port)

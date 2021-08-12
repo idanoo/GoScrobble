@@ -554,7 +554,15 @@ func getTrack(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Load track obj
 	track, err := getTrackByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	// Load in Album/Artist info
+	err = track.loadExtraTrackInfo()
 	if err != nil {
 		throwOkError(w, err.Error())
 		return
