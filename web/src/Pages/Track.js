@@ -74,17 +74,18 @@ const Track = (route) => {
 
   return (
     <div className="pageWrapper">
+      <h1 style={{margin: 0}}>
+        {track.name}
+      </h1>
       <div className="pageBody">
         <div style={{display: `flex`, flexWrap: `wrap`, textAlign: `center`}}>
           <div style={{width: `300px`, padding: `0 10px 10px 10px`, textAlign: `left`}}>
-          <h1 style={{margin: 0}}>
-            {track.name}
-          </h1>
-          <span>
+
+          <span style={{fontSize: '14pt'}}>
             {artists}
           </span>
           <br/>
-          <span>
+          <span style={{fontSize: '12pt'}}>
             {albums}
           </span>
           <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
