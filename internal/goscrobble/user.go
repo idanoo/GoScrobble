@@ -28,6 +28,7 @@ type User struct {
 	Verified   bool      `json:"verified"`
 	Active     bool      `json:"active"`
 	Admin      bool      `json:"admin"`
+	Mod        bool      `json:"mod"`
 	Timezone   string    `json:"timezone"`
 	Token      string    `json:"token"`
 }
@@ -98,16 +99,16 @@ func loginUser(logReq *RequestRequest, ip net.IP) ([]byte, error) {
 	}
 
 	if strings.Contains(logReq.Username, "@") {
-		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin` FROM `users` WHERE `email` = ? AND `active` = 1",
-			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin`, `mod` FROM `users` WHERE `email` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin, &user.Mod)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return resp, errors.New("Invalid Username or Password")
 			}
 		}
 	} else {
-		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin` FROM `users` WHERE `username` = ? AND `active` = 1",
-			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin)
+		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `username`, `email`, `password`, `admin`, `mod` FROM `users` WHERE `username` = ? AND `active` = 1",
+			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin, &user.Mod)
 		if err == sql.ErrNoRows {
 			return resp, errors.New("Invalid Username or Password")
 		}
@@ -196,8 +197,8 @@ func userAlreadyExists(req *RequestRequest) bool {
 
 func getUserByUUID(uuid string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `timezone`, `token` FROM `users` WHERE `uuid` = UUID_TO_BIN(?, true) AND `active` = 1",
-		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone, &user.Token)
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone`, `token` FROM `users` WHERE `uuid` = UUID_TO_BIN(?, true) AND `active` = 1",
+		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
 		return user, errors.New("Invalid JWT Token")
@@ -208,8 +209,8 @@ func getUserByUUID(uuid string) (User, error) {
 
 func getUserByUsername(username string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `timezone`, `token` FROM `users` WHERE `username` = ? AND `active` = 1",
-		username).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone, &user.Token)
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone`, `token` FROM `users` WHERE `username` = ? AND `active` = 1",
+		username).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
 		return user, errors.New("Invalid Username")
@@ -220,8 +221,8 @@ func getUserByUsername(username string) (User, error) {
 
 func getUserByEmail(email string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `timezone`, `token` FROM `users` WHERE `email` = ? AND `active` = 1",
-		email).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone, &user.Token)
+	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone`, `token` FROM `users` WHERE `email` = ? AND `active` = 1",
+		email).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
 		return user, errors.New("Invalid Email")
@@ -232,9 +233,9 @@ func getUserByEmail(email string) (User, error) {
 
 func getUserByResetToken(token string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `timezone`, `token` FROM `users` "+
+	err := db.QueryRow("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone`, `token` FROM `users` "+
 		"JOIN `resettoken` ON `resettoken`.`user` = `users`.`uuid` WHERE `resettoken`.`token` = ? AND `active` = 1",
-		token).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone, &user.Token)
+		token).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
 		return user, errors.New("Invalid Token")
@@ -316,7 +317,7 @@ func (user *User) getNavidromeTokens() (OauthToken, error) {
 
 func getAllSpotifyUsers() ([]User, error) {
 	users := make([]User, 0)
-	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `timezone` FROM `users` " +
+	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone` FROM `users` " +
 		"JOIN `oauth_tokens` ON `oauth_tokens`.`user` = `users`.`uuid` AND `oauth_tokens`.`service` = 'spotify' WHERE `users`.`active` = 1")
 
 	if err != nil {
@@ -328,7 +329,7 @@ func getAllSpotifyUsers() ([]User, error) {
 
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone)
+		err := rows.Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone)
 		if err != nil {
 			log.Printf("Failed to fetch spotify user: %+v", err)
 			return users, errors.New("Failed to fetch users")
@@ -348,7 +349,7 @@ func getAllSpotifyUsers() ([]User, error) {
 
 func getAllNavidromeUsers() ([]User, error) {
 	users := make([]User, 0)
-	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `timezone` FROM `users` " +
+	rows, err := db.Query("SELECT BIN_TO_UUID(`users`.`uuid`, true), `created_at`, `created_ip`, `modified_at`, `modified_ip`, `users`.`username`, `email`, `password`, `verified`, `admin`, `mod`, `timezone` FROM `users` " +
 		"JOIN `oauth_tokens` ON `oauth_tokens`.`user` = `users`.`uuid` AND `oauth_tokens`.`service` = 'navidrome' WHERE `users`.`active` = 1")
 
 	if err != nil {
@@ -360,7 +361,7 @@ func getAllNavidromeUsers() ([]User, error) {
 
 	for rows.Next() {
 		var user User
-		err := rows.Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Timezone)
+		err := rows.Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone)
 		if err != nil {
 			log.Printf("Failed to fetch navidrome user: %+v", err)
 			return users, errors.New("Failed to fetch users")

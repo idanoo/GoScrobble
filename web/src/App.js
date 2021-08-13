@@ -5,6 +5,7 @@ import Profile from './Pages/Profile';
 import Artist from './Pages/Artist';
 import Album from './Pages/Album';
 import Track from './Pages/Track';
+import TrackEdit from './Pages/TrackEdit';
 import User from './Pages/User';
 import Admin from './Pages/Admin';
 import Login from './Pages/Login';
@@ -36,6 +37,7 @@ const App = () => {
           <Route path="/u/:uuid" component={Profile} />
           <Route path="/artist/:uuid" component={Artist} />
           <Route path="/album/:uuid" component={Album} />
+          <Route path="/track/:uuid/edit" component={TrackEdit} />
           <Route path="/track/:uuid" component={Track} />
 
           <Route path="/admin" component={Admin} />

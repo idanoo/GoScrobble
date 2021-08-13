@@ -34,6 +34,7 @@ func generateJWTToken(user User, existingRefresh string) (string, error) {
 	atClaims["username"] = user.Username
 	atClaims["email"] = user.Email
 	atClaims["admin"] = user.Admin
+	atClaims["mod"] = user.Mod
 	atClaims["iat"] = time.Now().Unix()
 	atClaims["exp"] = time.Now().Add(JwtExpiry).Unix()
 	atClaims["refresh_token"] = refreshToken
@@ -80,7 +81,7 @@ func verifyJWTToken(token string) (CustomClaims, error) {
 	return claims, err
 }
 
-func getClaims(token *jwt.Token) CustomClaims {
-	claims, _ := token.Claims.(CustomClaims)
-	return claims
-}
+// func getClaims(token *jwt.Token) CustomClaims {
+// 	claims, _ := token.Claims.(CustomClaims)
+// 	return claims
+// }

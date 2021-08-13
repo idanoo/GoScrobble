@@ -59,6 +59,7 @@ export const PostLogin = (formValues) => {
           exp: expandedUser.exp,
           username: expandedUser.username,
           admin: expandedUser.admin,
+          mod: expandedUser.mod,
           refresh_token: expandedUser.refresh_token,
           refresh_exp: expandedUser.refresh_exp,
         }
@@ -92,6 +93,7 @@ export const PostRefreshToken = (refreshToken) => {
           exp: expandedUser.exp,
           username: expandedUser.username,
           admin: expandedUser.admin,
+          mod: expandedUser.mod,
           refresh_token: expandedUser.refresh_token,
           refresh_exp: expandedUser.refresh_exp,
         }

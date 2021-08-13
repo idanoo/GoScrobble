@@ -777,7 +777,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.32",
+		Version:             "0.0.33",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

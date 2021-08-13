@@ -1,13 +1,14 @@
 import React, { useContext, useState, useEffect } from 'react';
 import '../App.css';
-import './Track.css';
-import TopUserTable from '../Components/TopUserTable';
+import './TrackEdit.css';
+import { useHistory } from 'react-router-dom';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { getTrack } from '../Api/index'
 import { Link } from 'react-router-dom';
 import AuthContext from '../Contexts/AuthContext';
 
-const Track = (route) => {
+const TrackEdit = (route) => {
+  const history = useHistory();
   const { user } = useContext(AuthContext);
 
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,14 @@ const Track = (route) => {
         setLoading(false);
       })
   }, [trackUUID])
+
+  if (!user) {
+    history.push("/login")
+  }
+
+  if (user && !user.mod) {
+    history.push("/Dashboard")
+  }
 
   if (loading) {
     return (
@@ -79,37 +88,26 @@ const Track = (route) => {
   return (
     <div className="pageWrapper">
       <h1 style={{margin: 0}}>
-        {track.name} {user && <Link
+      {track.name} {<Link
             key="editbuttonomg"
-            to={"/track/" + trackUUID + "/edit"}
-          >edit</Link>}
+            to={"/track/" + trackUUID}
+          >unedit</Link>}
       </h1>
-      <div className="pageBody">
-        <div style={{display: `flex`, flexWrap: `wrap`, textAlign: `center`}}>
-          <div style={{width: `300px`, padding: `0 10px 10px 10px`, textAlign: `left`}}>
-            <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/>
-          </div>
-          <div style={{width: `290px`, padding: `0 10px 10px 10px`, margin: `0 5px 0 5px`, textAlign: `left`}}>
-            <span style={{fontSize: '14pt'}}>
-              {artists}
-            </span>
-            <br/>
-            <span style={{fontSize: '14pt', textDecoration: 'none'}}>
-              {albums}
-            </span>
-            <br/><br/>
-            {track.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/track/" + track.mbid}>Open on MusicBrainz<br/></a>}
-            {track.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/track/" + track.spotify_id}>Open on Spotify<br/></a>}
-            {length && <span>Track Length: {length}</span>}
-          </div>
-          <div style={{width: `290px`, padding: `0 10px 10px 10px`}}>
-            <h3>Top 10 Scrobblers</h3>
-            <TopUserTable uuid={track.uuid}/>
-          </div>
-        </div>
+      <div className="pageBody" style={{width: `900px`, textAlign: `center`}}>
+        <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/>
+        <br/>
+        <label>Primary Artist ({track.artists[0].name}):</label><br/>
+        <input type="text" value={track.artists[0].uuid} style={{width: `420px`}} disabled="true"/><br/>
+        <label>Primary Album ({track.albums[0].name})</label><br/>
+        <input type="text" value={track.albums[0].uuid} style={{width: `420px`}} disabled="true"/><br/>
+        <br/>
+        <label>MBID</label><br/>
+        <input type="text" value={track.mbid} style={{width: `420px`}} /><br/>
+        <label>Spotify ID</label><br/>
+        <input type="text" value={track.spotify_id} style={{width: `420px`}} /><br/>
       </div>
     </div>
   );
 }
 
-export default Track;
+export default TrackEdit;

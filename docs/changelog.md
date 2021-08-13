@@ -1,3 +1,7 @@
+# 0.0.33
+- Add mod permission
+- Add track/edit page
+
 # 0.0.32
 - Add related records into track API
 - Build out track page to show links to related records

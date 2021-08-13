@@ -12,6 +12,7 @@ import { getConfigs, postConfigs } from '../Api/index'
 const Admin = () => {
   const history = useHistory();
   const { user } = useContext(AuthContext);
+
   const [loading, setLoading] = useState(true);
   const [configs, setConfigs] = useState({})
   const [toggle, setToggle] = useState(false);
@@ -46,8 +47,6 @@ const Admin = () => {
       </div>
     )
   }
-
-
 
   return (
     <div className="pageWrapper">
