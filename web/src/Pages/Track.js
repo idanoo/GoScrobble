@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../App.css';
 import './Track.css';
+import TopUserTable from '../Components/TopUserTable';
 import ScaleLoader from 'react-spinners/ScaleLoader';
 import { getTrack } from '../Api/index'
 import { Link } from 'react-router-dom';
@@ -80,22 +81,24 @@ const Track = (route) => {
       <div className="pageBody">
         <div style={{display: `flex`, flexWrap: `wrap`, textAlign: `center`}}>
           <div style={{width: `300px`, padding: `0 10px 10px 10px`, textAlign: `left`}}>
-
-          <span style={{fontSize: '14pt'}}>
-            {artists}
-          </span>
-          <br/>
-          <span style={{fontSize: '12pt'}}>
-            {albums}
-          </span>
-          <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/><br/><br/>
+            <img src={process.env.REACT_APP_API_URL + "/img/" + track.img + "_full.jpg"} alt={track.name} style={{maxWidth: `300px`, maxHeight: `300px`}}/>
+          </div>
+          <div style={{width: `290px`, padding: `0 10px 10px 10px`, margin: `0 5px 0 5px`, textAlign: `left`}}>
+            <span style={{fontSize: '14pt'}}>
+              {artists}
+            </span>
+            <br/>
+            <span style={{fontSize: '14pt', textDecoration: 'none'}}>
+              {albums}
+            </span>
+            <br/><br/>
             {track.mbid && <a rel="noreferrer" target="_blank" href={"https://musicbrainz.org/track/" + track.mbid}>Open on MusicBrainz<br/></a>}
             {track.spotify_id && <a rel="noreferrer" target="_blank" href={"https://open.spotify.com/track/" + track.spotify_id}>Open on Spotify<br/></a>}
-          Track Length: {length && length}
+            {length && <span>Track Length: {length}</span>}
           </div>
-          <div style={{width: `600px`, padding: `0 10px 10px 10px`}}>
-            <h3>Top Users</h3>
-            <br/>
+          <div style={{width: `290px`, padding: `0 10px 10px 10px`}}>
+            <h3>Top 10 Scrobblers</h3>
+            <TopUserTable uuid={track.uuid}/>
           </div>
         </div>
       </div>

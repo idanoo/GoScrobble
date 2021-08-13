@@ -30,6 +30,23 @@ type TopTracks struct {
 	Tracks map[int]TopTrack `json:"tracks"`
 }
 
+type TopUserTrackResponse struct {
+	Meta  TopUserTrackResponseMeta   `json:"meta"`
+	Items []TopUserTrackResponseItem `json:"items"`
+}
+
+type TopUserTrackResponseMeta struct {
+	Count int `json:"count"`
+	Total int `json:"total"`
+	Page  int `json:"page"`
+}
+
+type TopUserTrackResponseItem struct {
+	UserUUID string `json:"user_uuid"`
+	Count    int    `json:"count"`
+	UserName string `json:"user_name"`
+}
+
 // insertTrack - This will return if it exists or create it based on MBID > Name
 func insertTrack(name string, legnth int, mbid string, spotifyId string, album string, artists []string, tx *sql.Tx) (Track, error) {
 	track := Track{}
@@ -293,4 +310,58 @@ func (track *Track) getAlbumsForTrack() error {
 
 	track.Albums = albums
 	return nil
+}
+
+// getTopUsersForTrackUUID  - Returns list of top users for a track
+func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrackResponse, error) {
+	response := TopUserTrackResponse{}
+	var count int
+
+	// Yeah this isn't great. But for now.. it works! Cache later
+	// TODO:  This is counting total scrobbles, not unique users
+	total, err := getDbCount(
+		"SELECT COUNT(*) FROM `scrobbles` WHERE `track` = UUID_TO_BIN(?, true) GROUP BY `user`", trackUUID)
+
+	if err != nil {
+		log.Printf("Failed to fetch scrobble count: %+v", err)
+		return response, errors.New("Failed to fetch combined scrobbles")
+	}
+
+	rows, err := db.Query(
+		"SELECT BIN_TO_UUID(`scrobbles`.`user`, true), `users`.`username`, COUNT(*) "+
+			"FROM `scrobbles` "+
+			"JOIN `users` ON `scrobbles`.`user` = `users`.`uuid` "+
+			"WHERE `track` = UUID_TO_BIN(?, true) "+
+			"GROUP BY `scrobbles`.`user` "+
+			"ORDER BY COUNT(*) DESC LIMIT ?",
+		trackUUID, limit)
+
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return response, errors.New("Failed to fetch combined scrobbles")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := TopUserTrackResponseItem{}
+		err := rows.Scan(&item.UserUUID, &item.UserName, &item.Count)
+		if err != nil {
+			log.Printf("Failed to fetch scrobbles: %+v", err)
+			return response, errors.New("Failed to fetch combined scrobbles")
+		}
+		count++
+		response.Items = append(response.Items, item)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return response, errors.New("Failed to fetch scrobbles")
+	}
+
+	response.Meta.Count = count
+	response.Meta.Total = total
+	response.Meta.Page = page
+
+	return response, nil
 }

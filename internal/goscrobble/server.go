@@ -71,12 +71,16 @@ func HandleRequests(port string) {
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
+
 	v1.HandleFunc("/artists/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/artists/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
+
 	v1.HandleFunc("/albums/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/albums/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")
-	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")
+
+	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")           // User UUID - Top Tracks
+	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")                // Track UUID
+	v1.HandleFunc("/tracks/{uuid}/top", limitMiddleware(getTopUsersForTrack, lightLimiter)).Methods("GET") // TrackUUID - Top Listeners
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
@@ -648,6 +652,31 @@ func getTracks(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+// getTopUsersForTrack - I suck at naming. Returns top users that have scrobbled this track.
+func getTopUsersForTrack(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	userList, err := getTopUsersForTrackUUID(uuid, 10, 1)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&userList)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
 // postSpotifyResponse - Oauth Response from Spotify
 func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 	err := connectSpotifyResponse(r)
@@ -748,7 +777,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.31",
+		Version:             "0.0.32",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

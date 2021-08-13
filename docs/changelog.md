@@ -1,3 +1,10 @@
+# 0.0.32
+- Add related records into track API
+- Build out track page to show links to related records
+- Tidy UI *even more*
+- Bump golang build to 1.16.7
+- Added DevMode env var. This prevents the background workers running on local machines
+
 # 0.0.31
 - Added newlines for flamerohr
 - Tidied pages

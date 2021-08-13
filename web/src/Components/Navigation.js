@@ -8,7 +8,7 @@ import AuthContext from '../Contexts/AuthContext';
 
 const menuItems = [
   'Home',
-  'About',
+  // 'About',
 ];
 
 const loggedInMenuItems = [

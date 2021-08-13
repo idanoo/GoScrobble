@@ -355,3 +355,12 @@ export const getTopArtists = (uuid) => {
     return handleErrorResp(error)
   });
 }
+
+export const getTopUsersForTrack = (uuid) => {
+  return axios.get(process.env.REACT_APP_API_URL + "/api/v1/tracks/" + uuid + "/top").then(
+    (data) => {
+      return data.data;
+  }).catch((error) => {
+    return handleErrorResp(error)
+  });
+}

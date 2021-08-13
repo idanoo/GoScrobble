@@ -60,6 +60,12 @@ func main() {
 	// Ignore reverse proxies
 	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 
+	goscrobble.DevMode = false
+	devModeString := os.Getenv("DEV_MODE")
+	if strings.ToLower(devModeString) == "true" {
+		goscrobble.DevMode = true
+	}
+
 	// Store port
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -74,9 +80,14 @@ func main() {
 	goscrobble.InitRedis()
 	defer goscrobble.CloseRedisConn()
 
-	// Start background workers
-	go goscrobble.StartBackgroundWorkers()
-	defer goscrobble.EndBackgroundWorkers()
+	// Start background workers if not DevMode
+	if !goscrobble.DevMode {
+		go goscrobble.StartBackgroundWorkers()
+		defer goscrobble.EndBackgroundWorkers()
+	} else {
+		fmt.Printf("Running in DevMode. No background workers running")
+		fmt.Println("")
+	}
 
 	// Boot up API webserver \o/
 	goscrobble.HandleRequests(port)

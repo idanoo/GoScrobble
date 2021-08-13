@@ -1,5 +1,7 @@
 html, body {
   background-color: #282c34;
+  /** WHY DOES THIS DEFAULT TO 1.5 */
+  line-height: 1.3!important;
 }
 
 .App {
