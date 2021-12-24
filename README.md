@@ -37,6 +37,12 @@ We need to build NPM package, and then ship web/build with the binary.
     go build -o goscrobble cmd/go-scrobble/*.go
     ./goscrobble
 
+## Build API Docs
+    cd docs/api && docker run --rm --name slate -v $(pwd)/build:/srv/slate/build -v $(pwd)/source:/srv/slate/source slatedocs/slate build
+
+
+## Test API Docs
+   cd docs/api && docker run --rm --name slate -p 4567:4567 -v $(pwd)/source:/srv/slate/source slatedocs/slate serve
 
 ## Support Development!
 Feel free to support hosting and my coffee addiction https://liberapay.com/idanoo

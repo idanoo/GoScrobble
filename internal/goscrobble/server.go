@@ -99,6 +99,9 @@ func HandleRequests(port string) {
 	spaStatic := spaStaticHandler{staticPath: StaticDirectory}
 	r.PathPrefix("/img").Handler(spaStatic)
 
+	apiDocs := spaStaticHandler{staticPath: "docs/api/build"}
+	r.PathPrefix("/docs").Handler(apiDocs)
+
 	// SERVE FRONTEND - NO AUTH
 	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
 	r.PathPrefix("/").Handler(spa)
