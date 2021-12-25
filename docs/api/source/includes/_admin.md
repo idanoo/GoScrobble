@@ -1,4 +1,4 @@
-# Admin Endpoints
+# Administration
 <aside class="warning">
 An admin JWT token is required for the below endpoints
 </aside>

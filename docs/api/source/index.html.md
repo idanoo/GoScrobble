@@ -13,9 +13,9 @@ includes:
   - introduction
   - ratelimits
   - serverinfo
-  - ingress
-  - authentication
   - admin
+  - authentication
+  - ingress
 
 search: true
 
@@ -25,4 +25,3 @@ meta:
   - name: description
     content: Documentation for the GoScrobble API
 ---
-

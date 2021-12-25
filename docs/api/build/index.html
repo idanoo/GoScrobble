@@ -327,13 +327,13 @@
               </ul>
           </li>
           <li>
-            <a href="#ingress-endpoints" class="toc-h1 toc-link" data-title="Ingress Endpoints">Ingress Endpoints</a>
+            <a href="#administration" class="toc-h1 toc-link" data-title="Administration">Administration</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#post-v1-ingress-jellyfin" class="toc-h2 toc-link" data-title="POST v1/ingress/jellyfin">POST v1/ingress/jellyfin</a>
+                    <a href="#get-v1-config" class="toc-h2 toc-link" data-title="GET v1/config">GET v1/config</a>
                   </li>
                   <li>
-                    <a href="#post-v1-ingress-multiscrobbler" class="toc-h2 toc-link" data-title="POST v1/ingress/multiscrobbler">POST v1/ingress/multiscrobbler</a>
+                    <a href="#post-v1-config" class="toc-h2 toc-link" data-title="POST v1/config">POST v1/config</a>
                   </li>
               </ul>
           </li>
@@ -358,13 +358,13 @@
               </ul>
           </li>
           <li>
-            <a href="#admin-endpoints" class="toc-h1 toc-link" data-title="Admin Endpoints">Admin Endpoints</a>
+            <a href="#ingress-endpoints" class="toc-h1 toc-link" data-title="Ingress Endpoints">Ingress Endpoints</a>
               <ul class="toc-list-h2">
                   <li>
-                    <a href="#get-v1-config" class="toc-h2 toc-link" data-title="GET v1/config">GET v1/config</a>
+                    <a href="#post-v1-ingress-jellyfin" class="toc-h2 toc-link" data-title="POST v1/ingress/jellyfin">POST v1/ingress/jellyfin</a>
                   </li>
                   <li>
-                    <a href="#post-v1-config" class="toc-h2 toc-link" data-title="POST v1/config">POST v1/config</a>
+                    <a href="#post-v1-ingress-multiscrobbler" class="toc-h2 toc-link" data-title="POST v1/ingress/multiscrobbler">POST v1/ingress/multiscrobbler</a>
                   </li>
               </ul>
           </li>
@@ -382,6 +382,8 @@
 <p>Welcome to the GoScrobble API documentation.</p>
 
 <p>The majority of these API endpoints are public with rate limiting and do not require authentication.</p>
+
+<p>Base URL for the API endpoints: https://goscrobble.com/api</p>
 <h1 id='rate-limits'>Rate Limits</h1>
 <p>There are 3 tiers of rate-limiting:<br>
 Light rate-limiting: 1 request per 4 seconds with a max burst of 2.<br>
@@ -411,6 +413,276 @@ On the medium rate-limiter, you start with 5 requests available to you instantly
 <p>This endpoint is used to get server API version and registration status.</p>
 <h3 id='http-request'>HTTP Request</h3>
 <p><code>GET https://goscrobble.com/api/v1/serverstatus</code></p>
+<h1 id='administration'>Administration</h1>
+<aside class="warning">
+An admin JWT token is required for the below endpoints
+</aside>
+<h2 id='get-v1-config'>GET v1/config</h2>
+<blockquote>
+<p>Fetch configuration values:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/config"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsI"</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"SPOTIFY_API_ID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abc"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"SPOTIFY_API_SECRET"</span><span class="p">:</span><span class="w"> </span><span class="s2">"def"</span><span class="p">,</span><span class="w">
+  </span><span class="nl">"REGISTRATION_ENABLED"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>Fetch instance configuration values.</p>
+
+<aside class="notice">
+Standard rate-limiting applies
+</aside>
+<h3 id='http-request'>HTTP Request</h3>
+<p><code>GET https://goscrobble.com/api/v1/config</code></p>
+<h2 id='post-v1-config'>POST v1/config</h2>
+<blockquote>
+<p>Update a configuration parameter:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/config"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsI"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"SPOTIFY_API_ID":"notarealapikey","SPOTIFY_API_SECRET":"notarealsecret"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Config updated successfully"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>Updates instance configuration values.</p>
+
+<aside class="notice">
+Standard rate-limiting applies
+</aside>
+<h3 id='http-request-2'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/config</code></p>
+<h3 id='query-parameters'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>key</td>
+<td>true</td>
+<td>Array of key/value pairs to update. See example.</td>
+</tr>
+</tbody></table>
+<h1 id='authentication'>Authentication</h1><h2 id='post-v1-login'>POST v1/login</h2>
+<blockquote>
+<p>To obtain a JWT token (Replace default credentials):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/login"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"username":"abc","password":"def"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsInJlZnJlc2hfZXhwIjoxNjQxMDAyNTE5LCJyZWZyZXNoX3Rva2VuIjoiYWJjZGVmZ2hqaWtsbW5vcHF3ZXJ0dXZ3eHl6Iiwic3ViIjoiNDE4ZmRkZmItOGIxYi01MWFiLTliZHMtNGZnMDhjYTYzY2ZmIiwidXNlcm5hbWUiOiJ0ZXN0In0.fuPXjQ7IzNyttgIKpdS4-KBQ-QeHTl-BfgYkSnMCmpVrBunzMrSwr1RzxI7Xg2WWF-FHtW3Bnv9RpSqLDN4F2g"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint is used to authenticate and retrieve a JWT token.</p>
+
+<aside class="notice">
+Standard rate-limiting applies
+</aside>
+<h3 id='http-request'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/login</code></p>
+<h3 id='query-parameters'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>username</td>
+<td>true</td>
+<td>Account username</td>
+</tr>
+<tr>
+<td>password</td>
+<td>true</td>
+<td>Account password</td>
+</tr>
+</tbody></table>
+<h2 id='post-v1-register'>POST v1/register</h2>
+<blockquote>
+<p>Create a new account (Replace default credentials):</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/register"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"email": "test@test.com", "username":"abc","password":"def"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User created succesfully. You may now login"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>If the server has REGISTRATION_ENABLED=true set, this endpoint will allow you to create a new account. Password must be at least 8 characters long.</p>
+
+<aside class="notice">
+Heavy rate-limiting applies
+</aside>
+<h3 id='http-request-2'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/register</code></p>
+<h3 id='query-parameters-2'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>email</td>
+<td>true</td>
+<td>Account email</td>
+</tr>
+<tr>
+<td>username</td>
+<td>true</td>
+<td>Account username</td>
+</tr>
+<tr>
+<td>password</td>
+<td>true</td>
+<td>Account password</td>
+</tr>
+</tbody></table>
+<h2 id='post-v1-sendreset'>POST v1/sendreset</h2>
+<blockquote>
+<p>Trigger a password reset email:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/sendreset"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"email":"test@test.com"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Password reset email sent"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint triggers a password reset email to be sent to the email on an account.</p>
+
+<aside class="notice">
+Heavy rate-limiting applies
+</aside>
+<h3 id='http-request-3'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/sendreset</code></p>
+<h3 id='query-parameters-3'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>email</td>
+<td>true</td>
+<td>Account username</td>
+</tr>
+</tbody></table>
+<h2 id='post-v1-resetpassword'>POST v1/resetpassword</h2>
+<blockquote>
+<p>Trigger a password reset email:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/resetpassword"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"token":"abcdefghijklmnopqrstuvwxyz", "password": "Hunter1"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Password updated successfully!"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>This endpoint confirms a password reset with a valid hash from the reset email. You must call v1/sendreset first and obtain the hash.</p>
+
+<aside class="notice">
+Heavy rate-limiting applies
+</aside>
+<h3 id='http-request-4'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/resetpassword</code></p>
+<h3 id='query-parameters-4'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>token</td>
+<td>true</td>
+<td>Reset token from the password reset email</td>
+</tr>
+<tr>
+<td>password</td>
+<td>true</td>
+<td>New account password</td>
+</tr>
+</tbody></table>
+<h2 id='post-v1-refresh'>POST v1/refresh</h2>
+<blockquote>
+<p>Fetch a new JWT with a refresh token:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/refresh"</span> <span class="se">\</span>
+  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
+  <span class="nt">-X</span> POST <span class="se">\</span>
+  <span class="nt">--data</span> <span class="s1">'{"token":"abcdefghijklmnopqrstuvwxyz"}'</span>
+</code></pre></div>
+<blockquote>
+<p>Response:</p>
+</blockquote>
+<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+  </span><span class="nl">"token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsInJlZnJlc2hfZXhwIjoxNjQxMDAyNTE5LCJyZWZyZXNoX3Rva2VuIjoiYWJjZGVmZ2hqaWtsbW5vcHF3ZXJ0dXZ3eHl6Iiwic3ViIjoiNDE4ZmRkZmItOGIxYi01MWFiLTliZHMtNGZnMDhjYTYzY2ZmIiwidXNlcm5hbWUiOiJ0ZXN0In0.fuPXjQ7IzNyttgIKpdS4-KBQ-QeHTl-BfgYkSnMCmpVrBunzMrSwr1RzxI7Xg2WWF-FHtW3Bnv9RpSqLDN4F2g"</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre></div>
+<p>Returns a new JWT token by passing a refresh token.</p>
+
+<aside class="notice">
+Standard rate-limiting applies
+</aside>
+<h3 id='http-request-5'>HTTP Request</h3>
+<p><code>POST https://goscrobble.com/api/v1/refresh</code></p>
+<h3 id='query-parameters-5'>Query Parameters</h3>
+<table><thead>
+<tr>
+<th>Parameter</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>token</td>
+<td>true</td>
+<td>Refresh token from previously issued JWT</td>
+</tr>
+</tbody></table>
 <h1 id='ingress-endpoints'>Ingress Endpoints</h1>
 <p>Spotify and Navidrome both work on a poll based system and do not require incoming webhooks/endpoints.</p>
 <h2 id='post-v1-ingress-jellyfin'>POST v1/ingress/jellyfin</h2>
@@ -695,276 +967,6 @@ Light rate-limiting applies
 <td>true</td>
 <td>int</td>
 <td>Song length in seconds</td>
-</tr>
-</tbody></table>
-<h1 id='authentication'>Authentication</h1><h2 id='post-v1-login'>POST v1/login</h2>
-<blockquote>
-<p>To obtain a JWT token (Replace default credentials):</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/login"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"username":"abc","password":"def"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsInJlZnJlc2hfZXhwIjoxNjQxMDAyNTE5LCJyZWZyZXNoX3Rva2VuIjoiYWJjZGVmZ2hqaWtsbW5vcHF3ZXJ0dXZ3eHl6Iiwic3ViIjoiNDE4ZmRkZmItOGIxYi01MWFiLTliZHMtNGZnMDhjYTYzY2ZmIiwidXNlcm5hbWUiOiJ0ZXN0In0.fuPXjQ7IzNyttgIKpdS4-KBQ-QeHTl-BfgYkSnMCmpVrBunzMrSwr1RzxI7Xg2WWF-FHtW3Bnv9RpSqLDN4F2g"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>This endpoint is used to authenticate and retrieve a JWT token.</p>
-
-<aside class="notice">
-Standard rate-limiting applies
-</aside>
-<h3 id='http-request'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/login</code></p>
-<h3 id='query-parameters'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>username</td>
-<td>true</td>
-<td>Account username</td>
-</tr>
-<tr>
-<td>password</td>
-<td>true</td>
-<td>Account password</td>
-</tr>
-</tbody></table>
-<h2 id='post-v1-register'>POST v1/register</h2>
-<blockquote>
-<p>Create a new account (Replace default credentials):</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/register"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"email": "test@test.com", "username":"abc","password":"def"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"User created succesfully. You may now login"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>If the server has REGISTRATION_ENABLED=true set, this endpoint will allow you to create a new account. Password must be at least 8 characters long.</p>
-
-<aside class="notice">
-Heavy rate-limiting applies
-</aside>
-<h3 id='http-request-2'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/register</code></p>
-<h3 id='query-parameters-2'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>email</td>
-<td>true</td>
-<td>Account email</td>
-</tr>
-<tr>
-<td>username</td>
-<td>true</td>
-<td>Account username</td>
-</tr>
-<tr>
-<td>password</td>
-<td>true</td>
-<td>Account password</td>
-</tr>
-</tbody></table>
-<h2 id='post-v1-sendreset'>POST v1/sendreset</h2>
-<blockquote>
-<p>Trigger a password reset email:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/sendreset"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"email":"test@test.com"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Password reset email sent"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>This endpoint triggers a password reset email to be sent to the email on an account.</p>
-
-<aside class="notice">
-Heavy rate-limiting applies
-</aside>
-<h3 id='http-request-3'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/sendreset</code></p>
-<h3 id='query-parameters-3'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>email</td>
-<td>true</td>
-<td>Account username</td>
-</tr>
-</tbody></table>
-<h2 id='post-v1-resetpassword'>POST v1/resetpassword</h2>
-<blockquote>
-<p>Trigger a password reset email:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/resetpassword"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"token":"abcdefghijklmnopqrstuvwxyz", "password": "Hunter1"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Password updated successfully!"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>This endpoint confirms a password reset with a valid hash from the reset email. You must call v1/sendreset first and obtain the hash.</p>
-
-<aside class="notice">
-Heavy rate-limiting applies
-</aside>
-<h3 id='http-request-4'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/resetpassword</code></p>
-<h3 id='query-parameters-4'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>token</td>
-<td>true</td>
-<td>Reset token from the password reset email</td>
-</tr>
-<tr>
-<td>password</td>
-<td>true</td>
-<td>New account password</td>
-</tr>
-</tbody></table>
-<h2 id='post-v1-refresh'>POST v1/refresh</h2>
-<blockquote>
-<p>Fetch a new JWT with a refresh token:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/refresh"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"token":"abcdefghijklmnopqrstuvwxyz"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"token"</span><span class="p">:</span><span class="w"> </span><span class="s2">"eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsInJlZnJlc2hfZXhwIjoxNjQxMDAyNTE5LCJyZWZyZXNoX3Rva2VuIjoiYWJjZGVmZ2hqaWtsbW5vcHF3ZXJ0dXZ3eHl6Iiwic3ViIjoiNDE4ZmRkZmItOGIxYi01MWFiLTliZHMtNGZnMDhjYTYzY2ZmIiwidXNlcm5hbWUiOiJ0ZXN0In0.fuPXjQ7IzNyttgIKpdS4-KBQ-QeHTl-BfgYkSnMCmpVrBunzMrSwr1RzxI7Xg2WWF-FHtW3Bnv9RpSqLDN4F2g"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>Returns a new JWT token by passing a refresh token.</p>
-
-<aside class="notice">
-Standard rate-limiting applies
-</aside>
-<h3 id='http-request-5'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/refresh</code></p>
-<h3 id='query-parameters-5'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>token</td>
-<td>true</td>
-<td>Refresh token from previously issued JWT</td>
-</tr>
-</tbody></table>
-<h1 id='admin-endpoints'>Admin Endpoints</h1>
-<aside class="warning">
-An admin JWT token is required for the below endpoints
-</aside>
-<h2 id='get-v1-config'>GET v1/config</h2>
-<blockquote>
-<p>Fetch configuration values:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/config"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsI"</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"SPOTIFY_API_ID"</span><span class="p">:</span><span class="w"> </span><span class="s2">"abc"</span><span class="p">,</span><span class="w">
-  </span><span class="nl">"SPOTIFY_API_SECRET"</span><span class="p">:</span><span class="w"> </span><span class="s2">"def"</span><span class="p">,</span><span class="w">
-  </span><span class="nl">"REGISTRATION_ENABLED"</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>Fetch instance configuration values.</p>
-
-<aside class="notice">
-Standard rate-limiting applies
-</aside>
-<h3 id='http-request'>HTTP Request</h3>
-<p><code>GET https://goscrobble.com/api/v1/config</code></p>
-<h2 id='post-v1-config'>POST v1/config</h2>
-<blockquote>
-<p>Update a configuration parameter:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight shell tab-shell"><code>curl <span class="s2">"https://goscrobble.com/api/v1/config"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Content-Type: application/json"</span> <span class="se">\</span>
-  <span class="nt">-H</span> <span class="s2">"Authorization: Bearer eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6ZmFsc2UsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImV4cCI6MTY0MTAwMjUxOSwiaWF0IjoxNjQwMzk3NzE5LCJtb2QiOnRydWUsI"</span> <span class="se">\</span>
-  <span class="nt">-X</span> POST <span class="se">\</span>
-  <span class="nt">--data</span> <span class="s1">'{"SPOTIFY_API_ID":"notarealapikey","SPOTIFY_API_SECRET":"notarealsecret"}'</span>
-</code></pre></div>
-<blockquote>
-<p>Response:</p>
-</blockquote>
-<div class="highlight"><pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
-  </span><span class="nl">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Config updated successfully"</span><span class="w">
-</span><span class="p">}</span><span class="w">
-</span></code></pre></div>
-<p>Updates instance configuration values.</p>
-
-<aside class="notice">
-Standard rate-limiting applies
-</aside>
-<h3 id='http-request-2'>HTTP Request</h3>
-<p><code>POST https://goscrobble.com/api/v1/config</code></p>
-<h3 id='query-parameters'>Query Parameters</h3>
-<table><thead>
-<tr>
-<th>Parameter</th>
-<th>Required</th>
-<th>Description</th>
-</tr>
-</thead><tbody>
-<tr>
-<td>key</td>
-<td>true</td>
-<td>Array of key/value pairs to update. See example.</td>
 </tr>
 </tbody></table>
 
