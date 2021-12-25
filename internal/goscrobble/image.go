@@ -8,13 +8,8 @@ import (
 )
 
 func importImage(uuid string, url string) error {
-	// Create the file
-	path, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	out, err := os.Create(path + string(os.PathSeparator) + StaticDirectory + string(os.PathSeparator) + "img" + string(os.PathSeparator) + uuid + "_full.jpg")
+	// Create image
+	out, err := os.Create(DataDirectory + string(os.PathSeparator) + "img" + string(os.PathSeparator) + uuid + "_full.jpg")
 	if err != nil {
 		return err
 	}

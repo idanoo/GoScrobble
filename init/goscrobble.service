@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 User=root
-ExecStart=/bin/bash -c 'cd /root/go-scrobble && ./goscrobble'
+ExecStart=/bin/bash -c 'cd /var/www/goscrobble-api && ./goscrobble'
 Restart=on-failure
 
 [Install]

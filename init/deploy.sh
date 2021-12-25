@@ -2,12 +2,13 @@
 # Easy deploy script..
 
 echo 'Fetching latest git commit'
+cd /var/www/goscrobble-api
 git pull
 
 echo 'Building backend'
 go build -o goscrobble cmd/go-scrobble/*.go
 
-cd web
+cd /var/www/goscrobble-web
 echo 'Installing frontend packages'
 npm install --production
 

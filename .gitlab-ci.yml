@@ -5,7 +5,7 @@ variables:
   VERSION: 0.1.001
 
 build-go:
-  image: golang:1.16.7
+  image: golang:1.16
   stage: build
   only:
     - master

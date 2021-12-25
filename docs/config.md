@@ -32,4 +32,7 @@ These are stored in `web/.env.production` and `web/.env.development`
 
     DEV_MODE=false // true|false - Defaults false
     GOSCROBBLE_DOMAIN="" // Full domain for email links (https://goscrobble.com))
-    STATIC_DIR="web" // Location to store images (This will serve from web/static)
+    
+    DATA_DIRECTORY="/var/www/goscrobble-data"
+    FRONTEND_DIRECTORY="/var/www/goscrobble-web"
+    

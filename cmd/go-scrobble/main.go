@@ -51,10 +51,14 @@ func main() {
 		goscrobble.RefereshExpiry = time.Duration(i) * time.Second
 	}
 
-	goscrobble.StaticDirectory = "web"
-	staticDirectoryStr := os.Getenv("STATIC_DIR")
-	if staticDirectoryStr != "" {
-		goscrobble.StaticDirectory = staticDirectoryStr
+	goscrobble.DataDirectory = os.Getenv("DATA_DIRECTORY")
+	if goscrobble.DataDirectory == "" {
+		panic("DATA_DIRECTORY required in .env")
+	}
+
+	goscrobble.FrontendDirectory = os.Getenv("FRONTEND_DIRECTORY")
+	if goscrobble.FrontendDirectory == "" {
+		panic("FRONTEND_DIRECTORY required in .env")
 	}
 
 	// Ignore reverse proxies

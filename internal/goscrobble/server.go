@@ -22,8 +22,9 @@ type jsonResponse struct {
 // List of Reverse proxies
 var ReverseProxies []string
 
-// Static image directory
-var StaticDirectory string
+// Directories
+var FrontendDirectory string
+var DataDirectory string
 
 // RequestRequest - Incoming JSON!
 type RequestRequest struct {
@@ -96,14 +97,14 @@ func HandleRequests(port string) {
 	r.PathPrefix("/api")
 
 	// SERVE STATIC FILES - NO AUTH
-	spaStatic := spaStaticHandler{staticPath: StaticDirectory}
+	spaStatic := spaStaticHandler{staticPath: DataDirectory}
 	r.PathPrefix("/img").Handler(spaStatic)
 
 	apiDocs := spaStaticHandler{staticPath: "docs/api/build"}
 	r.PathPrefix("/docs").Handler(apiDocs)
 
 	// SERVE FRONTEND - NO AUTH
-	spa := spaHandler{staticPath: "web/build", indexPath: "index.html"}
+	spa := spaHandler{staticPath: FrontendDirectory + string(os.PathSeparator) + "build", indexPath: "index.html"}
 	r.PathPrefix("/").Handler(spa)
 
 	c := cors.New(cors.Options{
