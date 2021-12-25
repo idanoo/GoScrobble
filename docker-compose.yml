@@ -1,0 +1,42 @@
+version: "3.9"
+    
+services:
+  frontend:
+    image: node:16
+    volumes:
+      - ../goscrobble-web:/app
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://127.0.0.1:42069
+    command: bash -c "cd /app && npm install && yarn start"
+
+  backend:
+    image: golang:1.16
+    volumes:
+      - ./:/app
+      - data:/data
+    ports:
+      - "127.0.0.1:42069:42069"
+    restart: always
+    command: bash -c "cd /app && go mod tidy && go run cmd/goscrobble/*.go"
+
+  postgres:
+    image: postgres:14.1
+    volumes:
+      - database-data:/var/lib/postgresql/data/
+    restart: always
+    environment:
+      - POSTGRES_USER=goscrobble
+      - POSTGRES_PASSWORD=supersecretdatabasepassword1
+      - POSTGRES_DB=goscrobble
+
+  redis:
+    image: redis:6.2
+    ports:
+      - "127.0.0.1:6379:6379"
+
+volumes:
+  database-data:
+  data:

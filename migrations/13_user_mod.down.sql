@@ -1,1 +1,1 @@
-ALTER TABLE `users` DROP COLUMN `mod`;
+ALTER TABLE users DROP COLUMN mod;

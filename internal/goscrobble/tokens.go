@@ -29,7 +29,7 @@ func getUserUuidForToken(token string) (string, error) {
 	var uuid string
 	cachedKey := getRedisVal("user_token:" + token)
 	if cachedKey == "" {
-		err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true) FROM `users` WHERE `token` = ? AND `active` = 1", token).Scan(&uuid)
+		err := db.QueryRow("SELECT uuid FROM users WHERE token = $1 AND active = true", token).Scan(&uuid)
 		if err != nil {
 			return "", errors.New("Invalid Token")
 		}
@@ -43,21 +43,21 @@ func getUserUuidForToken(token string) (string, error) {
 
 func insertRefreshToken(userUuid string, token string) error {
 	uuid := newUUID()
-	_, err := db.Exec("INSERT INTO `refresh_tokens` (`uuid`, `user`, `token`) VALUES (UUID_TO_BIN(?,true),UUID_TO_BIN(?,true),?)",
+	_, err := db.Exec(`INSERT INTO refresh_tokens (uuid, "user", token) VALUES ($1,$2,$3)`,
 		uuid, userUuid, token)
 
 	return err
 }
 
 func deleteRefreshToken(token string) error {
-	_, err := db.Exec("DELETE FROM `refresh_tokens` WHERE `token` = ?", token)
+	_, err := db.Exec("DELETE FROM refresh_tokens WHERE token = $1", token)
 
 	return err
 }
 
 func isValidRefreshToken(refreshTokenStr string) (User, error) {
 	var refresh RefreshToken
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), BIN_TO_UUID(`user`, true), `token`, `expiry` FROM `refresh_tokens` WHERE `token` = ?",
+	err := db.QueryRow("SELECT uuid, user, token, expiry FROM refresh_tokens WHERE token = $1",
 		refreshTokenStr).Scan(&refresh.UUID, &refresh.User, &refresh.Token, &refresh.Expiry)
 	if err != nil {
 		return User{}, errors.New("Invalid Refresh Token")

@@ -8,22 +8,26 @@ import (
 	"os"
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-migrate/migrate"
-	"github.com/golang-migrate/migrate/database/mysql"
+	"github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
+	_ "github.com/lib/pq"
 )
 
 var db *sql.DB
 
 // InitDb - Boots up a DB connection
 func InitDb() {
-	dbHost := os.Getenv("MYSQL_HOST")
-	dbUser := os.Getenv("MYSQL_USER")
-	dbPass := os.Getenv("MYSQL_PASS")
-	dbName := os.Getenv("MYSQL_DB")
+	dbHost := os.Getenv("POSTGRES_HOST")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPass := os.Getenv("POSTGRES_PASS")
+	dbName := os.Getenv("POSTGRES_DB")
 
-	dbConn, err := sql.Open("mysql", dbUser+":"+dbPass+"@tcp("+dbHost+")/"+dbName+"?multiStatements=true&parseTime=true&loc=Etc%2FUTC")
+	dbConn, err := sql.Open(
+		"postgres",
+		fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", dbHost, 5432, dbUser, dbPass, dbName),
+	)
+
 	if err != nil {
 		panic(err)
 	}
@@ -49,14 +53,14 @@ func CloseDbConn() {
 
 func runMigrations() {
 	fmt.Println("Checking database migrations")
-	driver, err := mysql.WithInstance(db, &mysql.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{})
 	if err != nil {
 		log.Fatalf("Unable to run migrations! %v", err)
 	}
 
 	m, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
-		"mysql",
+		"postgres",
 		driver,
 	)
 	if err != nil {

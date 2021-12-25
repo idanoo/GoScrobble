@@ -87,7 +87,7 @@ func getUserIp(r *http.Request) net.IP {
 	}
 
 	if host == "" {
-		host = "0.0.0.0"
+		host = "0.0.0.0/0"
 	}
 
 	ip = net.ParseIP(host)
@@ -103,7 +103,7 @@ func Inet_Aton(ip net.IP) int64 {
 
 // Inet6_Aton converts an IP Address (IPv4 or IPv6) net.IP object to a hexadecimal
 // representaiton. This function is the equivalent of
-// inet6_aton({{ ip address }}) in MySQL.
+// inet6_aton({{ ip address }}) in Postgres.
 func Inet6_Aton(ip net.IP) string {
 	ipv4 := false
 	if ip.To4() != nil {

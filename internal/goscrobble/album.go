@@ -73,7 +73,7 @@ func insertAlbum(name string, mbid string, spotifyId string, artists []string, i
 func getAlbumByCol(col string, val string, tx *sql.Tx) Album {
 	var album Album
 	err := tx.QueryRow(
-		"SELECT BIN_TO_UUID(`uuid`, true), `name`, IFNULL(`desc`, ''), IFNULL(`img`,''), `mbid`, `spotify_id` FROM `albums` WHERE `"+col+"` = ?",
+		"SELECT uuid, name, IFNULL(desc, ''), IFNULL(img,''), mbid, spotify_id FROM albums WHERE "+col+" = $1",
 		val).Scan(&album.UUID, &album.Name, &album.Desc, &album.Img, &album.MusicBrainzID, &album.SpotifyID)
 
 	if err != nil {
@@ -92,8 +92,8 @@ func insertNewAlbum(album *Album, name string, mbid string, spotifyId string, im
 	album.SpotifyID = spotifyId
 	album.Img = img
 
-	_, err := tx.Exec("INSERT INTO `albums` (`uuid`, `name`, `mbid`, `spotify_id`, `img`) "+
-		"VALUES (UUID_TO_BIN(?, true),?,?,?,?)", album.UUID, album.Name, album.MusicBrainzID, album.SpotifyID, album.Img)
+	_, err := tx.Exec("INSERT INTO albums (uuid, name, mbid, spotify_id, img) "+
+		"VALUES ($1,$2,$3,$4,$5)", album.UUID, album.Name, album.MusicBrainzID, album.SpotifyID, album.Img)
 
 	return err
 }
@@ -101,8 +101,8 @@ func insertNewAlbum(album *Album, name string, mbid string, spotifyId string, im
 func (album *Album) linkAlbumToArtists(artists []string, tx *sql.Tx) error {
 	var err error
 	for _, artist := range artists {
-		_, err = tx.Exec("INSERT INTO `album_artist` (`album`, `artist`) "+
-			"VALUES (UUID_TO_BIN(?, true), UUID_TO_BIN(?, true))", album.UUID, artist)
+		_, err = tx.Exec("INSERT INTO album_artist (album, artist) "+
+			"VALUES ($1,$2)", album.UUID, artist)
 		if err != nil {
 			return err
 		}
@@ -112,14 +112,14 @@ func (album *Album) linkAlbumToArtists(artists []string, tx *sql.Tx) error {
 }
 
 func (album *Album) updateAlbum(col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE `albums` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, album.UUID)
+	_, err := tx.Exec("UPDATE albums SET "+col+" = $1 WHERE uuid = $2", val, album.UUID)
 
 	return err
 }
 
 func getAlbumByUUID(uuid string) (Album, error) {
 	var album Album
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `name`, IFNULL(`desc`,''), IFNULL(`img`,''), `mbid`, `spotify_id` FROM `albums` WHERE `uuid` = UUID_TO_BIN(?, true)",
+	err := db.QueryRow("SELECT uuid, name, IFNULL(desc,''), IFNULL(img,''), mbid, spotify_id FROM albums WHERE uuid = $1",
 		uuid).Scan(&album.UUID, &album.Name, &album.Desc, &album.Img, &album.MusicBrainzID, &album.SpotifyID)
 
 	if err != nil {

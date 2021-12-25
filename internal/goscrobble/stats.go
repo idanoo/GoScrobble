@@ -53,25 +53,25 @@ func getAllStats() (StatsRequest, error) {
 	statsReq := StatsRequest{}
 	var err error
 
-	statsReq.Users, err = getDbCount("SELECT COUNT(*) FROM `users` WHERE `active` = 1")
+	statsReq.Users, err = getDbCount("SELECT COUNT(*) FROM users WHERE active = true")
 	if err != nil {
 		log.Printf("Failed to fetch user count: %+v", err)
 		return statsReq, errors.New("Failed to fetch stats")
 	}
 
-	statsReq.Scrobbles, err = getDbCount("SELECT COUNT(*) FROM `scrobbles`")
+	statsReq.Scrobbles, err = getDbCount("SELECT COUNT(*) FROM scrobbles")
 	if err != nil {
 		log.Printf("Failed to fetch scrobble count: %+v", err)
 		return statsReq, errors.New("Failed to fetch stats")
 	}
 
-	statsReq.Tracks, err = getDbCount("SELECT COUNT(*) FROM `tracks`")
+	statsReq.Tracks, err = getDbCount("SELECT COUNT(*) FROM tracks")
 	if err != nil {
 		log.Printf("Failed to fetch track count: %+v", err)
 		return statsReq, errors.New("Failed to fetch stats")
 	}
 
-	statsReq.Artists, err = getDbCount("SELECT COUNT(*) FROM `artists`")
+	statsReq.Artists, err = getDbCount("SELECT COUNT(*) FROM artists")
 	if err != nil {
 		log.Printf("Failed to fetch artist count: %+v", err)
 		return statsReq, errors.New("Failed to fetch stats")

@@ -1,1 +1,1 @@
-ALTER TABLE `tracks` DROP COLUMN `length`;
+ALTER TABLE tracks DROP COLUMN length;

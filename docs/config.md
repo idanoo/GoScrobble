@@ -1,5 +1,5 @@
 ## Timezones
-GoScrobble runs as UTC and connects to MySQL as UTC. All timezone handling is done in the frontend.
+GoScrobble runs as UTC and connects to postgres as UTC. All timezone handling is done in the frontend.
 
 ## FRONTEND VARS
 These are stored in `web/.env.production` and `web/.env.development`
@@ -8,10 +8,10 @@ These are stored in `web/.env.production` and `web/.env.development`
 
 
 ## BACKEND VARS
-    MYSQL_HOST= // MySQL Server
-    MYSQL_USER= // MySQL User
-    MYSQL_PASS= // MySQL Password
-    MYSQL_DB= // MySQL Database
+    POSTGRES_HOST= // postgres Server
+    POSTGRES_USER= // postgres User
+    POSTGRES_PASS= // postgres Password
+    POSTGRES_DB= // postgres Database
 
     REDIS_HOST=127.0.0.1 // Redis host
     REDIS_PORT= // Redis port (defaults 6379)

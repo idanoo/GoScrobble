@@ -238,7 +238,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	client := auth.NewClient(token)
 	client.AutoRetry = true
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err := db.Query("SELECT uuid, name FROM artists WHERE IFNULL(img,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")
@@ -282,7 +282,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	}
 	tx.Commit()
 
-	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err = db.Query("SELECT uuid, name FROM albums WHERE IFNULL(img,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")

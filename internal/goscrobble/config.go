@@ -20,7 +20,7 @@ func getAllConfigs() (Config, error) {
 	config := Config{}
 	configs := make(map[string]string)
 
-	rows, err := db.Query("SELECT `key`, `value` FROM `config`")
+	rows, err := db.Query("SELECT key, value FROM config")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return config, errors.New("Failed to fetch configs")
@@ -53,7 +53,7 @@ func getAllConfigs() (Config, error) {
 }
 
 func updateConfigValue(key string, value string) error {
-	_, err := db.Exec("UPDATE `config` SET `value` = ? WHERE `key` = ?", value, key)
+	_, err := db.Exec("UPDATE config SET value = $1 WHERE key = $2", value, key)
 	if err != nil {
 		fmt.Printf("Failed to update config: %+v", err)
 		return errors.New("Failed to update config value.")
@@ -65,8 +65,8 @@ func updateConfigValue(key string, value string) error {
 func getConfigValue(key string) (string, error) {
 	var value string
 
-	err := db.QueryRow("SELECT `value` FROM `config` "+
-		"WHERE `key` = ?",
+	err := db.QueryRow("SELECT value FROM config "+
+		"WHERE key = $1",
 		key).Scan(&value)
 
 	if err == sql.ErrNoRows {

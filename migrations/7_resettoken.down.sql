@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS `resettoken`;
+DROP TABLE IF EXISTS resettoken;
