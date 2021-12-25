@@ -11,8 +11,11 @@ toc_footers:
 
 includes:
   - introduction
+  - ratelimits
   - serverinfo
+  - ingress
   - authentication
+  - admin
 
 search: true
 

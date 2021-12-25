@@ -1,5 +1,5 @@
 # Server Info
-## v1/serverinfo
+## GET v1/serverinfo
 > Check server version and registration status:
 
 ```shell
