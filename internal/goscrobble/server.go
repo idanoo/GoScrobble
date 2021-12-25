@@ -25,6 +25,7 @@ var ReverseProxies []string
 // Directories
 var FrontendDirectory string
 var DataDirectory string
+var ApiDocsDirectory string
 
 // RequestRequest - Incoming JSON!
 type RequestRequest struct {
@@ -96,27 +97,33 @@ func HandleRequests(port string) {
 	// This just prevents it serving frontend stuff over /api
 	r.PathPrefix("/api")
 
-	// SERVE STATIC FILES - NO AUTH
+	// Serve Images
 	spaStatic := spaStaticHandler{staticPath: DataDirectory}
 	r.PathPrefix("/img").Handler(spaStatic)
 
-	apiDocs := spaStaticHandler{staticPath: "docs/api/build"}
-	r.PathPrefix("/docs").Handler(apiDocs)
+	// Serve API Docs
+	apiDocs := apiDocHandler{staticPath: ApiDocsDirectory, indexPath: "index.html"}
+	r.PathPrefix("/docs/").Handler(apiDocs)
 
-	// SERVE FRONTEND - NO AUTH
+	// This is a really terrible work around to Slate using relative paths and not
+	// picking up the css/img files when you don't have a trailing slash\
+	apiDocRedirect := apiDocRedirectHandler{}
+	r.PathPrefix("/docs").Handler(apiDocRedirect)
+
+	// Serve Frontend
 	spa := spaHandler{staticPath: FrontendDirectory + string(os.PathSeparator) + "build", indexPath: "index.html"}
 	r.PathPrefix("/").Handler(spa)
 
+	// Setup CORS rules
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowCredentials: true,
 		AllowedMethods:   []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowedHeaders:   []string{"*"},
 	})
-
 	handler := c.Handler(r)
 
-	// Serve it up!
+	// Serve it!
 	fmt.Printf("Goscrobble listening on port %s", port)
 	fmt.Println("")
 
@@ -781,7 +788,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.0.33",
+		Version:             "0.1.0",
 		RegistrationEnabled: cachedRegistrationEnabled,
 	}
 

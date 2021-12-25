@@ -61,6 +61,11 @@ func main() {
 		panic("FRONTEND_DIRECTORY required in .env")
 	}
 
+	goscrobble.ApiDocsDirectory = os.Getenv("API_DOCS_DIRECTORY")
+	if goscrobble.ApiDocsDirectory == "" {
+		panic("API_DOCS_DIRECTORY required in .env")
+	}
+
 	// Ignore reverse proxies
 	goscrobble.ReverseProxies = strings.Split(os.Getenv("REVERSE_PROXIES"), ",")
 

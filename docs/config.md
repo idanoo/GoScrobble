@@ -35,4 +35,4 @@ These are stored in `web/.env.production` and `web/.env.development`
     
     DATA_DIRECTORY="/var/www/goscrobble-data"
     FRONTEND_DIRECTORY="/var/www/goscrobble-web"
-    
+    API_DOCS_DIRECTORY="/var/www/goscrobble-api/docs/api/build"

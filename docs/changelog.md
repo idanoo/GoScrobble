@@ -1,3 +1,8 @@
+# 0.1.0
+- Split frontend/backend code into separate repos (https://gitlab.com/goscrobble/goscrobble-web)
+- Added new ENV VARS to support unique configurations: DATA_DIRECTORY, FRONTEND_DIRECTORY, API_DOCS_DIRECTORY
+- Started API documentation @ /docs (https://goscrobble.com/docs/)
+
 # 0.0.33
 - Add mod permission
 - Add track/edit page
