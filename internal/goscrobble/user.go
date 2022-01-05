@@ -201,7 +201,7 @@ func getUserByUUID(uuid string) (User, error) {
 		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
-		return user, errors.New("Invalid JWT Token")
+		return user, errors.New("Invalid user UUID")
 	}
 
 	return user, nil
@@ -377,4 +377,12 @@ func getAllNavidromeUsers() ([]User, error) {
 	}
 
 	return users, nil
+}
+
+func getUserLastPlayed(userUUID string) string {
+	return getRedisVal("lastPlayed:" + userUUID)
+}
+
+func setUserLastPlayed(userUUID string, val string) {
+	setRedisVal("lastPlayed:"+userUUID, val)
 }

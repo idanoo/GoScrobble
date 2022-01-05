@@ -2,10 +2,10 @@ stages:
  - build
 
 variables:
-  VERSION: 0.1.0
+  VERSION: 0.1.1
 
 build-go:
-  image: golang:1.16
+  image: golang:1.17
   stage: build
   only:
     - master

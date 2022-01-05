@@ -3,7 +3,6 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"log"
 	"net"
 	"time"
@@ -19,10 +18,10 @@ type MultiScrobblerRequest struct {
 
 // ParseMultiScrobblerInput - Transform API data
 func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip net.IP, tx *sql.Tx) error {
-	// Cache key
-	json := fmt.Sprintf("%s:%s:%s", data.PlayedAt, data.Track, userUUID)
-	redisKey := getMd5(json)
-	if getRedisKeyExists(redisKey) {
+	// Custom cache key - never log the same song twice in a row for now... (:
+	lastPlayedTitle := getUserLastPlayed(userUUID)
+	if lastPlayedTitle == data.Track+":"+data.Album {
+		// If it matches last played song, skip it
 		return nil
 	}
 
@@ -61,8 +60,7 @@ func ParseMultiScrobblerInput(userUUID string, data MultiScrobblerRequest, ip ne
 		return errors.New("Failed to map track")
 	}
 
-	ttl := time.Duration(24) * time.Hour
-	setRedisValTtl(redisKey, "1", ttl)
+	setUserLastPlayed(userUUID, data.Track+":"+data.Album)
 
 	return nil
 }

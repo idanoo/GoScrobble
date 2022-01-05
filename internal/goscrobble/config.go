@@ -59,19 +59,36 @@ func updateConfigValue(key string, value string) error {
 		return errors.New("Failed to update config value.")
 	}
 
+	// Set cached config
+	redisKey := "config:" + key
+	setRedisVal(redisKey, value)
+
 	return nil
 }
 
 func getConfigValue(key string) (string, error) {
 	var value string
 
-	err := db.QueryRow("SELECT `value` FROM `config` "+
-		"WHERE `key` = ?",
-		key).Scan(&value)
+	// Check if cached first
+	redisKey := "config:" + key
 
-	if err == sql.ErrNoRows {
-		return value, errors.New("Config key doesn't exist")
+	// TODO: Handle unset vals in DB to prevent excess calls if not using spotify/etc.
+	configKey := getRedisVal(redisKey)
+	if configKey == "" {
+		err := db.QueryRow("SELECT `value` FROM `config` "+
+			"WHERE `key` = ?",
+			key).Scan(&value)
+
+		if err == sql.ErrNoRows {
+			return value, errors.New("Config key doesn't exist")
+		}
+
+		if value != "" {
+			setRedisVal(redisKey, value)
+		}
+
+		return value, nil
 	}
 
-	return value, nil
+	return configKey, nil
 }

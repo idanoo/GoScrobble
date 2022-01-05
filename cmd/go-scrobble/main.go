@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"gitlab.com/idanoo/go-scrobble/internal/goscrobble"
+	"gitlab.com/goscrobble/goscrobble-api/internal/goscrobble"
 )
 
 func init() {

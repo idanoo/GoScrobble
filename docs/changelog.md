@@ -1,3 +1,9 @@
+# 0.1.1
+- Cached all config values
+- Updated spotify sdk package to v2
+- Changed package name to gitlab.com/goscrobble/goscrobble-api to match repo
+- Updated duplicate scrobble logic to never log the same song twice
+
 # 0.1.0
 - Split frontend/backend code into separate repos (https://gitlab.com/goscrobble/goscrobble-web)
 - Added new ENV VARS to support unique configurations: DATA_DIRECTORY, FRONTEND_DIRECTORY, API_DOCS_DIRECTORY
