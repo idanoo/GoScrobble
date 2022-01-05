@@ -693,6 +693,7 @@ func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 	err := connectSpotifyResponse(r)
 
 	if err != nil {
+		log.Printf("Post Spotify Response: %s", err)
 		throwOkError(w, "Failed to connect to spotify")
 		return
 	}
