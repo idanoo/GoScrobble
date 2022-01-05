@@ -29,7 +29,7 @@ func getUserUuidForToken(token string) (string, error) {
 	var uuid string
 	cachedKey := getRedisVal("user_token:" + token)
 	if cachedKey == "" {
-		err := db.QueryRow("SELECT uuid FROM users WHERE token = $1 AND active = true", token).Scan(&uuid)
+		err := db.QueryRow(`SELECT uuid FROM users WHERE token = $1 AND active = true`, token).Scan(&uuid)
 		if err != nil {
 			return "", errors.New("Invalid Token")
 		}
@@ -50,14 +50,14 @@ func insertRefreshToken(userUuid string, token string) error {
 }
 
 func deleteRefreshToken(token string) error {
-	_, err := db.Exec("DELETE FROM refresh_tokens WHERE token = $1", token)
+	_, err := db.Exec(`DELETE FROM refresh_tokens WHERE token = $1`, token)
 
 	return err
 }
 
 func isValidRefreshToken(refreshTokenStr string) (User, error) {
 	var refresh RefreshToken
-	err := db.QueryRow("SELECT uuid, user, token, expiry FROM refresh_tokens WHERE token = $1",
+	err := db.QueryRow(`SELECT uuid, "user", token, expiry FROM refresh_tokens WHERE token = $1`,
 		refreshTokenStr).Scan(&refresh.UUID, &refresh.User, &refresh.Token, &refresh.Expiry)
 	if err != nil {
 		return User{}, errors.New("Invalid Refresh Token")

@@ -17,7 +17,7 @@ import (
 // updateSpotifyData - Pull data for all users
 func updateSpotifyData() {
 	// Lets ignore if not configured
-	val, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	val, _ := getConfigValue("SPOTIFY_API_SECRET")
 	if val == "" {
 		return
 	}
@@ -35,12 +35,12 @@ func updateSpotifyData() {
 }
 
 func getSpotifyAuthHandler() spotify.Authenticator {
-	appId, _ := getConfigValue("SPOTIFY_APP_ID")
-	appSecret, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	appId, _ := getConfigValue("SPOTIFY_API_ID")
+	appSecret, _ := getConfigValue("SPOTIFY_API_SECRET")
 
 	redirectUrl := os.Getenv("GOSCROBBLE_DOMAIN") + "/api/v1/link/spotify"
 	if redirectUrl == "http://localhost:3000/api/v1/link/spotify" {
-		// Handle backend on a different port
+		// Handle backend on a different port if running in dev-env
 		redirectUrl = "http://localhost:42069/api/v1/link/spotify"
 	}
 
@@ -217,7 +217,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 // updateImageDataFromSpotify update artist/album images from spotify ;D
 func (user *User) updateImageDataFromSpotify() error {
 	// Check that data is set before we attempt to pull
-	val, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	val, _ := getConfigValue("SPOTIFY_API_SECRET")
 	if val == "" {
 		return nil
 	}
@@ -238,7 +238,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	client := auth.NewClient(token)
 	client.AutoRetry = true
 
-	rows, err := db.Query("SELECT uuid, name FROM artists WHERE IFNULL(img,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err := db.Query(`SELECT uuid, name FROM artists WHERE COALESCE(img,'') NOT IN ('pending', 'complete') LIMIT 100`)
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")
@@ -282,7 +282,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	}
 	tx.Commit()
 
-	rows, err = db.Query("SELECT uuid, name FROM albums WHERE IFNULL(img,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err = db.Query("SELECT uuid, name FROM albums WHERE COALESCE(img,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return errors.New("Failed to fetch artists")

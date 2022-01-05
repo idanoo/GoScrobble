@@ -98,7 +98,7 @@ func insertTrack(name string, legnth int, mbid string, spotifyId string, album s
 func getTrackByCol(col string, val string, tx *sql.Tx) Track {
 	var track Track
 	err := tx.QueryRow(
-		"SELECT uuid, name, IFNULL(desc,''), IFNULL(img,''), mbid FROM tracks WHERE "+col+" = $1 LIMIT 1",
+		`SELECT uuid, name, COALESCE(desc,''), COALESCE(img,''), mbid FROM tracks WHERE "`+col+`" = $1 LIMIT 1`,
 		val).Scan(&track.UUID, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
 
 	if err != nil {
@@ -114,11 +114,11 @@ func getTrackWithArtists(name string, artists []string, album string, tx *sql.Tx
 	var track Track
 	artistString := strings.Join(artists, "','")
 	err := tx.QueryRow(
-		"SELECT uuid, name, IFNULL(desc,''), IFNULL(img,''), mbid FROM tracks "+
-			"LEFT JOIN track_artist ON tracks.uuid = track_artist.track "+
-			"LEFT JOIN track_album ON tracks.uuid = track_album.track "+
-			"WHERE name = $1 AND track_artist.artistIN ('"+artistString+"') "+
-			"AND track_album.album = $2 LIMIT 1",
+		`SELECT uuid, name, COALESCE(desc,''), COALESCE(img,''), mbid FROM tracks `+
+			`LEFT JOIN track_artist ON tracks.uuid = track_artist.track `+
+			`LEFT JOIN track_album ON tracks.uuid = track_album.track `+
+			`WHERE name = $1 AND track_artist.artistIN ('`+artistString+`') `+
+			`AND track_album.album = $2 LIMIT 1`,
 		name, album).Scan(&track.UUID, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
 
 	if err != nil {
@@ -137,8 +137,8 @@ func insertNewTrack(track *Track, name string, length int, mbid string, spotifyI
 	track.MusicBrainzID = mbid
 	track.SpotifyID = spotifyId
 
-	_, err := tx.Exec("INSERT INTO tracks (uuid, name, length, mbid, spotify_id) "+
-		"VALUES ($1,$2,$3,$4,$5)", track.UUID, track.Name, track.Length, track.MusicBrainzID, track.SpotifyID)
+	_, err := tx.Exec(`INSERT INTO tracks (uuid, name, length, mbid, spotify_id) `+
+		`VALUES ($1,$2,$3,$4,$5)`, track.UUID, track.Name, track.Length, track.MusicBrainzID, track.SpotifyID)
 
 	return err
 }
@@ -158,8 +158,8 @@ func (track *Track) linkTrack(album string, artists []string, tx *sql.Tx) error 
 }
 
 func (track *Track) linkTrackToAlbum(albumUuid string, tx *sql.Tx) error {
-	_, err := tx.Exec("INSERT INTO track_album (track, album) "+
-		"VALUES ($1, $2)", track.UUID, albumUuid)
+	_, err := tx.Exec(`INSERT INTO track_album (track, album) `+
+		`VALUES ($1, $2)`, track.UUID, albumUuid)
 
 	return err
 }
@@ -167,8 +167,8 @@ func (track *Track) linkTrackToAlbum(albumUuid string, tx *sql.Tx) error {
 func (track *Track) linkTrackToArtists(artists []string, tx *sql.Tx) error {
 	var err error
 	for _, artist := range artists {
-		_, err = tx.Exec("INSERT INTO track_artist (track, artist) "+
-			"VALUES ($1,$2)", track.UUID, artist)
+		_, err = tx.Exec(`INSERT INTO track_artist (track, artist) `+
+			`VALUES ($1,$2)`, track.UUID, artist)
 		if err != nil {
 			return err
 		}
@@ -178,18 +178,18 @@ func (track *Track) linkTrackToArtists(artists []string, tx *sql.Tx) error {
 }
 
 func (track *Track) updateTrack(col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE tracks SET "+col+" = $1 WHERE uuid = $2", val, track.UUID)
+	_, err := tx.Exec(`UPDATE tracks SET "`+col+`" = $1 WHERE uuid = $2`, val, track.UUID)
 
 	return err
 }
 
 func getTrackByUUID(uuid string) (Track, error) {
 	var track Track
-	err := db.QueryRow("SELECT tracks.uuid, tracks.name, IFNULL(albums.desc,''), IFNULL(albums.uuid,''), tracks.length, tracks.mbid, tracks.spotify_id "+
-		"FROM tracks "+
-		"LEFT JOIN track_album ON track_album.track = tracks.uuid "+
-		"LEFT JOIN albums ON track_album.album = albums.uuid "+
-		"WHERE tracks.uuid = $1",
+	err := db.QueryRow(`SELECT tracks.uuid, tracks.name, COALESCE(albums.desc,''), COALESCE(albums.uuid,''), tracks.length, tracks.mbid, tracks.spotify_id `+
+		`FROM tracks `+
+		`LEFT JOIN track_album ON track_album.track = tracks.uuid `+
+		`LEFT JOIN albums ON track_album.album = albums.uuid `+
+		`WHERE tracks.uuid = $1`,
 		uuid).Scan(&track.UUID, &track.Name, &track.Desc, &track.Img, &track.Length, &track.MusicBrainzID, &track.SpotifyID)
 
 	if err != nil {
@@ -203,15 +203,15 @@ func getTrackByUUID(uuid string) (Track, error) {
 func getTopTracks(userUuid string) (TopTracks, error) {
 	var topTracks TopTracks
 
-	rows, err := db.Query("SELECT tracks.uuid, tracks.name, IFNULL(albums.uuid,''), count(*) "+
-		"FROM scrobbles "+
-		"JOIN tracks ON tracks.uuid = scrobbles.track "+
-		"JOIN track_album ON track_album.track = tracks.uuid "+
-		"JOIN albums ON track_album.album = albums.uuid "+
-		"WHERE user = $1 "+
-		"GROUP BY scrobbles.track "+
-		"ORDER BY count(*) DESC "+
-		"LIMIT 14",
+	rows, err := db.Query(`SELECT tracks.uuid, tracks.name, COALESCE(albums.uuid,''), count(*) `+
+		`FROM scrobbles `+
+		`JOIN tracks ON tracks.uuid = scrobbles.track `+
+		`JOIN track_album ON track_album.track = tracks.uuid `+
+		`JOIN albums ON track_album.album = albums.uuid `+
+		`WHERE "user" = $1 `+
+		`GROUP BY scrobbles.track `+
+		`ORDER BY count(*) DESC `+
+		`LIMIT 14`,
 		userUuid)
 	if err != nil {
 		log.Printf("Failed to fetch top tracks: %+v", err)
@@ -251,9 +251,9 @@ func (track *Track) loadExtraTrackInfo() error {
 func (track *Track) getArtistsForTrack() error {
 	artists := []Artist{}
 
-	rows, err := db.Query("SELECT track_artist.artist "+
-		"FROM track_artist "+
-		"WHERE track_artist.track = $1",
+	rows, err := db.Query(`SELECT track_artist.artist `+
+		`FROM track_artist `+
+		`WHERE track_artist.track = $1`,
 		track.UUID)
 	if err != nil {
 		log.Printf("Failed to fetch artists for track: %+v", err)
@@ -283,9 +283,9 @@ func (track *Track) getArtistsForTrack() error {
 func (track *Track) getAlbumsForTrack() error {
 	albums := []Album{}
 
-	rows, err := db.Query("SELECT track_album.album "+
-		"FROM track_album "+
-		"WHERE track_album.track = $1",
+	rows, err := db.Query(`SELECT track_album.album `+
+		`FROM track_album `+
+		`WHERE track_album.track = $1`,
 		track.UUID)
 	if err != nil {
 		log.Printf("Failed to fetch album for track: %+v", err)
@@ -320,7 +320,7 @@ func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrac
 	// Yeah this isn't great. But for now.. it works! Cache later
 	// TODO:  This is counting total scrobbles, not unique users
 	total, err := getDbCount(
-		"SELECT COUNT(*) FROM scrobbles WHERE track = $1 GROUP BY track, user", trackUUID)
+		`SELECT COUNT(*) FROM scrobbles WHERE track = $1 GROUP BY track, "user"`, trackUUID)
 
 	if err != nil {
 		log.Printf("Failed to fetch scrobble count: %+v", err)
@@ -328,12 +328,12 @@ func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrac
 	}
 
 	rows, err := db.Query(
-		"SELECT scrobbles.user, users.username, COUNT(*) "+
-			"FROM scrobbles "+
-			"JOIN users ON scrobbles.user = users.uuid "+
-			"WHERE track = $1 "+
-			"GROUP BY scrobbles.user "+
-			"ORDER BY COUNT(*) DESC LIMIT $2",
+		`SELECT scrobbles.user, users.username, COUNT(*) `+
+			`FROM scrobbles `+
+			`JOIN users ON scrobbles."user" = users.uuid `+
+			`WHERE track = $1 `+
+			`GROUP BY scrobbles."user" `+
+			`ORDER BY COUNT(*) DESC LIMIT $2`,
 		trackUUID, limit)
 
 	if err != nil {

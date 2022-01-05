@@ -21,6 +21,7 @@ This assumes you have goscrobble-api and goscrobble-web cloned in the same folde
 
 Access API @ http://127.0.0.1:42069/api/v1
 Access frontend @ http://127.0.0.1:3000
+pgAdmin @ http://127.0.0.1:5050 (admin@admin.com / root)
 
 ## Prod deployment
     cp .env.production .env # Fill in the blanks

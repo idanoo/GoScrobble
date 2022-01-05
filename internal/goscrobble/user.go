@@ -99,7 +99,7 @@ func loginUser(logReq *RequestRequest, ip net.IP) ([]byte, error) {
 	}
 
 	if strings.Contains(logReq.Username, "@") {
-		err := db.QueryRow("SELECT uuid, username, email, password, admin, mod FROM users WHERE email = $1 AND active = true",
+		err := db.QueryRow(`SELECT uuid, username, email, password, admin, mod FROM users WHERE email = $1 AND active = true`,
 			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin, &user.Mod)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -107,7 +107,7 @@ func loginUser(logReq *RequestRequest, ip net.IP) ([]byte, error) {
 			}
 		}
 	} else {
-		err := db.QueryRow("SELECT uuid, username, email, password, admin, mod FROM users WHERE username = $1 AND active = true",
+		err := db.QueryRow(`SELECT uuid, username, email, password, admin, mod FROM users WHERE username = $1 AND active = true`,
 			logReq.Username).Scan(&user.UUID, &user.Username, &user.Email, &user.Password, &user.Admin, &user.Mod)
 		if err == sql.ErrNoRows {
 			return resp, errors.New("Invalid Username or Password")
@@ -140,20 +140,20 @@ func insertUser(username string, email string, password []byte, ip net.IP) error
 
 	log.Printf(ip.String())
 
-	_, err := db.Exec("INSERT INTO users (uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, token) "+
-		"VALUES ($1,NOW(),$2,NOW(),$3,$4,$5,$6,$7)", uuid, ip.String(), ip.String(), username, email, password, token)
+	_, err := db.Exec(`INSERT INTO users (uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, token) `+
+		`VALUES ($1,NOW(),$2,NOW(),$3,$4,$5,$6,$7)`, uuid, ip.String(), ip.String(), username, email, password, token)
 
 	return err
 }
 
 func (user *User) updateUser(field string, value string, ip net.IP) error {
-	_, err := db.Exec("UPDATE users SET "+field+" = $1, modified_at = NOW(), modified_ip = $2 WHERE uuid = $3", value, ip, user.UUID)
+	_, err := db.Exec(`UPDATE users SET "`+field+`" = $1, modified_at = NOW(), modified_ip = $2 WHERE uuid = $3`, value, ip, user.UUID)
 
 	return err
 }
 
 func (user *User) updateUserDirect(field string, value string) error {
-	_, err := db.Exec("UPDATE users SET "+field+" = $1 WHERE uuid = $2", value, user.UUID)
+	_, err := db.Exec(`UPDATE users SET "`+field+`" = $1 WHERE uuid = $2`, value, user.UUID)
 
 	return err
 }
@@ -176,7 +176,7 @@ func isValidPassword(password string, user User) bool {
 // userAlreadyExists - Returns bool indicating if a record exists for either username or email
 // Using two look ups to make use of DB indexes.
 func userAlreadyExists(req *RequestRequest) bool {
-	count, err := getDbCount("SELECT COUNT(*) FROM users WHERE username = $1", req.Username)
+	count, err := getDbCount(`SELECT COUNT(*) FROM users WHERE username = $1`, req.Username)
 	if err != nil {
 		fmt.Printf("Error querying for duplicate users: %v", err)
 		return true
@@ -188,7 +188,7 @@ func userAlreadyExists(req *RequestRequest) bool {
 
 	if req.Email != "" {
 		// Only run email check if there's an email...
-		count, err = getDbCount("SELECT COUNT(*) FROM users WHERE email = $1", req.Email)
+		count, err = getDbCount(`SELECT COUNT(*) FROM users WHERE email = $1`, req.Email)
 	}
 
 	if err != nil {
@@ -201,7 +201,7 @@ func userAlreadyExists(req *RequestRequest) bool {
 
 func getUserByUUID(uuid string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE uuid = $1 AND active = true",
+	err := db.QueryRow(`SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE uuid = $1 AND active = true`,
 		uuid).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
@@ -213,7 +213,7 @@ func getUserByUUID(uuid string) (User, error) {
 
 func getUserByUsername(username string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE username = $1 AND active = true",
+	err := db.QueryRow(`SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE username = $1 AND active = true`,
 		username).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
@@ -225,7 +225,7 @@ func getUserByUsername(username string) (User, error) {
 
 func getUserByEmail(email string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE email = $1 AND active = true",
+	err := db.QueryRow(`SELECT uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users WHERE email = $1 AND active = true`,
 		email).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
@@ -237,8 +237,8 @@ func getUserByEmail(email string) (User, error) {
 
 func getUserByResetToken(token string) (User, error) {
 	var user User
-	err := db.QueryRow("SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users "+
-		"JOIN resettoken ON resettoken.user = users.uuid WHERE resettoken.token = $1 AND active = true",
+	err := db.QueryRow(`SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, username, email, password, verified, admin, mod, timezone, token FROM users `+
+		`JOIN resettoken ON resettoken.user = users.uuid WHERE resettoken.token = $1 AND active = true`,
 		token).Scan(&user.UUID, &user.CreatedAt, &user.CreatedIp, &user.ModifiedAt, &user.ModifiedIP, &user.Username, &user.Email, &user.Password, &user.Verified, &user.Admin, &user.Mod, &user.Timezone, &user.Token)
 
 	if err == sql.ErrNoRows {
@@ -269,26 +269,26 @@ func (user *User) sendResetEmail(ip net.IP) error {
 }
 
 func (user *User) saveResetToken(token string, expiry time.Time) error {
-	_, _ = db.Exec("DELETE FROM resettoken WHERE user = $1", user.UUID)
-	_, err := db.Exec("INSERT INTO resettoken (user, token, expiry) "+
-		"VALUES ($1,$2,$3)", user.UUID, token, expiry)
+	_, _ = db.Exec(`DELETE FROM resettoken WHERE "user" = $1`, user.UUID)
+	_, err := db.Exec(`INSERT INTO resettoken ("user", token, expiry) `+
+		`VALUES ($1,$2,$3)`, user.UUID, token, expiry)
 
 	return err
 }
 
 func clearOldResetTokens() {
-	_, _ = db.Exec("DELETE FROM resettoken WHERE expiry < NOW()")
+	_, _ = db.Exec(`DELETE FROM resettoken WHERE expiry < NOW()`)
 }
 
 func clearResetToken(token string) error {
-	_, err := db.Exec("DELETE FROM resettoken WHERE token = $1", token)
+	_, err := db.Exec(`DELETE FROM resettoken WHERE token = $1`, token)
 
 	return err
 }
 
 // checkResetToken - If a token exists check it
 func checkResetToken(token string) (bool, error) {
-	count, err := getDbCount("SELECT COUNT(*) FROM resettoken WHERE token = $1", token)
+	count, err := getDbCount(`SELECT COUNT(*) FROM resettoken WHERE token = $1`, token)
 
 	if err != nil {
 		return false, err
@@ -303,7 +303,7 @@ func (user *User) updatePassword(newPassword string, ip net.IP) error {
 		return errors.New("Bad password")
 	}
 
-	_, err = db.Exec("UPDATE users SET password = $1 WHERE uuid = $2", hash, user.UUID)
+	_, err = db.Exec(`UPDATE users SET password = $1 WHERE uuid = $2`, hash, user.UUID)
 	if err != nil {
 		return errors.New("Failed to update password")
 	}
@@ -321,8 +321,8 @@ func (user *User) getNavidromeTokens() (OauthToken, error) {
 
 func getAllSpotifyUsers() ([]User, error) {
 	users := make([]User, 0)
-	rows, err := db.Query("SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, users.username, email, password, verified, admin, mod, timezone FROM users " +
-		"JOIN oauth_tokens ON oauth_tokens.user = users.uuid AND oauth_tokens.service = 'spotify' WHERE users.active = true")
+	rows, err := db.Query(`SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, users.username, email, password, verified, admin, mod, timezone FROM users ` +
+		`JOIN oauth_tokens ON oauth_tokens."user" = users.uuid AND oauth_tokens.service = 'spotify' WHERE users.active = true`)
 
 	if err != nil {
 		log.Printf("Failed to fetch spotify users: %+v", err)
@@ -353,8 +353,8 @@ func getAllSpotifyUsers() ([]User, error) {
 
 func getAllNavidromeUsers() ([]User, error) {
 	users := make([]User, 0)
-	rows, err := db.Query("SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, users.username, email, password, verified, admin, mod, timezone FROM users " +
-		"JOIN oauth_tokens ON oauth_tokens.user = users.uuid AND oauth_tokens.service = 'navidrome' WHERE users.active = true")
+	rows, err := db.Query(`SELECT users.uuid, created_at, created_ip, modified_at, modified_ip, users.username, email, password, verified, admin, mod, timezone FROM users ` +
+		`JOIN oauth_tokens ON oauth_tokens."user" = users.uuid AND oauth_tokens.service = 'navidrome' WHERE users.active = true`)
 
 	if err != nil {
 		log.Printf("Failed to fetch navidrome users: %+v", err)
