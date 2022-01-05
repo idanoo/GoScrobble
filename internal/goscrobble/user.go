@@ -48,6 +48,23 @@ type UserResponse struct {
 	NavidromeURL    string    `json:"navidrome_server"`
 }
 
+type TopUserResponse struct {
+	Meta  TopUserResponseMeta   `json:"meta"`
+	Items []TopUserResponseItem `json:"items"`
+}
+
+type TopUserResponseMeta struct {
+	Count int `json:"count"`
+	Total int `json:"total"`
+	Page  int `json:"page"`
+}
+
+type TopUserResponseItem struct {
+	UserUUID string `json:"user_uuid"`
+	Count    int    `json:"count"`
+	UserName string `json:"user_name"`
+}
+
 // createUser - Called from API
 func createUser(req *RequestRequest, ip net.IP) error {
 	// Check if user already exists..

@@ -2,7 +2,7 @@ stages:
  - build
 
 variables:
-  VERSION: 0.1.1
+  VERSION: 0.1.2
 
 build-go:
   image: golang:1.17
@@ -10,7 +10,7 @@ build-go:
   only:
     - master
   script:
-    - go build -o goscrobble cmd/go-scrobble/*.go
+    - go build -o goscrobble cmd/goscrobble/*.go
   artifacts:
     expire_in: 1 week
     paths:

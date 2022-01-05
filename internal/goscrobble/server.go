@@ -72,13 +72,17 @@ func HandleRequests(port string) {
 
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/recent", limitMiddleware(handleRecentScrobbles, lightLimiter)).Methods("GET")
+
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/artists/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/artists/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artists/{uuid}/top", limitMiddleware(getTopUsersForArtist, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/albums/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/albums/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/albums/{uuid}/top", limitMiddleware(getTopUsersForAlbum, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")           // User UUID - Top Tracks
 	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")                // Track UUID
@@ -417,6 +421,8 @@ func patchUser(w http.ResponseWriter, r *http.Request, claims CustomClaims, reqU
 		} else if k == "token" {
 			token := generateToken(32)
 			userFull.updateUser("token", token, ip)
+		} else if k == "active" {
+			userFull.updateUser("active", "0", ip)
 		}
 	}
 
@@ -685,6 +691,56 @@ func getTopUsersForTrack(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+// getTopUsersForAlbum - I suck at naming. Returns top users that have scrobbled this track.
+func getTopUsersForAlbum(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	userList, err := getTopUsersForAlbumUUID(uuid, 10, 1)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&userList)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getTopUsersForArtist - I suck at naming. Returns top users that have scrobbled this track.
+func getTopUsersForArtist(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	userList, err := getTopUsersForArtistUUID(uuid, 10, 1)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&userList)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
 // postSpotifyResponse - Oauth Response from Spotify
 func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 	err := connectSpotifyResponse(r)
@@ -782,11 +838,23 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.1.1",
+		Version:             "0.1.2",
 		RegistrationEnabled: registrationEnabled,
 	}
 
 	js, _ := json.Marshal(&info)
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
+}
+
+func handleRecentScrobbles(w http.ResponseWriter, r *http.Request) {
+	scrobbleList, err := getRecentScrobbles()
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&scrobbleList)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
 }

@@ -164,3 +164,59 @@ func getTopArtists(userUuid string) (TopArtists, error) {
 
 	return topArtist, nil
 }
+
+// getTopUsersForArtistUUID  - Returns list of top users for a track
+func getTopUsersForArtistUUID(artistUUID string, limit int, page int) (TopUserResponse, error) {
+	response := TopUserResponse{}
+
+	var count int
+
+	total, err := getDbCount(
+		"SELECT COUNT(*) FROM `scrobbles` "+
+			"JOIN `track_artist` ON `track_artist`.`track` = `scrobbles`.`track` "+
+			"WHERE `track_artist`.`artist` = UUID_TO_BIN(?, true);", artistUUID)
+
+	if err != nil {
+		log.Printf("Failed to fetch scrobble count: %+v", err)
+		return response, errors.New("Failed to fetch combined scrobbles")
+	}
+
+	rows, err := db.Query(
+		"SELECT BIN_TO_UUID(`scrobbles`.`user`, true), `users`.`username`, COUNT(*) "+
+			"FROM `scrobbles` "+
+			"JOIN `users` ON `scrobbles`.`user` = `users`.`uuid` "+
+			"JOIN `track_artist` ON `track_artist`.`track` = `scrobbles`.`track` "+
+			"WHERE `track_artist`.`artist` = UUID_TO_BIN(?, true) "+
+			"GROUP BY `scrobbles`.`user` "+
+			"ORDER BY COUNT(*) DESC LIMIT ?",
+		artistUUID, limit)
+
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return response, errors.New("Failed to fetch combined scrobbles")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := TopUserResponseItem{}
+		err := rows.Scan(&item.UserUUID, &item.UserName, &item.Count)
+		if err != nil {
+			log.Printf("Failed to fetch scrobbles: %+v", err)
+			return response, errors.New("Failed to fetch combined scrobbles")
+		}
+		count++
+		response.Items = append(response.Items, item)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return response, errors.New("Failed to fetch scrobbles")
+	}
+
+	response.Meta.Count = count
+	response.Meta.Total = total
+	response.Meta.Page = page
+
+	return response, nil
+}
