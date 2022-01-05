@@ -1,3 +1,6 @@
+# 0.1.3
+-
+
 # 0.1.2
 - Add docker-compose file for local dev
 - Implemented top listeners for artist/album endpoints to match track
