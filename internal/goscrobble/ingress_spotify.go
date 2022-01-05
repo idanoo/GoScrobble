@@ -64,11 +64,15 @@ func getSpotifyAuthHandler() spotifyauth.Authenticator {
 
 func connectSpotifyResponse(r *http.Request) error {
 	urlParams := r.URL.Query()
-	userUuid := urlParams["state"][0]
+	userUUID := urlParams["state"][0]
 
-	// TODO: Add validation user exists here
+	_, err := getUserByUUID(userUUID)
+	if err != nil {
+		return err
+	}
+
 	auth := getSpotifyAuthHandler()
-	token, err := auth.Token(r.Context(), userUuid, r)
+	token, err := auth.Token(r.Context(), userUUID, r)
 	if err != nil {
 		return err
 	}
@@ -79,7 +83,7 @@ func connectSpotifyResponse(r *http.Request) error {
 
 	// Lets pull in last 30 minutes
 	time := time.Now().UTC().Add(-(time.Duration(30) * time.Minute))
-	err = insertOauthToken(userUuid, "spotify", token.AccessToken, token.RefreshToken, token.Expiry, spotifyUser.DisplayName, time, "")
+	err = insertOauthToken(userUUID, "spotify", token.AccessToken, token.RefreshToken, token.Expiry, spotifyUser.DisplayName, time, "")
 	if err != nil {
 		return err
 	}

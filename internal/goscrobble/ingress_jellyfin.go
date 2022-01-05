@@ -47,10 +47,10 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	// Debugging
 	// fmt.Printf("%+v", jf)
 
-	// Prevents scrobbling same song twice!
-	cacheKey := jf.UserID + ":" + jf.Name + ":" + jf.Artist + ":" + jf.Album + ":" + jf.ServerID
-	redisKey := getMd5(cacheKey + userUUID)
-	if getRedisKeyExists(redisKey) {
+	// Custom cache key - never log the same song twice in a row for now... (:
+	lastPlayedTitle := getUserLastPlayed(userUUID)
+	if lastPlayedTitle == jf.Name+":"+jf.Album {
+		// If it matches last played song, skip it
 		return nil
 	}
 
@@ -103,8 +103,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	}
 
 	// Add cache key!
-	ttl := time.Duration(timestampToSeconds(jf.RunTime)) * time.Second
-	setRedisValTtl(redisKey, "1", ttl)
+	setUserLastPlayed(userUUID, jf.Name+":"+jf.Album)
 
 	return nil
 }

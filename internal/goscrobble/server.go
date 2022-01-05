@@ -133,24 +133,21 @@ func HandleRequests(port string) {
 // API ENDPOINT HANDLING
 // handleRegister - Does as it says!
 func handleRegister(w http.ResponseWriter, r *http.Request) {
-	cachedRegistrationEnabled := getRedisVal("REGISTRATION_ENABLED")
-	if cachedRegistrationEnabled == "" {
-		registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
-		if err != nil {
-			throwOkError(w, "Error checking if registration is enabled")
-		}
-		setRedisVal("REGISTRATION_ENABLED", registrationEnabled)
-		cachedRegistrationEnabled = registrationEnabled
+	registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
+	if err != nil {
+		log.Printf("%+v", err)
+		throwOkError(w, "Registration is currently disabled")
+		return
 	}
 
-	if cachedRegistrationEnabled == "0" {
+	if registrationEnabled == "0" {
 		throwOkError(w, "Registration is currently disabled")
 		return
 	}
 
 	regReq := RequestRequest{}
 	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&regReq)
+	err = decoder.Decode(&regReq)
 	if err != nil {
 		throwBadReq(w, err.Error())
 		return
@@ -778,19 +775,15 @@ func deleteNavidrome(w http.ResponseWriter, r *http.Request, claims CustomClaims
 }
 
 func getServerInfo(w http.ResponseWriter, r *http.Request) {
-	cachedRegistrationEnabled := getRedisVal("REGISTRATION_ENABLED")
-	if cachedRegistrationEnabled == "" {
-		registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
-		if err != nil {
-			throwOkError(w, "Error fetching serverinfo")
-		}
-		setRedisVal("REGISTRATION_ENABLED", registrationEnabled)
-		cachedRegistrationEnabled = registrationEnabled
+	registrationEnabled, err := getConfigValue("REGISTRATION_ENABLED")
+	if err != nil {
+		log.Printf("%+v", err)
+		registrationEnabled = "0"
 	}
 
 	info := ServerInfo{
-		Version:             "0.1.0",
-		RegistrationEnabled: cachedRegistrationEnabled,
+		Version:             "0.1.1",
+		RegistrationEnabled: registrationEnabled,
 	}
 
 	js, _ := json.Marshal(&info)

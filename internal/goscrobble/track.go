@@ -317,8 +317,6 @@ func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrac
 	response := TopUserTrackResponse{}
 	var count int
 
-	// Yeah this isn't great. But for now.. it works! Cache later
-	// TODO:  This is counting total scrobbles, not unique users
 	total, err := getDbCount(
 		"SELECT COUNT(*) FROM `scrobbles` WHERE `track` = UUID_TO_BIN(?, true) GROUP BY `track`, `user`", trackUUID)
 

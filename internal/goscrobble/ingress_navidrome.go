@@ -138,10 +138,10 @@ func validateNavidromeConnection(url string, username string, hash string, salt 
 
 // ParseNavidromeInput - Transform API data
 func ParseNavidromeInput(userUUID string, data NavidromeNowPlaying, ip net.IP, tx *sql.Tx) error {
-	// Cache key
-	json := fmt.Sprintf("%s:%s:%s", data.ID, data.Parent, userUUID)
-	redisKey := getMd5(json)
-	if getRedisKeyExists(redisKey) {
+	// Custom cache key - never log the same song twice in a row for now... (:
+	lastPlayedTitle := getUserLastPlayed(userUUID)
+	if lastPlayedTitle == data.Title+":"+data.Album {
+		// If it matches last played song, skip it
 		return nil
 	}
 
@@ -177,9 +177,7 @@ func ParseNavidromeInput(userUUID string, data NavidromeNowPlaying, ip net.IP, t
 		return errors.New("Failed to map track")
 	}
 
-	// Todo: Find a better way to check dupes
-	ttl := time.Duration(data.Duration*2) * time.Second
-	setRedisValTtl(redisKey, "1", ttl)
+	setUserLastPlayed(userUUID, data.Title+":"+data.Album)
 
 	return nil
 }
