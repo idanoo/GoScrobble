@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  frontend:
+    image: node:16
+    volumes:
+      - ../goscrobble-web:/app
+    restart: always
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://127.0.0.1:42069
+    command: bash -c "cd /app && npm install && yarn start"
+
+  backend:
+    image: golang:1.17
+    volumes:
+      - ./:/app
+    ports:
+      - "127.0.0.1:42069:42069"
+    restart: always
+    command: bash -c "sleep 5 && cd /app && go mod tidy && go run cmd/goscrobble/*.go"
+
+  mysql:
+    image: mysql:8.0.27
+    command: --default-authentication-plugin=mysql_native_password --init-file /app/migrations/0_create_db.sql --sql_mode=
+    restart: always
+    cap_add:
+      - SYS_NICE
+    volumes:
+      - database-data:/var/lib/mysql
+      - ./migrations/0_create_db.sql:/app/migrations/0_create_db.sql
+    ports:
+      - "127.0.0.1:3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=supersecretdatabasepassword1
+
+  redis:
+    image: redis:6.2
+    ports:
+      - "127.0.0.1:6379:6379"
+
+volumes:
+  database-data:

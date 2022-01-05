@@ -26,25 +26,9 @@ type TopTrack struct {
 	Img   string `json:"img"`
 	Plays int    `json:"plays"`
 }
+
 type TopTracks struct {
 	Tracks map[int]TopTrack `json:"tracks"`
-}
-
-type TopUserTrackResponse struct {
-	Meta  TopUserTrackResponseMeta   `json:"meta"`
-	Items []TopUserTrackResponseItem `json:"items"`
-}
-
-type TopUserTrackResponseMeta struct {
-	Count int `json:"count"`
-	Total int `json:"total"`
-	Page  int `json:"page"`
-}
-
-type TopUserTrackResponseItem struct {
-	UserUUID string `json:"user_uuid"`
-	Count    int    `json:"count"`
-	UserName string `json:"user_name"`
 }
 
 // insertTrack - This will return if it exists or create it based on MBID > Name
@@ -313,8 +297,8 @@ func (track *Track) getAlbumsForTrack() error {
 }
 
 // getTopUsersForTrackUUID  - Returns list of top users for a track
-func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrackResponse, error) {
-	response := TopUserTrackResponse{}
+func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserResponse, error) {
+	response := TopUserResponse{}
 	var count int
 
 	total, err := getDbCount(
@@ -341,7 +325,7 @@ func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserTrac
 	defer rows.Close()
 
 	for rows.Next() {
-		item := TopUserTrackResponseItem{}
+		item := TopUserResponseItem{}
 		err := rows.Scan(&item.UserUUID, &item.UserName, &item.Count)
 		if err != nil {
 			log.Printf("Failed to fetch scrobbles: %+v", err)

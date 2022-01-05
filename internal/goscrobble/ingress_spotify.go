@@ -227,17 +227,17 @@ func ParseSpotifyInput(ctx context.Context, userUUID string, data spotify.Recent
 }
 
 // updateImageDataFromSpotify update artist/album images from spotify ;D
-func (user *User) updateImageDataFromSpotify() error {
+func (user *User) updateImageDataFromSpotify() {
 	// Check that data is set before we attempt to pull
 	val, _ := getConfigValue("SPOTIFY_API_SECRET")
 	if val == "" {
-		return nil
+		return
 	}
 
 	// TO BE REWORKED TO NOT USE A DAMN USER ARGHHH
 	dbToken, err := user.getSpotifyTokens()
 	if err != nil {
-		return nil
+		return
 	}
 
 	token := new(oauth2.Token)
@@ -252,7 +252,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
-		return errors.New("Failed to fetch artists")
+		return
 	}
 
 	toUpdate := make(map[string]string)
@@ -263,7 +263,7 @@ func (user *User) updateImageDataFromSpotify() error {
 		if err != nil {
 			log.Printf("Failed to fetch artists: %+v", err)
 			rows.Close()
-			return errors.New("Failed to fetch artist")
+			return
 		}
 		res, err := client.Search(ctx, name, spotify.SearchTypeArtist)
 		if len(res.Artists.Artists) > 0 {
@@ -296,7 +296,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
-		return errors.New("Failed to fetch artists")
+		return
 	}
 
 	toUpdate = make(map[string]string)
@@ -307,7 +307,7 @@ func (user *User) updateImageDataFromSpotify() error {
 		if err != nil {
 			log.Printf("Failed to fetch albums: %+v", err)
 			rows.Close()
-			return errors.New("Failed to fetch album")
+			return
 		}
 		res, err := client.Search(ctx, name, spotify.SearchTypeAlbum)
 		if len(res.Albums.Albums) > 0 {
@@ -331,5 +331,6 @@ func (user *User) updateImageDataFromSpotify() error {
 		_ = album.updateAlbum("img", "pending", tx)
 	}
 	tx.Commit()
-	return nil
+
+	return
 }
