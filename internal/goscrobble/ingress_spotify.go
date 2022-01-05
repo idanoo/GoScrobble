@@ -1,6 +1,7 @@
 package goscrobble
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -10,7 +11,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/zmb3/spotify"
+	"github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
 	"golang.org/x/oauth2"
 )
 
@@ -34,22 +36,30 @@ func updateSpotifyData() {
 	}
 }
 
-func getSpotifyAuthHandler() spotify.Authenticator {
+// setSpotifyEnvVars - Temp fix for V2 Spotify SDK
+func setSpotifyEnvVars() {
 	appId, _ := getConfigValue("SPOTIFY_API_ID")
 	appSecret, _ := getConfigValue("SPOTIFY_API_SECRET")
+	os.Setenv("SPOTIFY_ID", appId)
+	os.Setenv("SPOTIFY_SECRET", appSecret)
+}
 
+func getSpotifyAuthHandler() spotifyauth.Authenticator {
+	setSpotifyEnvVars()
 	redirectUrl := os.Getenv("GOSCROBBLE_DOMAIN") + "/api/v1/link/spotify"
 	if redirectUrl == "http://localhost:3000/api/v1/link/spotify" {
 		// Handle backend on a different port
 		redirectUrl = "http://localhost:42069/api/v1/link/spotify"
 	}
 
-	auth := spotify.NewAuthenticator(redirectUrl,
-		spotify.ScopeUserReadRecentlyPlayed, spotify.ScopeUserReadCurrentlyPlaying)
+	// the redirect URL must be an exact match of a URL you've registered for your application
+	// scopes determine which permissions the user is prompted to authorize
+	auth := spotifyauth.New(
+		spotifyauth.WithRedirectURL(redirectUrl),
+		spotifyauth.WithScopes(spotifyauth.ScopeUserReadRecentlyPlayed, spotifyauth.ScopeUserReadCurrentlyPlaying),
+	)
 
-	auth.SetAuthInfo(appId, appSecret)
-
-	return auth
+	return *auth
 }
 
 func connectSpotifyResponse(r *http.Request) error {
@@ -57,17 +67,15 @@ func connectSpotifyResponse(r *http.Request) error {
 	userUuid := urlParams["state"][0]
 
 	// TODO: Add validation user exists here
-
 	auth := getSpotifyAuthHandler()
-	token, err := auth.Token(userUuid, r)
+	token, err := auth.Token(r.Context(), userUuid, r)
 	if err != nil {
 		return err
 	}
 
 	// Get displayName
-	client := auth.NewClient(token)
-	client.AutoRetry = true
-	spotifyUser, err := client.CurrentUser()
+	client := spotify.New(auth.Client(r.Context(), token))
+	spotifyUser, err := client.CurrentUser(r.Context())
 
 	// Lets pull in last 30 minutes
 	time := time.Now().UTC().Add(-(time.Duration(30) * time.Minute))
@@ -93,8 +101,8 @@ func (user *User) updateSpotifyPlaydata() {
 	token.TokenType = "Bearer"
 
 	auth := getSpotifyAuthHandler()
-	client := auth.NewClient(token)
-	client.AutoRetry = true
+	ctx := context.Background()
+	client := spotify.New(auth.Client(ctx, token))
 
 	// Only fetch tracks since last sync
 	opts := spotify.RecentlyPlayedOptions{
@@ -104,7 +112,7 @@ func (user *User) updateSpotifyPlaydata() {
 	// We want the next sync timestamp from before we call
 	// so we don't end up with a few seconds gap
 	currTime := time.Now()
-	items, err := client.PlayerRecentlyPlayedOpt(&opts)
+	items, err := client.PlayerRecentlyPlayedOpt(ctx, &opts)
 
 	if err != nil {
 		fmt.Println(err)
@@ -115,7 +123,7 @@ func (user *User) updateSpotifyPlaydata() {
 	for _, v := range items {
 		if !checkIfSpotifyAlreadyScrobbled(user.UUID, v) {
 			tx, _ := db.Begin()
-			err := ParseSpotifyInput(user.UUID, v, client, tx)
+			err := ParseSpotifyInput(ctx, user.UUID, v, client, tx)
 			if err != nil {
 				fmt.Printf("Failed to insert Spotify scrobble: %+v", err)
 				tx.Rollback()
@@ -139,13 +147,13 @@ func checkIfSpotifyAlreadyScrobbled(userUuid string, data spotify.RecentlyPlayed
 }
 
 // ParseSpotifyInput - Transform API data
-func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client spotify.Client, tx *sql.Tx) error {
+func ParseSpotifyInput(ctx context.Context, userUUID string, data spotify.RecentlyPlayedItem, client *spotify.Client, tx *sql.Tx) error {
 	artists := make([]string, 0)
 	albumartists := make([]string, 0)
 
 	// Insert track artists
 	for _, artist := range data.Track.Artists {
-		fullArtist, err := client.GetArtist(artist.ID)
+		fullArtist, err := client.GetArtist(ctx, artist.ID)
 		img := ""
 		if len(fullArtist.Images) > 0 {
 			img = fullArtist.Images[0].URL
@@ -161,7 +169,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 	}
 
 	// Get full track data (album / track info)
-	fulltrack, err := client.GetTrack(data.Track.ID)
+	fulltrack, err := client.GetTrack(ctx, data.Track.ID)
 	if err != nil {
 		fmt.Printf("Failed to get full track info from spotify: %+v", data.Track.Name)
 		return errors.New("Failed to get full track info from spotify: " + data.Track.Name)
@@ -169,7 +177,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 
 	// Insert album artists
 	for _, artist := range fulltrack.Album.Artists {
-		fullArtist, err := client.GetArtist(artist.ID)
+		fullArtist, err := client.GetArtist(ctx, artist.ID)
 		img := ""
 		if len(fullArtist.Images) > 0 {
 			img = fullArtist.Images[0].URL
@@ -235,8 +243,7 @@ func (user *User) updateImageDataFromSpotify() error {
 	token.TokenType = "Bearer"
 
 	auth := getSpotifyAuthHandler()
-	client := auth.NewClient(token)
-	client.AutoRetry = true
+	client := spotify.New(auth.Client(ctx, token))
 
 	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
@@ -254,7 +261,7 @@ func (user *User) updateImageDataFromSpotify() error {
 			rows.Close()
 			return errors.New("Failed to fetch artist")
 		}
-		res, err := client.Search(name, spotify.SearchTypeArtist)
+		res, err := client.Search(ctx, name, spotify.SearchTypeArtist)
 		if len(res.Artists.Artists) > 0 {
 			if len(res.Artists.Artists[0].Images) > 0 {
 				toUpdate[uuid] = res.Artists.Artists[0].Images[0].URL
@@ -298,7 +305,7 @@ func (user *User) updateImageDataFromSpotify() error {
 			rows.Close()
 			return errors.New("Failed to fetch album")
 		}
-		res, err := client.Search(name, spotify.SearchTypeAlbum)
+		res, err := client.Search(ctx, name, spotify.SearchTypeAlbum)
 		if len(res.Albums.Albums) > 0 {
 			if len(res.Albums.Albums[0].Images) > 0 {
 				toUpdate[uuid] = res.Albums.Albums[0].Images[0].URL
