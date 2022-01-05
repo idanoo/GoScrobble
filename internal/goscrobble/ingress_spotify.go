@@ -17,7 +17,7 @@ import (
 // updateSpotifyData - Pull data for all users
 func updateSpotifyData() {
 	// Lets ignore if not configured
-	val, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	val, _ := getConfigValue("SPOTIFY_API_SECRET")
 	if val == "" {
 		return
 	}
@@ -35,8 +35,8 @@ func updateSpotifyData() {
 }
 
 func getSpotifyAuthHandler() spotify.Authenticator {
-	appId, _ := getConfigValue("SPOTIFY_APP_ID")
-	appSecret, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	appId, _ := getConfigValue("SPOTIFY_API_ID")
+	appSecret, _ := getConfigValue("SPOTIFY_API_SECRET")
 
 	redirectUrl := os.Getenv("GOSCROBBLE_DOMAIN") + "/api/v1/link/spotify"
 	if redirectUrl == "http://localhost:3000/api/v1/link/spotify" {
@@ -217,7 +217,7 @@ func ParseSpotifyInput(userUUID string, data spotify.RecentlyPlayedItem, client 
 // updateImageDataFromSpotify update artist/album images from spotify ;D
 func (user *User) updateImageDataFromSpotify() error {
 	// Check that data is set before we attempt to pull
-	val, _ := getConfigValue("SPOTIFY_APP_SECRET")
+	val, _ := getConfigValue("SPOTIFY_API_SECRET")
 	if val == "" {
 		return nil
 	}

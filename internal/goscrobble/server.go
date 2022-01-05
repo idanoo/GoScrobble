@@ -702,7 +702,7 @@ func postSpotifyReponse(w http.ResponseWriter, r *http.Request) {
 
 // getSpotifyClientID - Returns public spotify APP ID
 func getSpotifyClientID(w http.ResponseWriter, r *http.Request, claims CustomClaims, v string) {
-	key, err := getConfigValue("SPOTIFY_APP_ID")
+	key, err := getConfigValue("SPOTIFY_API_ID")
 	if err != nil {
 		throwOkError(w, "Failed to get Spotify ID")
 		return
