@@ -72,6 +72,8 @@ func HandleRequests(port string) {
 
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/recent", limitMiddleware(handleRecentScrobbles, lightLimiter)).Methods("GET")
+
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/artists/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
@@ -843,4 +845,16 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	js, _ := json.Marshal(&info)
 	w.WriteHeader(http.StatusOK)
 	w.Write(js)
+}
+
+func handleRecentScrobbles(w http.ResponseWriter, r *http.Request) {
+	scrobbleList, err := getRecentScrobbles()
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&scrobbleList)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
 }

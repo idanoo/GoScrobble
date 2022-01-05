@@ -1,6 +1,7 @@
 # 0.1.2
 - Add docker-compose file for local dev
 - Implemented top listeners for artist/album endpoints to match track
+- Add recent endpoint
 
 # 0.1.1
 - Cached all config values

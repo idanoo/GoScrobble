@@ -302,7 +302,7 @@ func getTopUsersForTrackUUID(trackUUID string, limit int, page int) (TopUserResp
 	var count int
 
 	total, err := getDbCount(
-		"SELECT COUNT(*) FROM `scrobbles` WHERE `track` = UUID_TO_BIN(?, true) GROUP BY `track`, `user`", trackUUID)
+		"SELECT COUNT(*) FROM `scrobbles` WHERE `track` = UUID_TO_BIN(?, true)", trackUUID)
 
 	if err != nil {
 		log.Printf("Failed to fetch scrobble count: %+v", err)

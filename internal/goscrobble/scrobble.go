@@ -35,6 +35,7 @@ type ScrobbleResponseItem struct {
 	Album     string            `json:"album"`
 	Track     ScrobbleTrackItem `json:"track"`
 	Source    string            `json:"source"`
+	User      ScrobbleTrackItem `json:"user"`
 }
 
 type ScrobbleTrackItem struct {
@@ -126,4 +127,50 @@ func checkIfScrobbleExists(userUuid string, timestamp time.Time, source string) 
 	}
 
 	return count != 0
+}
+
+func getRecentScrobbles() (ScrobbleResponse, error) {
+	scrobbleReq := ScrobbleResponse{}
+	var count int
+	limit := 50
+
+	rows, err := db.Query(
+		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, `albums`.`name`, BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, `scrobbles`.`source`, BIN_TO_UUID(`scrobbles`.`user`, true), `users`.`username` FROM `scrobbles` "+
+			"JOIN tracks ON scrobbles.track = tracks.uuid "+
+			"JOIN track_artist ON track_artist.track = tracks.uuid "+
+			"JOIN track_album ON track_album.track = tracks.uuid "+
+			"JOIN artists ON track_artist.artist = artists.uuid "+
+			"JOIN albums ON track_album.album = albums.uuid "+
+			"JOIN users ON scrobbles.user = users.uuid "+
+			"GROUP BY scrobbles.uuid, albums.uuid "+
+			"ORDER BY scrobbles.created_at DESC LIMIT ?", limit)
+
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return scrobbleReq, errors.New("Failed to fetch scrobbles")
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		item := ScrobbleResponseItem{}
+		err := rows.Scan(&item.UUID, &item.Timestamp, &item.Artist.UUID, &item.Artist.Name, &item.Album, &item.Track.UUID, &item.Track.Name, &item.Source, &item.User.UUID, &item.User.Name)
+		if err != nil {
+			log.Printf("Failed to fetch scrobbles: %+v", err)
+			return scrobbleReq, errors.New("Failed to fetch scrobbles")
+		}
+		count++
+		scrobbleReq.Items = append(scrobbleReq.Items, item)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		log.Printf("Failed to fetch scrobbles: %+v", err)
+		return scrobbleReq, errors.New("Failed to fetch scrobbles")
+	}
+
+	scrobbleReq.Meta.Count = count
+	scrobbleReq.Meta.Total = 50
+	scrobbleReq.Meta.Page = 1
+
+	return scrobbleReq, nil
 }
