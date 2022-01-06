@@ -126,8 +126,13 @@ func getArtistByUUID(uuid string) (Artist, error) {
 	return artist, nil
 }
 
-func getTopArtists(userUuid string) (TopArtists, error) {
+func getTopArtists(userUuid string, dayRange string) (TopArtists, error) {
 	var topArtist TopArtists
+
+	dateClause := ""
+	if dayRange != "" {
+		dateClause = " AND DATE(created_at) > SUBDATE(CURRENT_DATE, " + dayRange + ") "
+	}
 
 	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) "+
 		"FROM `scrobbles` "+
@@ -135,6 +140,7 @@ func getTopArtists(userUuid string) (TopArtists, error) {
 		"JOIN track_artist ON track_artist.track = tracks.uuid "+
 		"JOIN artists ON track_artist.artist = artists.uuid "+
 		"WHERE `scrobbles`.`user` = UUID_TO_BIN(?, true) "+
+		dateClause+
 		"GROUP BY `artists`.`uuid` "+
 		"ORDER BY count(*) DESC "+
 		"LIMIT 14;",

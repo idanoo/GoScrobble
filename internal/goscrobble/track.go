@@ -184,8 +184,13 @@ func getTrackByUUID(uuid string) (Track, error) {
 	return track, nil
 }
 
-func getTopTracks(userUuid string) (TopTracks, error) {
+func getTopTracks(userUuid string, dayRange string) (TopTracks, error) {
 	var topTracks TopTracks
+
+	dateClause := ""
+	if dayRange != "" {
+		dateClause = " AND DATE(created_at) > SUBDATE(CURRENT_DATE, " + dayRange + ") "
+	}
 
 	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, IFNULL(BIN_TO_UUID(`albums`.`uuid`, true),''), count(*) "+
 		"FROM `scrobbles` "+
@@ -193,10 +198,12 @@ func getTopTracks(userUuid string) (TopTracks, error) {
 		"JOIN track_album ON track_album.track = tracks.uuid "+
 		"JOIN albums ON track_album.album = albums.uuid "+
 		"WHERE `user` = UUID_TO_BIN(?, true) "+
+		dateClause+
 		"GROUP BY `scrobbles`.`track` "+
 		"ORDER BY count(*) DESC "+
 		"LIMIT 14",
 		userUuid)
+
 	if err != nil {
 		log.Printf("Failed to fetch top tracks: %+v", err)
 		return topTracks, errors.New("Failed to fetch top tracks")

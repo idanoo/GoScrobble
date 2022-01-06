@@ -77,16 +77,17 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/profile/{username}", limitMiddleware(getProfile, lightLimiter)).Methods("GET")
 
 	v1.HandleFunc("/artists/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/artists/top/{uuid}/{days:[0-9]+}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/artists/{uuid}", limitMiddleware(getArtist, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/artists/{uuid}/top", limitMiddleware(getTopUsersForArtist, lightLimiter)).Methods("GET")
 
-	v1.HandleFunc("/albums/top/{uuid}", limitMiddleware(getArtists, lightLimiter)).Methods("GET")
+	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")               // User UUID - Top Tracks
+	v1.HandleFunc("/tracks/top/{uuid}/{days:[0-9]+}", limitMiddleware(getTracks, lightLimiter)).Methods("GET") // User UUID - Top Tracks (With Date)
+	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")                    // Track UUID
+	v1.HandleFunc("/tracks/{uuid}/top", limitMiddleware(getTopUsersForTrack, lightLimiter)).Methods("GET")     // TrackUUID - Top Listeners
+
 	v1.HandleFunc("/albums/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/albums/{uuid}/top", limitMiddleware(getTopUsersForAlbum, lightLimiter)).Methods("GET")
-
-	v1.HandleFunc("/tracks/top/{uuid}", limitMiddleware(getTracks, lightLimiter)).Methods("GET")           // User UUID - Top Tracks
-	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")                // Track UUID
-	v1.HandleFunc("/tracks/{uuid}/top", limitMiddleware(getTopUsersForTrack, lightLimiter)).Methods("GET") // TrackUUID - Top Listeners
 
 	v1.HandleFunc("/register", limitMiddleware(handleRegister, heavyLimiter)).Methods("POST")
 	v1.HandleFunc("/login", limitMiddleware(handleLogin, standardLimiter)).Methods("POST")
@@ -594,18 +595,21 @@ func getTrack(w http.ResponseWriter, r *http.Request) {
 // getArtists - Returns artist data for a user
 func getArtists(w http.ResponseWriter, r *http.Request) {
 	var uuid string
+
+	dayRange := ""
 	for k, v := range mux.Vars(r) {
 		if k == "uuid" {
 			uuid = v
+		} else if k == "days" {
+			dayRange = v
 		}
 	}
-
 	if uuid == "" {
 		throwOkError(w, "Invalid UUID")
 		return
 	}
 
-	track, err := getTopArtists(uuid)
+	track, err := getTopArtists(uuid, dayRange)
 	if err != nil {
 		throwOkError(w, err.Error())
 		return
@@ -616,37 +620,16 @@ func getArtists(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
-// getAlbums - Returns album data for a user
-func getAlbums(w http.ResponseWriter, r *http.Request) {
-	var uuid string
-	for k, v := range mux.Vars(r) {
-		if k == "uuid" {
-			uuid = v
-		}
-	}
-
-	if uuid == "" {
-		throwOkError(w, "Invalid UUID")
-		return
-	}
-
-	album, err := getAlbumByUUID(uuid)
-	if err != nil {
-		throwOkError(w, err.Error())
-		return
-	}
-
-	json, _ := json.Marshal(&album)
-	w.WriteHeader(http.StatusOK)
-	w.Write(json)
-}
-
 // getTracks - Returns track data for a user
 func getTracks(w http.ResponseWriter, r *http.Request) {
 	var uuid string
+
+	dayRange := ""
 	for k, v := range mux.Vars(r) {
 		if k == "uuid" {
 			uuid = v
+		} else if k == "days" {
+			dayRange = v
 		}
 	}
 
@@ -655,7 +638,7 @@ func getTracks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	track, err := getTopTracks(uuid)
+	track, err := getTopTracks(uuid, dayRange)
 	if err != nil {
 		throwOkError(w, err.Error())
 		return
@@ -838,7 +821,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.1.2",
+		Version:             "0.1.3",
 		RegistrationEnabled: registrationEnabled,
 	}
 

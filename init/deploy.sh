@@ -6,9 +6,13 @@ cd /var/www/goscrobble-api
 git pull
 
 echo 'Building backend'
-go build -o goscrobble cmd/go-scrobble/*.go
+go build -o goscrobble cmd/goscrobble/*.go
 
+
+echo 'Fetching lastest frontend commit'
 cd /var/www/goscrobble-web
+git pull
+
 echo 'Installing frontend packages'
 npm install --production
 
