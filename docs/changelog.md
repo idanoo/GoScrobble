@@ -1,5 +1,8 @@
-# 0.1.3
+# 0.1.4
 -
+
+# 0.1.3
+- Added date ranges to profile scrobbles
 
 # 0.1.2
 - Add docker-compose file for local dev
