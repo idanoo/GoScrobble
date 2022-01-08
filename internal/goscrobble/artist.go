@@ -72,8 +72,14 @@ func insertArtist(name string, mbid string, spotifyId string, img string, tx *sq
 
 	if artist.Img == "" {
 		if img != "" {
-			artist.Img = img
-			artist.updateArtist("img", img, tx)
+			err := importImage(artist.UUID, img)
+			if err != nil {
+				log.Printf("Failed to import image: %+v. For Album: %s", err, artist.Name)
+				return artist, nil
+			}
+
+			artist.Img = "pending"
+			_ = artist.updateArtist("img", "pending", tx)
 		}
 	}
 

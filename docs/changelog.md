@@ -1,5 +1,9 @@
+# 0.1.4
+- Fix spotify image import on scrobble for new artists/albums
+- Create image resizer
+
 # 0.1.3
--
+- Added date ranges to profile scrobbles
 
 # 0.1.2
 - Add docker-compose file for local dev

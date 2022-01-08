@@ -3,8 +3,11 @@ package goscrobble
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+
+	"github.com/disintegration/imaging"
 )
 
 func importImage(uuid string, url string) error {
@@ -33,13 +36,67 @@ func importImage(uuid string, url string) error {
 		return err
 	}
 
-	// Goroutine the resize to keep it _faaaast_
-	go resizeImage(uuid)
 	return nil
 }
 
-func resizeImage(uuid string) {
-	// resize to 300x300 and maybe smaller?
+func resizeImages() {
+	resizeBulk("artists")
+	resizeBulk("albums")
+}
 
-	return
+func resizeBulk(recordType string) {
+	// Fetch pending 500 at a time cause we do it every minute anyway
+	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true) FROM `" + recordType + "` WHERE `img` = 'pending' LIMIT 500")
+	if err != nil {
+		log.Printf("Failed to get pending images: %+v", err)
+		return
+	}
+
+	// Fetch pending 100 at a time
+	for rows.Next() {
+		var uuid string
+		err := rows.Scan(&uuid)
+		if err != nil {
+			log.Printf("Failed to fetch record image resize: %+v", err)
+			rows.Close()
+			return
+		}
+
+		// Run the resize to 300px
+		success := resizeImage(uuid, 300)
+		if !success {
+			// If we get an error.. lets just remove the image link for now so it can reimport
+			_, err = db.Exec("UPDATE `"+recordType+"` SET `img` = NULL WHERE `uuid` = UUID_TO_BIN(?,true)", uuid)
+		} else {
+			// Update DB to reflect complete
+			_, err = db.Exec("UPDATE `"+recordType+"` SET `img` = 'complete' WHERE `uuid` = UUID_TO_BIN(?,true)", uuid)
+		}
+	}
+
+	rows.Close()
+}
+
+func resizeAlbums() {
+
+}
+
+func resizeImage(uuid string, size int) bool {
+	// Open source image
+	src, err := imaging.Open(DataDirectory + string(os.PathSeparator) + "img" + string(os.PathSeparator) + uuid + "_full.jpg")
+	if err != nil {
+		log.Printf("Failed to open image: %+v", err)
+		return false
+	}
+
+	// Resize image to specified size
+	resizedImage := imaging.Resize(src, size, size, imaging.Lanczos)
+
+	// Save resized image
+	err = imaging.Save(resizedImage, DataDirectory+string(os.PathSeparator)+"img"+string(os.PathSeparator)+uuid+"_300px.jpg")
+	if err != nil {
+		log.Printf("failed to save image: %v", err)
+		return false
+	}
+
+	return true
 }
