@@ -1,3 +1,6 @@
+# 0.1.51
+- Fixed image resize to maintain aspect ratio
+
 # 0.1.5
 - Add image upload endpoints for artist/albums @ v1/albums/{uuid}/upload
 
