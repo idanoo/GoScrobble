@@ -66,6 +66,32 @@ func jwtMiddleware(next func(http.ResponseWriter, *http.Request, CustomClaims, s
 	}
 }
 
+// modMiddleware - Validates user is admin OR mod
+func modMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fullToken := r.Header.Get("Authorization")
+		authToken := strings.Replace(fullToken, "Bearer ", "", 1)
+		claims, err := verifyJWTToken(authToken)
+		if err != nil {
+			throwUnauthorized(w, "Invalid JWT Token")
+			return
+		}
+
+		user, err := getUserByUUID(claims.Subject)
+		if err != nil {
+			throwUnauthorized(w, err.Error())
+			return
+		}
+
+		if !user.Admin && !user.Mod {
+			throwUnauthorized(w, "User is not moderator or administrator")
+			return
+		}
+
+		next(w, r, claims.Subject)
+	}
+}
+
 // adminMiddleware - Validates user is admin
 func adminMiddleware(next func(http.ResponseWriter, *http.Request, string)) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

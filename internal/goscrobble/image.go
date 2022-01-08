@@ -3,12 +3,37 @@ package goscrobble
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"os"
 
 	"github.com/disintegration/imaging"
 )
+
+func importUploadedImage(file multipart.File, uuid string, recordType string) error {
+	// Create image
+	out, err := os.Create(DataDirectory + string(os.PathSeparator) + "img" + string(os.PathSeparator) + uuid + "_full.jpg")
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	fileBytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return err
+	}
+
+	// Write image
+	_, err = out.Write(fileBytes)
+	if err == nil {
+		// Make sure we queue it to process!
+		_, err = db.Exec("UPDATE `"+recordType+"` SET `img` = 'pending' WHERE `uuid` = UUID_TO_BIN(?,true)", uuid)
+	}
+
+	return err
+}
 
 func importImage(uuid string, url string) error {
 	// Create image

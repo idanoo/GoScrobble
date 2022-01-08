@@ -1,3 +1,6 @@
+# 0.1.5
+- Add image upload endpoints for artist/albums @ v1/albums/{uuid}/upload
+
 # 0.1.4
 - Fix spotify image import on scrobble for new artists/albums
 - Create image resizer

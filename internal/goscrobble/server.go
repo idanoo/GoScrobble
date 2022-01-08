@@ -70,6 +70,10 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(getConfig), standardLimiter)).Methods("GET")
 	v1.HandleFunc("/config", limitMiddleware(adminMiddleware(postConfig), standardLimiter)).Methods("POST")
 
+	// Image uploads - Mod+
+	v1.HandleFunc("/artists/{uuid}/upload", limitMiddleware(modMiddleware(handleArtistUpload), heavyLimiter)).Methods("POST")
+	v1.HandleFunc("/albums/{uuid}/upload", limitMiddleware(modMiddleware(handleAlbumUpload), heavyLimiter)).Methods("POST")
+
 	// No Auth
 	v1.HandleFunc("/stats", limitMiddleware(handleStats, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/recent", limitMiddleware(handleRecentScrobbles, lightLimiter)).Methods("GET")
@@ -840,4 +844,102 @@ func handleRecentScrobbles(w http.ResponseWriter, r *http.Request) {
 	json, _ := json.Marshal(&scrobbleList)
 	w.WriteHeader(http.StatusOK)
 	w.Write(json)
+}
+
+// handleArtistUpload - Image uploads!
+func handleArtistUpload(w http.ResponseWriter, r *http.Request, jwtUser string) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	// Little bit of validation
+	_, err := getArtistByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	// 10MB Maximum...
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		log.Print(err)
+		throwOkError(w, "Error processing upload")
+		return
+	}
+
+	// Get files from request
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		log.Print(err)
+		throwOkError(w, "Error processing upload")
+		return
+	}
+	defer file.Close()
+
+	// Upload ze file
+	err = importUploadedImage(file, uuid, "artists")
+	if err != nil {
+		log.Println(err)
+		throwBadReq(w, "Error processing upload")
+		return
+	}
+
+	throwOkMessage(w, "Successfully uploaded!")
+}
+
+// handleAlbumUpload - Image uploads!
+func handleAlbumUpload(w http.ResponseWriter, r *http.Request, jwtUser string) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	// Little bit of validation
+	_, err := getAlbumByUUID(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	// 10MB Maximum...
+	err = r.ParseMultipartForm(10 << 20)
+	if err != nil {
+		log.Print(err)
+		throwOkError(w, "Error processing upload")
+		return
+	}
+
+	// Get files from request
+	file, _, err := r.FormFile("file")
+	if err != nil {
+		log.Print(err)
+		throwOkError(w, "Error processing upload")
+		return
+	}
+	defer file.Close()
+
+	// Upload ze file
+	err = importUploadedImage(file, uuid, "albums")
+	if err != nil {
+		log.Println(err)
+		throwBadReq(w, "Error processing upload")
+		return
+	}
+
+	throwOkMessage(w, "Successfully uploaded!")
 }

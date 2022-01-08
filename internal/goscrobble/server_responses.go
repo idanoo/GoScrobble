@@ -27,7 +27,7 @@ func throwBadReq(w http.ResponseWriter, m string) {
 	http.Error(w, err.Error(), http.StatusBadRequest)
 }
 
-// throwOkError - Throws a 403
+// throwOkError - Throws a 200 error
 func throwOkError(w http.ResponseWriter, m string) {
 	jr := jsonResponse{
 		Err: m,
