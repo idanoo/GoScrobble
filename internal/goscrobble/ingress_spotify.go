@@ -270,8 +270,9 @@ func (user *User) updateImageDataFromSpotify() {
 			if len(res.Artists.Artists[0].Images) > 0 {
 				toUpdate[uuid] = res.Artists.Artists[0].Images[0].URL
 			}
+		} else {
+			_, _ = db.Exec("UPDATE `artists` SET `img` = 'none' WHERE `uuid` = UUID_TO_BIN(?,true)", uuid)
 		}
-
 	}
 	rows.Close()
 
@@ -314,8 +315,9 @@ func (user *User) updateImageDataFromSpotify() {
 			if len(res.Albums.Albums[0].Images) > 0 {
 				toUpdate[uuid] = res.Albums.Albums[0].Images[0].URL
 			}
+		} else {
+			_, _ = db.Exec("UPDATE `albums` SET `img` = 'none' WHERE `uuid` = UUID_TO_BIN(?,true)", uuid)
 		}
-
 	}
 	rows.Close()
 

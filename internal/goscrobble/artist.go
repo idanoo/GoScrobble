@@ -132,6 +132,7 @@ func getArtistByUUID(uuid string) (Artist, error) {
 	return artist, nil
 }
 
+// getTopArtists - 0 UUID will return all
 func getTopArtists(userUuid string, dayRange string) (TopArtists, error) {
 	var topArtist TopArtists
 
@@ -140,17 +141,21 @@ func getTopArtists(userUuid string, dayRange string) (TopArtists, error) {
 		dateClause = " AND DATE(created_at) > SUBDATE(CURRENT_DATE, " + dayRange + ") "
 	}
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) "+
-		"FROM `scrobbles` "+
-		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` "+
-		"JOIN track_artist ON track_artist.track = tracks.uuid "+
-		"JOIN artists ON track_artist.artist = artists.uuid "+
-		"WHERE `scrobbles`.`user` = UUID_TO_BIN(?, true) "+
-		dateClause+
-		"GROUP BY `artists`.`uuid` "+
-		"ORDER BY count(*) DESC "+
-		"LIMIT 14;",
-		userUuid)
+	whereClause := ""
+	if userUuid != "0" {
+		whereClause = "WHERE `scrobbles`.`user` = UUID_TO_BIN('" + userUuid + "', true) "
+	}
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) " +
+		"FROM `scrobbles` " +
+		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` " +
+		"JOIN track_artist ON track_artist.track = tracks.uuid " +
+		"JOIN artists ON track_artist.artist = artists.uuid " +
+		whereClause +
+		dateClause +
+		"GROUP BY `artists`.`uuid` " +
+		"ORDER BY count(*) DESC " +
+		"LIMIT 14;")
 	if err != nil {
 		log.Printf("Failed to fetch top artist: %+v", err)
 		return topArtist, errors.New("Failed to fetch top artist")
