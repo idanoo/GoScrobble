@@ -114,7 +114,7 @@ func resizeImage(uuid string, size int) bool {
 	}
 
 	// Resize image to specified size
-	resizedImage := imaging.Resize(src, size, size, imaging.Lanczos)
+	resizedImage := imaging.Resize(src, size, 0, imaging.Lanczos)
 
 	// Save resized image
 	err = imaging.Save(resizedImage, DataDirectory+string(os.PathSeparator)+"img"+string(os.PathSeparator)+uuid+"_300px.jpg")
