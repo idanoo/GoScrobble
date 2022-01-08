@@ -1,5 +1,6 @@
 # 0.1.4
--
+- Fix spotify image import on scrobble for new artists/albums
+- Create image resizer
 
 # 0.1.3
 - Added date ranges to profile scrobbles

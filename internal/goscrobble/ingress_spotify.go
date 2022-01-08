@@ -324,12 +324,14 @@ func (user *User) updateImageDataFromSpotify() {
 	for uuid, img := range toUpdate {
 		album, err = getAlbumByUUID(uuid)
 		err = importImage(uuid, img)
-
 		if err != nil {
 			continue
 		}
+
+		// Update
 		_ = album.updateAlbum("img", "pending", tx)
 	}
+
 	tx.Commit()
 
 	return
