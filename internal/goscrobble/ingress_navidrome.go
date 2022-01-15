@@ -177,7 +177,7 @@ func ParseNavidromeInput(userUUID string, data NavidromeNowPlaying, ip net.IP, t
 		return errors.New("Failed to map track")
 	}
 
-	setUserLastPlayed(userUUID, data.Title+":"+data.Album)
+	setUserLastPlayed(userUUID+fmt.Sprintf("%s", data.PlayerName), data.Title+":"+data.Album)
 
 	return nil
 }
