@@ -139,7 +139,7 @@ func validateNavidromeConnection(url string, username string, hash string, salt 
 // ParseNavidromeInput - Transform API data
 func ParseNavidromeInput(userUUID string, data NavidromeNowPlaying, ip net.IP, tx *sql.Tx) error {
 	// Custom cache key - never log the same song twice in a row for now... (:
-	lastPlayedTitle := getUserLastPlayed(userUUID)
+	lastPlayedTitle := getUserLastPlayed(userUUID + fmt.Sprintf("%s", data.PlayerName))
 	if lastPlayedTitle == data.Title+":"+data.Album {
 		// If it matches last played song, skip it
 		return nil

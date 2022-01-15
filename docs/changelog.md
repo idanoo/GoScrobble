@@ -1,3 +1,6 @@
+# 0.1.7
+- Fix navidrome logging 2x scrobbles if second player is paused
+
 # 0.1.6
 - Allow UUID of 0 in artists/{uuid}/top to return site-wide stats
 - Set images as failed if cannot find in spotify to prevent oversearching
