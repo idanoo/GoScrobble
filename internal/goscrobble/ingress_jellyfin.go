@@ -3,6 +3,7 @@ package goscrobble
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"net"
 	"time"
@@ -48,7 +49,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	// fmt.Printf("%+v", jf)
 
 	// Custom cache key - never log the same song twice in a row for now... (:
-	lastPlayedTitle := getUserLastPlayed(userUUID)
+	lastPlayedTitle := getUserLastPlayed(userUUID + fmt.Sprintf(":%s", jf.DeviceID))
 	if lastPlayedTitle == jf.Name+":"+jf.Album {
 		// If it matches last played song, skip it
 		return nil
@@ -103,7 +104,7 @@ func ParseJellyfinInput(userUUID string, jf JellyfinRequest, ip net.IP, tx *sql.
 	}
 
 	// Add cache key!
-	setUserLastPlayed(userUUID, jf.Name+":"+jf.Album)
+	setUserLastPlayed(userUUID+fmt.Sprintf(":%s", jf.DeviceID), jf.Name+":"+jf.Album)
 
 	return nil
 }
