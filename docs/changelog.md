@@ -1,3 +1,6 @@
+# 0.1.8
+- Add list of tracks on artist/album pages
+
 # 0.1.7
 - Fix navidrome logging 2x scrobbles if second player is paused
 - Fix jellyfin logging 2x scrobbles if 2 players are playing
