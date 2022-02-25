@@ -104,7 +104,6 @@ func getTrackWithArtists(name string, artists []string, album string, tx *sql.Tx
 			"WHERE `name` = ? AND BIN_TO_UUID(`track_artist`.`artist`, true) IN ('"+artistString+"') "+
 			"AND BIN_TO_UUID(`track_album`.`album`,true) = ? LIMIT 1",
 		name, album).Scan(&track.UUID, &track.Name, &track.Desc, &track.Img, &track.MusicBrainzID)
-
 	if err != nil {
 		if err != sql.ErrNoRows {
 			log.Printf("Error fetching tracks: %+v", err)
@@ -112,6 +111,78 @@ func getTrackWithArtists(name string, artists []string, album string, tx *sql.Tx
 	}
 
 	return track
+}
+
+// getAllTracksForAlbum - return all album tracks!
+func getAllTracksForAlbum(uuid string) (TopTracks, error) {
+	var topTracks TopTracks
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name` "+
+		"FROM `albums` "+
+		"JOIN `track_album` ON `track_album`.`album` = `albums`.`uuid` "+
+		"JOIN `tracks` ON `tracks`.`uuid` = `track_album`.`track` "+
+		"WHERE albums.uuid = UUID_TO_BIN(?, true)", uuid)
+
+	if err != nil {
+		log.Printf("Failed to fetch top tracks: %+v", err)
+		return topTracks, errors.New("Failed to fetch top tracks")
+	}
+	defer rows.Close()
+
+	i := 1
+	tempTracks := make(map[int]TopTrack)
+
+	for rows.Next() {
+		var track TopTrack
+		err := rows.Scan(&track.UUID, &track.Name)
+		if err != nil {
+			log.Printf("Failed to fetch track: %+v", err)
+			return topTracks, errors.New("Failed to fetch track")
+		}
+
+		tempTracks[i] = track
+		i++
+	}
+
+	topTracks.Tracks = tempTracks
+
+	return topTracks, nil
+}
+
+// getAllTracksForArtist - return all album tracks!
+func getAllTracksForArtist(uuid string) (TopTracks, error) {
+	var topTracks TopTracks
+
+	rows, err := db.Query("SELECT BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name` "+
+		"FROM `artists` "+
+		"JOIN `track_artist` ON `track_artist`.`artist` = `artists`.`uuid` "+
+		"JOIN `tracks` ON `tracks`.`uuid` = `track_artist`.`track` "+
+		"WHERE artists.uuid = UUID_TO_BIN(?,true)", uuid)
+
+	if err != nil {
+		log.Printf("Failed to fetch top tracks: %+v", err)
+		return topTracks, errors.New("Failed to fetch top tracks")
+	}
+	defer rows.Close()
+
+	i := 1
+	tempTracks := make(map[int]TopTrack)
+
+	for rows.Next() {
+		var track TopTrack
+		err := rows.Scan(&track.UUID, &track.Name)
+		if err != nil {
+			log.Printf("Failed to fetch track: %+v", err)
+			return topTracks, errors.New("Failed to fetch track")
+		}
+
+		tempTracks[i] = track
+		i++
+	}
+
+	topTracks.Tracks = tempTracks
+
+	return topTracks, nil
 }
 
 func insertNewTrack(track *Track, name string, length int, mbid string, spotifyId string, tx *sql.Tx) error {

@@ -89,6 +89,8 @@ func HandleRequests(port string) {
 	v1.HandleFunc("/tracks/top/{uuid}/{days:[0-9]+}", limitMiddleware(getTracks, lightLimiter)).Methods("GET") // User UUID - Top Tracks (With Date)
 	v1.HandleFunc("/tracks/{uuid}", limitMiddleware(getTrack, lightLimiter)).Methods("GET")                    // Track UUID
 	v1.HandleFunc("/tracks/{uuid}/top", limitMiddleware(getTopUsersForTrack, lightLimiter)).Methods("GET")     // TrackUUID - Top Listeners
+	v1.HandleFunc("/tracks/artist/{uuid}", limitMiddleware(getTracksForArtist, lightLimiter)).Methods("GET")   // ArtistUUID - All tracks
+	v1.HandleFunc("/tracks/album/{uuid}", limitMiddleware(getTracksForAlbum, lightLimiter)).Methods("GET")     // AlbumUUID - All tracks
 
 	v1.HandleFunc("/albums/{uuid}", limitMiddleware(getAlbum, lightLimiter)).Methods("GET")
 	v1.HandleFunc("/albums/{uuid}/top", limitMiddleware(getTopUsersForAlbum, lightLimiter)).Methods("GET")
@@ -653,6 +655,56 @@ func getTracks(w http.ResponseWriter, r *http.Request) {
 	w.Write(json)
 }
 
+// getTracksForArtist - Returns track data for an artist
+func getTracksForArtist(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	track, err := getAllTracksForArtist(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&track)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
+// getTracksForAlbum - Returns track data for an album
+func getTracksForAlbum(w http.ResponseWriter, r *http.Request) {
+	var uuid string
+	for k, v := range mux.Vars(r) {
+		if k == "uuid" {
+			uuid = v
+		}
+	}
+
+	if uuid == "" {
+		throwOkError(w, "Invalid UUID")
+		return
+	}
+
+	track, err := getAllTracksForAlbum(uuid)
+	if err != nil {
+		throwOkError(w, err.Error())
+		return
+	}
+
+	json, _ := json.Marshal(&track)
+	w.WriteHeader(http.StatusOK)
+	w.Write(json)
+}
+
 // getTopUsersForTrack - I suck at naming. Returns top users that have scrobbled this track.
 func getTopUsersForTrack(w http.ResponseWriter, r *http.Request) {
 	var uuid string
@@ -825,7 +877,7 @@ func getServerInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	info := ServerInfo{
-		Version:             "0.1.7",
+		Version:             "0.1.8",
 		RegistrationEnabled: registrationEnabled,
 	}
 
