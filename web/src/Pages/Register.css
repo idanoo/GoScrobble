@@ -1,0 +1,9 @@
+.registerFields {
+    width: 100%;
+}
+
+.registerButton {
+    height: 50px;
+    width: 100%;
+    margin-top:-5px;
+}

@@ -1,0 +1,26 @@
+.homeBanner {
+    margin-top: 30px;
+    margin-bottom: 50px;
+    width: 100%;
+    max-width: 1100px;
+}
+
+.homeBannerItem {
+    float: left;
+    text-align: center;
+    width: 25%;
+}
+
+.homeBannerItemLink {
+    color: #FFFFFF;
+    text-decoration: none;
+}
+
+.homeBannerItemLink:hover {
+    color: #666666;
+    text-decoration: none;
+}
+
+.homeBannerItemCount {
+    font-size: 1.9rem;
+}

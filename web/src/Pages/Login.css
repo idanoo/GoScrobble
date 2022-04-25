@@ -1,0 +1,9 @@
+.loginFields {
+    width: 100%;
+}
+
+.loginButton {
+    height: 50px;
+    width: 100%;
+    margin-top:-5px;
+}
