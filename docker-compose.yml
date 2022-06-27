@@ -4,7 +4,7 @@ services:
   frontend:
     image: node:16
     volumes:
-      - ../goscrobble-web:/app
+      - ./web:/app
     restart: always
     ports:
       - "127.0.0.1:3000:3000"
@@ -13,7 +13,7 @@ services:
     command: bash -c "cd /app && npm install && yarn start"
 
   backend:
-    image: golang:1.17
+    image: golang:1.18
     volumes:
       - ./:/app
     ports:

@@ -13,7 +13,6 @@ This is by no means recommended.. But during testing I somehow scrobbled movies.
     SET FOREIGN_KEY_CHECKS=1;
 
 
-
 Removing duplicates (based on same song played in same hour)
 
     -- backup stuff first

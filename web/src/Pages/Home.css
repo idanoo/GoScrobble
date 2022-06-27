@@ -1,0 +1,19 @@
+.homeText {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.subHomeText {
+    margin-top: -5px;
+    font-style: italic;
+    color: #CCC;
+    font-size: 1.4rem;
+}
+
+.homeContainer {
+    display: flex; /* or inline-flex */
+}
+
+.homeItem {
+    padding-top: 2em;
+}

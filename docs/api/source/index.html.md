@@ -6,8 +6,7 @@ language_tabs: # must be one of https://git.io/vQNgJ
 
 toc_footers:
   - <a href='https://goscrobble.com'>GoScrobble website</a>
-  - <a href='https://gitlab.com/goscrobble/goscrobble-api'>Backend Repository</a>
-  - <a href='https://gitlab.com/goscrobble/goscrobble-web'>Frontend Repository</a>
+  - <a href='https://gitlab.com/idanoo/goscrobble'>Repository</a>
 
 includes:
   - introduction

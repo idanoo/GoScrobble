@@ -1,0 +1,18 @@
+.profileDateRange {
+  text-align: center;
+  margin: -10px 0 15px 0;
+  font-size: 0.9em;
+  color: #CCCCCC;
+  cursor: pointer;
+}
+
+.profileDateRangeText {
+  margin: 0 10px 0 10px;
+}
+.profileDateRangeText:hover {
+  color: #666666;
+}
+
+.profileDateRangeActive {
+  color: #FFFFFF!important;
+}

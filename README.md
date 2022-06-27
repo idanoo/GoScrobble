@@ -2,11 +2,7 @@
 
 Golang based music scrobbler.
 
-Stack: Go 1.16+, Node 15+, React 17+, MySQL 8.0+, Redis
-
-There are prebuilt binaries/packages available.
-
-Copy .env.example to .env and set variables. You can use https://www.grc.com/passwords.htm to generate a JWT_SECRET.
+Stack: Go 1.18+, Node 15+, React 17+, MySQL 8.0+, Redis
 
 ## More documentation
 [Changelog](docs/changelog.md)

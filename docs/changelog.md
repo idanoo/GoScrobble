@@ -1,3 +1,6 @@
+# 0.2.0
+- Restructure back to single repo because it's a lot easier to handle
+
 # 0.1.8
 - Add list of tracks on artist/album pages
 
