@@ -48,7 +48,7 @@ func getSpotifyAuthHandler() spotifyauth.Authenticator {
 	setSpotifyEnvVars()
 	redirectUrl := os.Getenv("GOSCROBBLE_DOMAIN") + "/api/v1/link/spotify"
 	if redirectUrl == "http://localhost:3000/api/v1/link/spotify" {
-		// Handle backend on a different port
+		// Handle backend on a different port if running in dev-env
 		redirectUrl = "http://localhost:42069/api/v1/link/spotify"
 	}
 
@@ -249,7 +249,7 @@ func (user *User) updateImageDataFromSpotify() {
 	auth := getSpotifyAuthHandler()
 	client := spotify.New(auth.Client(ctx, token))
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err := db.Query(`SELECT uuid, name FROM artists WHERE COALESCE(img,'') NOT IN ('pending', 'complete') LIMIT 100`)
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return
@@ -294,7 +294,7 @@ func (user *User) updateImageDataFromSpotify() {
 	}
 	tx.Commit()
 
-	rows, err = db.Query("SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `albums` WHERE IFNULL(`img`,'') NOT IN ('pending', 'complete') LIMIT 100")
+	rows, err = db.Query("SELECT uuid, name FROM albums WHERE COALESCE(img,'') NOT IN ('pending', 'complete') LIMIT 100")
 	if err != nil {
 		log.Printf("Failed to fetch config: %+v", err)
 		return

@@ -1,5 +1,5 @@
 INSERT INTO
-    `config`(`key`, `value`)
+    config(key, value)
 VALUES
     ('SPOTIFY_API_ID', ''),
     ('SPOTIFY_API_SECRET', ''),

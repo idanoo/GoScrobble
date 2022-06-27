@@ -1,5 +1,5 @@
 version: "3.9"
-
+    
 services:
   frontend:
     image: node:16
@@ -16,29 +16,39 @@ services:
     image: golang:1.18
     volumes:
       - ./:/app
+      - data:/data
     ports:
       - "127.0.0.1:42069:42069"
     restart: always
-    command: bash -c "sleep 5 && cd /app && go mod tidy && go run cmd/goscrobble/*.go"
+    command: bash -c "cd /app && go mod tidy && go run cmd/goscrobble/*.go"
 
-  mysql:
-    image: mysql:8.0.27
-    command: --default-authentication-plugin=mysql_native_password --init-file /app/migrations/0_create_db.sql --sql_mode=
-    restart: always
-    cap_add:
-      - SYS_NICE
+  postgres:
+    image: postgres:14.1
     volumes:
-      - database-data:/var/lib/mysql
-      - ./migrations/0_create_db.sql:/app/migrations/0_create_db.sql
+      - database-data:/var/lib/postgresql/data/
     ports:
-      - "127.0.0.1:3306:3306"
+      - 5432:5432
+    restart: always
     environment:
-      - MYSQL_ROOT_PASSWORD=supersecretdatabasepassword1
+      - POSTGRES_USER=goscrobble
+      - POSTGRES_PASSWORD=supersecretdatabasepassword1
+      - POSTGRES_DB=goscrobble
 
   redis:
     image: redis:6.2
     ports:
       - "127.0.0.1:6379:6379"
 
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+
 volumes:
   database-data:
+  data:

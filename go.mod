@@ -31,6 +31,14 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/go-redis/redis/v8 v8.8.0
+	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/golang-migrate/migrate v3.5.4+incompatible
+	github.com/golang/protobuf v1.4.3 // indirect
+	github.com/google/uuid v1.2.0
+	github.com/gorilla/mux v1.8.0
+	github.com/joho/godotenv v1.3.0
+	github.com/lib/pq v1.10.4
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

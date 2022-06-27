@@ -59,8 +59,7 @@ func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse
 	var count int
 
 	// Yeah this isn't great. But for now.. it works! Cache later
-	total, err := getDbCount(
-		"SELECT COUNT(*) FROM `scrobbles` WHERE `user` = UUID_TO_BIN(?, true) ", userUuid)
+	total, err := getDbCount(`SELECT COUNT(*) FROM scrobbles WHERE "user" = $1`, userUuid)
 
 	if err != nil {
 		log.Printf("Failed to fetch scrobble count: %+v", err)
@@ -68,16 +67,16 @@ func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse
 	}
 
 	rows, err := db.Query(
-		"SELECT BIN_TO_UUID(`scrobbles`.`uuid`, true), `scrobbles`.`created_at`, BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, `albums`.`name`, BIN_TO_UUID(`tracks`.`uuid`, true), `tracks`.`name`, `scrobbles`.`source` FROM `scrobbles` "+
-			"JOIN tracks ON scrobbles.track = tracks.uuid "+
-			"JOIN track_artist ON track_artist.track = tracks.uuid "+
-			"JOIN track_album ON track_album.track = tracks.uuid "+
-			"JOIN artists ON track_artist.artist = artists.uuid "+
-			"JOIN albums ON track_album.album = albums.uuid "+
-			"JOIN users ON scrobbles.user = users.uuid "+
-			"WHERE user = UUID_TO_BIN(?, true) "+
-			"GROUP BY scrobbles.uuid, albums.uuid "+
-			"ORDER BY scrobbles.created_at DESC LIMIT ?",
+		`SELECT scrobbles.uuid, scrobbles.created_at, artists.uuid, artists.name, albums.name, tracks.uuid, tracks.name, scrobbles.source FROM scrobbles `+
+			`JOIN tracks ON scrobbles.track = tracks.uuid `+
+			`JOIN track_artist ON track_artist.track = tracks.uuid `+
+			`JOIN track_album ON track_album.track = tracks.uuid `+
+			`JOIN artists ON track_artist.artist = artists.uuid `+
+			`JOIN albums ON track_album.album = albums.uuid `+
+			`JOIN users ON scrobbles.user = users.uuid `+
+			`WHERE "user" = $1 `+
+			`GROUP BY scrobbles.uuid, albums.uuid `+
+			`ORDER BY scrobbles.created_at DESC LIMIT $2`,
 		userUuid, limit)
 
 	if err != nil {
@@ -111,14 +110,14 @@ func getScrobblesForUser(userUuid string, limit int, page int) (ScrobbleResponse
 }
 
 func insertNewScrobble(user string, track string, source string, timestamp time.Time, ip net.IP, tx *sql.Tx) error {
-	_, err := tx.Exec("INSERT INTO `scrobbles` (`uuid`, `created_at`, `created_ip`, `user`, `track`, `source`) "+
-		"VALUES (UUID_TO_BIN(?, true), ?, ?, UUID_TO_BIN(?, true), UUID_TO_BIN(?, true), ?)", newUUID(), timestamp, ip, user, track, source)
+	_, err := tx.Exec(`INSERT INTO scrobbles (uuid, created_at, created_ip, "user", track, source) `+
+		`VALUES ($1,$2,$3,$4,$5,$6)`, newUUID(), timestamp, ip.String(), user, track, source)
 
 	return err
 }
 
 func checkIfScrobbleExists(userUuid string, timestamp time.Time, source string) bool {
-	count, err := getDbCount("SELECT COUNT(*) FROM `scrobbles` WHERE `user` = UUID_TO_BIN(?, true) AND `created_at` = ? AND `source` = ?",
+	count, err := getDbCount(`SELECT COUNT(*) FROM scrobbles WHERE "user" = $1 AND created_at = $2 AND source = $3`,
 		userUuid, timestamp, source)
 
 	if err != nil {

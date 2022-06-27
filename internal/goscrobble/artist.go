@@ -89,7 +89,7 @@ func insertArtist(name string, mbid string, spotifyId string, img string, tx *sq
 func getArtistByCol(col string, val string, tx *sql.Tx) Artist {
 	var artist Artist
 	err := tx.QueryRow(
-		"SELECT BIN_TO_UUID(`uuid`, true), `name`, IFNULL(`desc`,''), IFNULL(`img`,''), `mbid`, `spotify_id` FROM `artists` WHERE `"+col+"` = ?",
+		`SELECT uuid, name, COALESCE(desc,''), COALESCE(img,''), mbid, spotify_id FROM artists WHERE "`+col+`" = $1`,
 		val).Scan(&artist.UUID, &artist.Name, &artist.Desc, &artist.Img, &artist.MusicBrainzID, &artist.SpotifyID)
 
 	if err != nil {
@@ -108,21 +108,21 @@ func insertNewArtist(artist *Artist, name string, mbid string, spotifyId string,
 	artist.SpotifyID = spotifyId
 	artist.Img = img
 
-	_, err := tx.Exec("INSERT INTO `artists` (`uuid`, `name`, `mbid`, `spotify_id`, `img`) "+
-		"VALUES (UUID_TO_BIN(?, true),?,?,?,?)", artist.UUID, artist.Name, artist.MusicBrainzID, artist.SpotifyID, artist.Img)
+	_, err := tx.Exec(`INSERT INTO artists (uuid, name, mbid, spotify_id, img) `+
+		`VALUES ($1,$2,$3,$4,$5)`, artist.UUID, artist.Name, artist.MusicBrainzID, artist.SpotifyID, artist.Img)
 
 	return err
 }
 
 func (artist *Artist) updateArtist(col string, val string, tx *sql.Tx) error {
-	_, err := tx.Exec("UPDATE `artists` SET `"+col+"` = ? WHERE `uuid` = UUID_TO_BIN(?,true)", val, artist.UUID)
+	_, err := tx.Exec(`UPDATE artists SET "`+col+`" = $1 WHERE uuid = $2`, val, artist.UUID)
 
 	return err
 }
 
 func getArtistByUUID(uuid string) (Artist, error) {
 	var artist Artist
-	err := db.QueryRow("SELECT BIN_TO_UUID(`uuid`, true), `name`, IFNULL(`desc`, ''), IFNULL(`img`,''), `mbid`, `spotify_id` FROM `artists` WHERE `uuid` = UUID_TO_BIN(?, true)",
+	err := db.QueryRow(`SELECT uuid, name, COALESCE(desc, ''), COALESCE(img,''), mbid, spotify_id FROM artists WHERE uuid = $1`,
 		uuid).Scan(&artist.UUID, &artist.Name, &artist.Desc, &artist.Img, &artist.MusicBrainzID, &artist.SpotifyID)
 
 	if err == sql.ErrNoRows {
@@ -136,26 +136,37 @@ func getArtistByUUID(uuid string) (Artist, error) {
 func getTopArtists(userUuid string, dayRange string) (TopArtists, error) {
 	var topArtist TopArtists
 
-	dateClause := ""
-	if dayRange != "" {
-		dateClause = " AND DATE(created_at) > SUBDATE(CURRENT_DATE, " + dayRange + ") "
-	}
+	// dateClause := ""
+	// if dayRange != "" {
+	// 	dateClause = " AND DATE(created_at) > SUBDATE(CURRENT_DATE, " + dayRange + ") "
+	// }
 
-	whereClause := ""
-	if userUuid != "0" {
-		whereClause = "WHERE `scrobbles`.`user` = UUID_TO_BIN('" + userUuid + "', true) "
-	}
+	// whereClause := ""
+	// if userUuid != "0" {
+	// 	whereClause = "WHERE `scrobbles`.`user` = UUID_TO_BIN('" + userUuid + "', true) "
+	// }
 
-	rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) " +
-		"FROM `scrobbles` " +
-		"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` " +
-		"JOIN track_artist ON track_artist.track = tracks.uuid " +
-		"JOIN artists ON track_artist.artist = artists.uuid " +
-		whereClause +
-		dateClause +
-		"GROUP BY `artists`.`uuid` " +
-		"ORDER BY count(*) DESC " +
-		"LIMIT 14;")
+	// rows, err := db.Query("SELECT BIN_TO_UUID(`artists`.`uuid`, true), `artists`.`name`, IFNULL(BIN_TO_UUID(`artists`.`uuid`, true),''), count(*) " +
+	// 	"FROM `scrobbles` " +
+	// 	"JOIN `tracks` ON `tracks`.`uuid` = `scrobbles`.`track` " +
+	// 	"JOIN track_artist ON track_artist.track = tracks.uuid " +
+	// 	"JOIN artists ON track_artist.artist = artists.uuid " +
+	// 	whereClause +
+	// 	dateClause +
+	// 	"GROUP BY `artists`.`uuid` " +
+	// 	"ORDER BY count(*) DESC " +
+	// 	"LIMIT 14;")
+	log.Println(userUuid)
+	rows, err := db.Query(`SELECT artists.uuid, artists.name, COALESCE(artists.uuid,''), count(*) `+
+		`FROM scrobbles `+
+		`JOIN tracks ON tracks.uuid = scrobbles.track `+
+		`JOIN track_artist ON track_artist.track = tracks.uuid `+
+		`JOIN artists ON track_artist.artist = artists.uuid `+
+		`WHERE scrobbles."user" = $1 `+
+		`GROUP BY artists.uuid `+
+		`ORDER BY count(*) DESC `+
+		`LIMIT 14;`,
+		userUuid)
 	if err != nil {
 		log.Printf("Failed to fetch top artist: %+v", err)
 		return topArtist, errors.New("Failed to fetch top artist")

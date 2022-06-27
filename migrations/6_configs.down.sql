@@ -1,1 +1,1 @@
-TRUNCATE `config`;
+TRUNCATE config;

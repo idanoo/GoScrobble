@@ -13,7 +13,7 @@ type Genre struct {
 func getGenreByUUID(uuid string) Genre {
 	var genre Genre
 	err := db.QueryRow(
-		"SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE `uuid` = UUID_TO_BIN(?,true)",
+		`SELECT uuid, name FROM artists WHERE uuid = $1`,
 		uuid).Scan(&genre.UUID, &genre.Name)
 
 	if err != nil {
@@ -28,7 +28,7 @@ func getGenreByUUID(uuid string) Genre {
 func getGenreByName(name string) Genre {
 	var genre Genre
 	err := db.QueryRow(
-		"SELECT BIN_TO_UUID(`uuid`, true), `name` FROM `artists` WHERE `name` = ?",
+		`SELECT uuid, name FROM artists WHERE name = $1`,
 		name).Scan(&genre.UUID, &genre.Name)
 
 	if err != nil {
@@ -41,7 +41,7 @@ func getGenreByName(name string) Genre {
 }
 
 func (genre *Genre) updateGenreName(name string, value string) error {
-	_, err := db.Exec("UPDATE `genres` SET `name` = ? WHERE uuid = UUID_TO_BIN(?, true)", name, genre.UUID)
+	_, err := db.Exec(`UPDATE genres SET name = $1 WHERE uuid = $2`, name, genre.UUID)
 
 	return err
 }
